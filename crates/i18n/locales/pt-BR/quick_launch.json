@@ -22,6 +22,7 @@
   "stop": "parar",
   "The command palette in a small window of its own: open it from anywhere with a key, type a few letters and press Enter to play, without opening Heronited.": "A paleta de comandos numa janelinha própria: abra de qualquer lugar com uma tecla, digite algumas letras e aperte Enter para jogar, sem abrir o Heronited.",
   "Where the desktop takes no shortcut from Heronited, bind a key to this command in its keyboard settings. It also starts Heronited when it is not running: {command}": "Onde o desktop não aceita atalhos do Heronited, associe uma tecla a este comando nas configurações de teclado dele. Ele também inicia o Heronited quando não está rodando: {command}",
+  "{key} already opens the command palette in Heronited.": "{key} já abre a paleta de comandos no Heronited.",
   "{key} already opens the quick launcher.": "{key} já abre o lançador rápido.",
   "{key} needs Ctrl, Alt or {logo} with it; only the F keys, Print Screen and Pause work alone or with just Shift.": "{key} precisa de Ctrl, Alt ou {logo} junto; só as teclas F, Print Screen e Pause funcionam sozinhas ou só com Shift."
 }
