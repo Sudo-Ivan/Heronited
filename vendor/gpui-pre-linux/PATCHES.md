@@ -50,6 +50,16 @@ through `[patch.crates-io]` in the workspace `Cargo.toml`. Changes, in
   does not manage. The focus reverts to the pointer root, so it goes back to
   the game when the window closes. Two fields on `X11WindowState`
   (`override_redirect`, `focus_on_map`) carry what `map_window` needs.
+- Wayland frame pacing (`src/linux/wayland/client.rs`, `src/linux/wayland/window.rs`):
+  Zed's open PR #65013 (https://github.com/zed-industries/zed/pull/65013), applied
+  unchanged. Compositors that apply a commit only once its buffer is rendered (KWin,
+  and Smithay-based ones like COSMIC's cosmic-comp, through `add_blocker`) hold the
+  frame callback back too, so a frame that misses a repaint delayed the next one by
+  a whole refresh and scrolling ran at half the frame rate (issue #374: smooth on
+  GNOME, choppy on COSMIC). When the compositor reports its refresh rate through
+  `wp_presentation`, the next frame now also starts about one refresh after the last
+  one began if no callback has come yet. Drop this change when a release includes
+  that PR.
 
 To update: copy the new release from `~/.cargo/registry/src/*/` over this
 folder (without its `Cargo.lock`) and apply these changes again.
