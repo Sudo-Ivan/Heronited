@@ -13,9 +13,9 @@ name: Release
 #   gh attestation verify <file> --repo Sudo-Ivan/Heronited
 # The publish job gathers them, signs them (secret MINISIGN_SECRET_KEY, see
 # scripts/sign-release.sh) and publishes them as one GitHub release. The
-# Flatpak bundle is not attached to the release (a bundle gets no updates):
-# it stays an artifact of the run, and a release whose Flatpak does not
-# build fails.
+# Flatpak bundle is listed in SHA256SUMS but gets no per-file signature (the
+# app never installs it: see sign-release.sh), and a release whose Flatpak
+# does not build fails.
 on:
   workflow_dispatch:
     inputs:
@@ -289,6 +289,10 @@ jobs:
         with:
           name: Heronited-windows
           path: dist
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: Heronited-flatpak
+          path: dist
       - name: minisign
         run: |
           # minisign signs the files for the in-app updater (pinned build).
@@ -338,7 +342,7 @@ jobs:
           # A short guide to the assets goes first: the .minisig and .zsync
           # files sit next to the downloads but are only for the updaters.
           cat > notes.md <<'EOF'
-          **Linux:** `Heronited-x86_64.AppImage` runs on any distribution (recommended). Or the package for your system: `.deb` (Debian, Ubuntu, Mint), `.rpm` (Fedora, openSUSE), `.pkg.tar.zst` (Arch, CachyOS).
+          **Linux:** `Heronited-x86_64.AppImage` runs on any distribution (recommended). `Heronited-x86_64.flatpak` installs as a Flatpak bundle. Or the package for your system: `.deb` (Debian, Ubuntu, Mint), `.rpm` (Fedora, openSUSE), `.pkg.tar.zst` (Arch, CachyOS).
 
           **Windows 10 and 11:** `Heronited-Setup-x86_64.exe` installs Heronited for your user, no administrator rights needed (recommended). `Heronited-Portable-x86_64.zip` runs from any folder you extract it to and keeps its library and settings in that folder.
           EOF
