@@ -13,7 +13,7 @@ heronite-launch = { path = "../launch" }
 heronite-emulation = { path = "../emulation" }
 serde = { version = "1", features = ["derive"] }
 serde_json = { version = "1", features = ["preserve_order", "float_roundtrip"] }
-serde-saphyr = { version = "1.3", default-features = false, features = ["deserialize"] }
+serde-saphyr = { version = "2.1", default-features = false, features = ["deserialize"] }
 anyhow = "1"
 log = "0.4"
 shlex = "1"
