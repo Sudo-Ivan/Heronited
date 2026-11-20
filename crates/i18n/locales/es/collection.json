@@ -591,5 +591,11 @@
   "{n} shows a crop on the desktop": "{n} muestra un recorte en el modo escritorio",
   "{n} show a crop on the desktop": "{n} muestran un recorte en el modo escritorio",
   "{n} shows another picture on the desktop": "{n} muestra otra imagen en el escritorio",
-  "{n} show another picture on the desktop": "{n} muestran otra imagen en el escritorio"
+  "{n} show another picture on the desktop": "{n} muestran otra imagen en el escritorio",
+  "Installer Backup Folder": "Carpeta de respaldo del instalador",
+  "Open installer backup": "Abrir el respaldo del instalador",
+  "Delete installer backup": "Eliminar el respaldo del instalador",
+  "Delete the GOG installer files of {title} in {dir}? The game stays installed; the files download again on a reinstall.": "¿Eliminar los archivos del instalador de GOG de {title} en {dir}? El juego sigue instalado; los archivos se descargan de nuevo en una reinstalación.",
+  "Delete": "Eliminar",
+  "Could not delete the backup: {error}": "No se pudo eliminar el respaldo: {error}"
 }

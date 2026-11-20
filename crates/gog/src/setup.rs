@@ -651,6 +651,7 @@ mod tests {
         touch(&dir.join("setup_the_game_1.5_(1)-1.bin"));
         let bundle = offline::Bundle {
             dir: dir.clone(),
+            fetched: 0,
             products: vec![offline::Product {
                 product_id: "42".into(),
                 version: "1.5".into(),

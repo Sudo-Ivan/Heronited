@@ -591,5 +591,11 @@
   "{n} shows a crop on the desktop": "{n} zeigt einen Zuschnitt im Desktop-Modus",
   "{n} show a crop on the desktop": "{n} zeigen einen Zuschnitt im Desktop-Modus",
   "{n} shows another picture on the desktop": "{n} zeigt auf dem Desktop ein anderes Bild",
-  "{n} show another picture on the desktop": "{n} zeigen auf dem Desktop ein anderes Bild"
+  "{n} show another picture on the desktop": "{n} zeigen auf dem Desktop ein anderes Bild",
+  "Installer Backup Folder": "Ordner der Installer-Sicherung",
+  "Open installer backup": "Installer-Sicherung öffnen",
+  "Delete installer backup": "Installer-Sicherung löschen",
+  "Delete the GOG installer files of {title} in {dir}? The game stays installed; the files download again on a reinstall.": "Die GOG-Installer-Dateien von {title} in {dir} löschen? Das Spiel bleibt installiert; die Dateien werden bei einer Neuinstallation erneut geladen.",
+  "Delete": "Löschen",
+  "Could not delete the backup: {error}": "Die Sicherung konnte nicht gelöscht werden: {error}"
 }

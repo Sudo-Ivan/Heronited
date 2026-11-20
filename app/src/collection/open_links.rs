@@ -30,6 +30,14 @@ impl CollectionView {
         self.open_external(move || xdg_open(&dir), cx);
     }
 
+    /// "Open installer backup": the folder the game's GOG offline
+    /// installers were downloaded to.
+    pub(super) fn open_gog_backup(&mut self, key: &str, cx: &mut Context<Self>) {
+        let Some(game) = self.lib.as_ref().and_then(|l| l.get(key)).cloned() else { return };
+        let Some(dir) = gog_backup_dir(&self.data_paths, &game.app_name) else { return };
+        self.open_folder(dir, cx);
+    }
+
     /// Plays a saved replay in the desktop's video player.
     pub(crate) fn open_replay(&mut self, path: PathBuf, cx: &mut Context<Self>) {
         self.open_external(
@@ -64,6 +72,11 @@ impl CollectionView {
         })
         .detach();
     }
+}
+
+/// The game's GOG offline-installer backup folder when it is still there.
+pub(super) fn gog_backup_dir(paths: &heronite_data::DataPaths, app_name: &str) -> Option<PathBuf> {
+    heronite_gog::installed::get(paths, app_name).and_then(|e| e.offline_installer_dir()).filter(|d| d.is_dir())
 }
 
 /// Opens the install folder of `game` (the ROM's folder for emulated games)

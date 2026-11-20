@@ -91,6 +91,10 @@ pub struct Bundle {
     /// `<dir>/<folder>` the parts sit in.
     pub dir: PathBuf,
     pub products: Vec<Product>,
+    /// Parts that arrived this run, downloaded or reused (`0` for one
+    /// read from `installers.json`): an update that brought no new file
+    /// needs no new setup run.
+    pub fetched: usize,
 }
 
 impl Bundle {
@@ -130,7 +134,7 @@ impl Bundle {
             }
             out.push(Product { product_id, version, parts });
         }
-        Some(Bundle { dir: dir.to_path_buf(), products: out })
+        Some(Bundle { dir: dir.to_path_buf(), products: out, fetched: 0 })
     }
 }
 
@@ -206,6 +210,35 @@ fn resolve(net: &dyn Net, token: &str, downlink: &str) -> Result<String> {
 /// `done` of the parts are already in `dir` at their expected size.
 fn present(dir: &Path, part: &Part) -> bool {
     part.size > 0 && std::fs::metadata(dir.join(&part.name)).map(|m| m.len() == part.size).unwrap_or(false)
+}
+
+/// A same-named file of the right size in another game's folder of the
+/// backup root (DLC installers are shared between products): it is linked
+/// into `dir` instead of downloaded again. A hard link keeps one copy on
+/// disk; a copy is the fallback across filesystems.
+fn reusable(root: &Path, dir: &Path, part: &Part) -> Option<PathBuf> {
+    if part.size == 0 {
+        return None;
+    }
+    for entry in std::fs::read_dir(root).ok()?.flatten() {
+        let candidate = entry.path().join(&part.name);
+        if entry.path().as_path() == dir || !candidate.is_file() {
+            continue;
+        }
+        if std::fs::metadata(&candidate).map(|m| m.len() == part.size).unwrap_or(false) {
+            return Some(candidate);
+        }
+    }
+    None
+}
+
+/// Links `from` onto `to`, copying when the link fails (cross-device).
+fn link_or_copy(from: &Path, to: &Path) -> std::io::Result<()> {
+    match std::fs::hard_link(from, to) {
+        Ok(()) => Ok(()),
+        Err(e) if e.kind() == std::io::ErrorKind::AlreadyExists => Err(e),
+        Err(_) => std::fs::copy(from, to).map(|_| ()),
+    }
 }
 
 /// Bytes/second-derived [`Progress`] of the whole download.
@@ -286,6 +319,8 @@ pub fn download(
     std::fs::create_dir_all(&dir).with_context(|| format!("creating {}", dir.display()))?;
 
     let started = Instant::now();
+    let root = backup_dir(paths);
+    let mut fetched = 0;
     let mut done: u64 = products.iter().flat_map(|p| p.parts.iter()).filter(|f| present(&dir, f)).map(|f| f.size).sum();
     for product in &products {
         for part in &product.parts {
@@ -296,6 +331,18 @@ pub fn download(
             if present(&dir, part) {
                 log::info!("keeping the already downloaded {}", part.name);
                 continue;
+            }
+            if let Some(sibling) = reusable(&root, &dir, part) {
+                match link_or_copy(&sibling, &dest) {
+                    Ok(()) => {
+                        log::info!("reused {} of {}", part.name, sibling.display());
+                        done += part.size;
+                        fetched += 1;
+                        report(done, total, started, on_progress);
+                        continue;
+                    }
+                    Err(e) => log::warn!("could not reuse {}: {e}", sibling.display()),
+                }
             }
             let url = resolve(net, &token, &part.downlink)?;
             let tmp = PathBuf::from(format!("{}.part", dest.display()));
@@ -326,7 +373,7 @@ pub fn download(
         }
     }
 
-    let bundle = Bundle { dir, products };
+    let bundle = Bundle { dir, products, fetched };
     bundle.save()?;
     report(total, total, started, on_progress);
     Ok(Outcome::Done(bundle))
@@ -451,6 +498,37 @@ mod tests {
         // The downlink of the kept part was never resolved, the exe untouched.
         assert!(!net.requests().iter().any(|r| r.contains("en1installer0")));
         assert_eq!(std::fs::metadata(game.join("setup_the_game_1.5_(64bit)_(1)-1.bin")).unwrap().len(), 40);
+    }
+
+    #[test]
+    fn a_part_another_game_has_is_reused_without_downloading() {
+        let (dir, paths) = setup();
+        std::fs::create_dir_all(paths.gog_auth().parent().unwrap()).unwrap();
+        let tool = fake_tool(dir.path()).otherwise(Reply::new().out(r#"{"access_token":"tok","user_id":"7"}"#));
+        let g = gogdl(&tool, &paths);
+        std::fs::create_dir_all(paths.global_config().parent().unwrap()).unwrap();
+        std::fs::write(
+            paths.global_config(),
+            json!({"defaultSettings": {"gogOfflineInstallerDir": dir.path().join("backups").display().to_string()}}).to_string(),
+        )
+        .unwrap();
+        // Another game's backup already holds the .bin at the right size.
+        let other = dir.path().join("backups/Other Game");
+        std::fs::create_dir_all(&other).unwrap();
+        std::fs::write(other.join("setup_the_game_1.5_(64bit)_(1)-1.bin"), vec![0u8; 40]).unwrap();
+        let doc = installer_doc(json!([windows_installer()]));
+        // Only the exe has a downlink answer: fetching the .bin would fail.
+        let net = FakeNet::online()
+            .with_json(PRODUCTS, doc)
+            .with_json("https://api.gog.com/products/42/downlink/installer/en1installer0", json!({"downlink": "https://cdn.gog.com/f0"}))
+            .with_file("https://cdn.gog.com/f0", vec![0u8; 20]);
+        let outcome = download(&paths, &g, &net, "42", "The Game", "windows", "en-US", &[], &Cancel::new(), &mut |_| {}).unwrap();
+        let Outcome::Done(bundle) = outcome else { panic!("expected Done, got {outcome:?}") };
+        let game = dir.path().join("backups/The Game");
+        assert_eq!(std::fs::metadata(game.join("setup_the_game_1.5_(64bit)_(1)-1.bin")).unwrap().len(), 40);
+        // The shared part never hit the network; it counts as arrived.
+        assert!(!net.requests().iter().any(|r| r.contains("en1installer1")));
+        assert_eq!(bundle.fetched, 2);
     }
 
     #[test]

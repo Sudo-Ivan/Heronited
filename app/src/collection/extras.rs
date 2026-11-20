@@ -327,6 +327,52 @@ impl CollectionView {
         self.open_dialog(view, cx);
     }
 
+    /// "Delete installer backup": asks, then removes the game's folder of
+    /// GOG offline installers. The game stays installed; a reinstall
+    /// downloads them again.
+    pub(super) fn open_gog_backup_delete(&mut self, key: &str, window: &mut Window, cx: &mut Context<Self>) {
+        let Some(game) = self.lib.as_ref().and_then(|l| l.get(key)).cloned() else { return };
+        let Some(dir) = super::open_links::gog_backup_dir(&self.data_paths, &game.app_name) else { return };
+        let mut spec = Confirm::new(
+            "gog-backup-delete",
+            tr!("Delete installer backup"),
+            tr!(
+                "Delete the GOG installer files of {title} in {dir}? The game stays installed; the files download again on a reinstall.",
+                title = game.title.clone(),
+                dir = dir.display().to_string()
+            ),
+        );
+        spec.confirm = Some(tr!("Delete").into());
+        spec.danger = true;
+        let weak = cx.entity().downgrade();
+        let view = cx.new(|cx| {
+            EpicConfirmDialog::new(
+                spec,
+                move |_, cx| {
+                    let dir = dir.clone();
+                    weak.update(cx, |this, cx| this.delete_gog_backup(dir, cx)).ok();
+                },
+                window,
+                cx,
+            )
+        });
+        self.open_dialog(view, cx);
+    }
+
+    fn delete_gog_backup(&mut self, dir: std::path::PathBuf, cx: &mut Context<Self>) {
+        cx.spawn(async move |this, cx| {
+            let res = cx.background_spawn(async move { std::fs::remove_dir_all(&dir) }).await;
+            this.update(cx, |this, cx| match res {
+                Ok(()) => this.reload(cx),
+                Err(e) => {
+                    this.show_toast(tr!("Could not delete the backup: {error}", error = e.to_string()), true, cx);
+                }
+            })
+            .ok();
+        })
+        .detach();
+    }
+
     pub(super) fn open_ludusavi_backup(&mut self, key: &str, cx: &mut Context<Self>) {
         let (Some(ctx), Some(game)) = (self.dialog_ctx(), self.lib.as_ref().and_then(|l| l.get(key)).cloned()) else { return };
         let target = LudusaviGame {

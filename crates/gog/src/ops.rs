@@ -222,6 +222,14 @@ impl GogJob {
             bail!(tr!("GOG Galaxy installed this game: update it in GOG Galaxy"));
         }
         let language = if entry.language.is_empty() { DEFAULT_LANGUAGE.to_string() } else { entry.language.clone() };
+        // A game installed from its backup installers gets fresh ones;
+        // the new setup runs at its next start. `None` = GOG lists none
+        // anymore, so the depot path updates the game.
+        if entry.offline_installer_dir().is_some() {
+            if let Some(done) = self.offline_update(&entry, &language, cancel, on_progress)? {
+                return Ok(done);
+            }
+        }
         let support = self.gogdl.support_dir(app);
         let args = Transfer {
             verb: "update",
@@ -251,6 +259,77 @@ impl GogJob {
         updates::forget(&self.paths, app);
         library::sync_install_state(&self.paths, app, None);
         Ok(true)
+    }
+
+    /// The update of a game installed from its offline backup: fresh
+    /// installer files join the backup and, when any arrived, the game's
+    /// first-launch setup is marked to run again — the new `setup`
+    /// installs over the old folder. `Ok(None)` = GOG lists no offline
+    /// installers for it: the depot update takes over.
+    fn offline_update(
+        &self,
+        entry: &Installed,
+        language: &str,
+        cancel: &Cancel,
+        on_progress: &mut dyn FnMut(Progress),
+    ) -> Result<Option<bool>> {
+        let app = entry.app_name.as_str();
+        let backup = entry.offline_installer_dir().unwrap_or_default();
+        // The folder's name below the backup root identifies the game.
+        let folder = Path::new(&backup).file_name().map(|f| f.to_string_lossy().into_owned()).unwrap_or_else(|| app.to_string());
+        let outcome = offline::download(
+            &self.paths,
+            &self.gogdl,
+            self.net.as_ref(),
+            app,
+            &folder,
+            os_name(&entry.platform),
+            language,
+            &entry.installed_dlcs,
+            cancel,
+            on_progress,
+        )?;
+        let bundle = match outcome {
+            offline::Outcome::NoInstallers => return Ok(None),
+            offline::Outcome::Cancelled => return Ok(Some(false)),
+            offline::Outcome::Done(bundle) => bundle,
+        };
+
+        let mut next = entry.clone();
+        match info::install_info_fresh(&self.paths, &self.gogdl, app, &entry.platform) {
+            Ok(details) => {
+                next.build_id = details.build_id;
+                next.version = details.version_name;
+                next.version_etag = details.version_etag;
+            }
+            Err(err) => log::warn!("reading the new build of GOG game {app}: {err:#}"),
+        }
+        next.extra.insert(installed::OFFLINE_DIR_KEY.into(), bundle.dir.display().to_string().into());
+        installed::upsert(&self.paths, &next)?;
+        if bundle.fetched > 0 {
+            self.unrecord_setup(app);
+        }
+        updates::forget(&self.paths, app);
+        library::sync_install_state(&self.paths, app, None);
+        Ok(Some(true))
+    }
+
+    /// Marks the game's first-launch setup to run again at its next start:
+    /// the record of a native run and the one of its Wine prefix.
+    fn unrecord_setup(&self, app: &str) {
+        heronite_launch::native_setup::forget(&self.paths, "gog", app);
+        let settings = heronite_launch::settings::load_game_settings(
+            &self.paths,
+            app,
+            &heronite_launch::PlanContext::load(&self.paths).global,
+            &heronite_launch::SystemProbe,
+        );
+        let prefix = settings.wine_prefix.trim().to_string();
+        if !prefix.is_empty() {
+            if let Err(e) = heronite_launch::first_launch::unrecord_game(&prefix, app) {
+                log::warn!("the setup of {app} stays marked done in {prefix}: {e}");
+            }
+        }
     }
 }
 
@@ -577,6 +656,89 @@ mod tests {
         assert_eq!(result.status, DmStatus::Done);
         assert!(calls_of(&tool).iter().any(|c| c.starts_with("download ")));
         assert!(installed::get(&paths, "42").unwrap().offline_installer_dir().is_none());
+    }
+
+    #[test]
+    fn an_offline_installed_game_updates_through_new_installers() {
+        let (dir, paths) = setup();
+        library_with_game(&paths);
+        std::fs::create_dir_all(paths.global_config().parent().unwrap()).unwrap();
+        std::fs::write(
+            paths.global_config(),
+            json!({"defaultSettings": {"gogOfflineInstallerDir": dir.path().join("backups").display().to_string()}}).to_string(),
+        )
+        .unwrap();
+        // The game was installed from its backup and set up already, in
+        // its Wine prefix and in the native record.
+        let backup = dir.path().join("backups/The Game");
+        std::fs::create_dir_all(&backup).unwrap();
+        let mut entry = Installed::new("42");
+        entry.platform = "windows".into();
+        entry.install_path = dir.path().join("Games/The Game").display().to_string();
+        entry.version = "1.0".into();
+        entry.language = "de-DE".into();
+        entry.extra.insert(installed::OFFLINE_DIR_KEY.into(), backup.display().to_string().into());
+        installed::upsert(&paths, &entry).unwrap();
+        let prefix = dir.path().join("prefix").display().to_string();
+        heronite_launch::first_launch::record_game(&prefix, "42").unwrap();
+        heronite_launch::native_setup::record(&paths, "gog", "42", &entry.install_path).unwrap();
+        heronite_data::game_config::set_game_setting(&paths, "42", "/home/u", "winePrefix", json!(prefix)).unwrap();
+
+        // gogdl's `update` would fail: the update must come from the API.
+        let tool = fake_gog(dir.path(), Reply::new().exit(9));
+        let result = net_job(&tool, &paths, offline_net()).run(
+            &element(ElementKind::Update, &dir.path().join("Games"), &[]),
+            &Cancel::new(),
+            &mut |_| {},
+        );
+        assert_eq!(result.status, DmStatus::Done, "{:?}", result.error);
+
+        // Fresh installer files joined the backup; no depot update ran.
+        assert!(backup.join("setup_the_game_(1).exe").exists());
+        assert!(backup.join("installers.json").exists());
+        assert!(calls_of(&tool).iter().all(|c| !c.starts_with("update ")), "{:?}", calls_of(&tool));
+        // The setup records are gone: the new installer runs at next start.
+        assert!(!heronite_launch::first_launch::is_recorded(&prefix, "42"));
+        assert!(!heronite_launch::native_setup::is_recorded(&paths, "gog", "42", &entry.install_path));
+        let next = installed::get(&paths, "42").unwrap();
+        assert_eq!(next.version.as_str(), "1.5");
+        assert_eq!(next.offline_installer_dir(), Some(backup));
+    }
+
+    #[test]
+    fn an_offline_update_without_new_files_leaves_the_setup_record() {
+        let (dir, paths) = setup();
+        library_with_game(&paths);
+        std::fs::create_dir_all(paths.global_config().parent().unwrap()).unwrap();
+        std::fs::write(
+            paths.global_config(),
+            json!({"defaultSettings": {"gogOfflineInstallerDir": dir.path().join("backups").display().to_string()}}).to_string(),
+        )
+        .unwrap();
+        // Everything the API lists is already in the backup.
+        let backup = dir.path().join("backups/The Game");
+        std::fs::create_dir_all(&backup).unwrap();
+        std::fs::write(backup.join("setup_the_game_(1).exe"), vec![0u8; 4]).unwrap();
+        std::fs::write(backup.join("setup_the_game_(1)-1.bin"), vec![0u8; 6]).unwrap();
+        let mut entry = Installed::new("42");
+        entry.platform = "windows".into();
+        entry.install_path = dir.path().join("Games/The Game").display().to_string();
+        entry.language = "de-DE".into();
+        entry.extra.insert(installed::OFFLINE_DIR_KEY.into(), backup.display().to_string().into());
+        installed::upsert(&paths, &entry).unwrap();
+        let prefix = dir.path().join("prefix").display().to_string();
+        heronite_launch::first_launch::record_game(&prefix, "42").unwrap();
+        heronite_data::game_config::set_game_setting(&paths, "42", "/home/u", "winePrefix", json!(prefix.clone())).unwrap();
+
+        let tool = fake_gog(dir.path(), Reply::new().exit(9));
+        let result = net_job(&tool, &paths, offline_net()).run(
+            &element(ElementKind::Update, &dir.path().join("Games"), &[]),
+            &Cancel::new(),
+            &mut |_| {},
+        );
+        assert_eq!(result.status, DmStatus::Done, "{:?}", result.error);
+        // Nothing new arrived: the recorded setup is not run again.
+        assert!(heronite_launch::first_launch::is_recorded(&prefix, "42"));
     }
 
     #[test]

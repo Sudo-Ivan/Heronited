@@ -20,6 +20,8 @@ pub(crate) enum FolderKind {
     Install,
     Emulator,
     Rom,
+    /// The GOG offline installers the game was installed from.
+    GogBackup,
 }
 
 impl FolderKind {
@@ -28,6 +30,7 @@ impl FolderKind {
             FolderKind::Install => tr!("Installation Folder"),
             FolderKind::Emulator => tr!("Emulator Folder"),
             FolderKind::Rom => tr!("ROM Folder"),
+            FolderKind::GogBackup => tr!("Installer Backup Folder"),
         }
     }
 }
@@ -60,7 +63,16 @@ pub(crate) fn game_folders(paths: &DataPaths, game: &CollectionGame) -> Vec<(Fol
             .flatten()
             .find_map(local_dir)
     };
-    dir.map(|d| vec![(FolderKind::Install, d)]).unwrap_or_default()
+    let mut out = dir.map(|d| vec![(FolderKind::Install, d)]).unwrap_or_default();
+    // The backup installers a GOG game was installed from stay for
+    // reinstalls; its folder opens from the Details panel like the rest.
+    if game.runner == "gog" {
+        let dir = heronite_gog::installed::get(paths, &game.app_name).and_then(|e| e.offline_installer_dir());
+        if let Some(dir) = dir.filter(|d| d.is_dir()) {
+            out.push((FolderKind::GogBackup, dir));
+        }
+    }
+    out
 }
 
 /// An absolute path that exists here, as a folder (a file gives its parent).

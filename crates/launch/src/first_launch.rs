@@ -99,6 +99,20 @@ pub fn record_game(prefix: &str, app_name: &str) -> std::io::Result<bool> {
     Ok(true)
 }
 
+/// Takes `app_name` out of the `installed_games` file of `prefix` (a new
+/// install or update runs its first-launch setup again).
+pub fn unrecord_game(prefix: &str, app_name: &str) -> std::io::Result<()> {
+    let file = Path::new(prefix).join("installed_games");
+    let mut games = recorded_games(prefix);
+    let had = games.len();
+    games.retain(|g| g != app_name);
+    if games.len() == had {
+        return Ok(());
+    }
+    let text = serde_json::to_string(&games).unwrap_or_else(|_| "[]".into());
+    heronite_data::temps::write_atomic(&file, text.as_bytes(), None)
+}
+
 /// The prefix folder the EOS overlay commands take (`getWinePrefixFolder`):
 /// `pfx` inside a Proton prefix; `None` when it is not a Wine prefix yet.
 pub fn eos_prefix_folder(settings: &GameSettings, exists: &dyn Fn(&str) -> bool) -> Option<String> {
@@ -518,6 +532,20 @@ mod tests {
         std::fs::write(&file, "not json").unwrap();
         assert!(record_game(&prefix, "z").unwrap());
         assert_eq!(std::fs::read_to_string(&file).unwrap(), r#"["z"]"#);
+    }
+
+    #[test]
+    fn an_unrecorded_game_is_set_up_again() {
+        let dir = tempfile::tempdir().unwrap();
+        let prefix = dir.path().to_string_lossy().into_owned();
+        record_game(&prefix, "one").unwrap();
+        record_game(&prefix, "two").unwrap();
+        unrecord_game(&prefix, "one").unwrap();
+        assert!(!is_recorded(&prefix, "one"));
+        assert!(is_recorded(&prefix, "two"));
+        // Unrecording one that was not there is fine, as is a missing file.
+        unrecord_game(&prefix, "one").unwrap();
+        unrecord_game(&dir.path().join("nope").to_string_lossy(), "one").unwrap();
     }
 
     // First-launch setup of a Wine prefix: Linux only.

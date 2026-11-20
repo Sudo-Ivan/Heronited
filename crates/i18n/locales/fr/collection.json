@@ -591,5 +591,11 @@
   "{n} shows a crop on the desktop": "{n} est recadré sur le bureau",
   "{n} show a crop on the desktop": "{n} sont recadrés sur le bureau",
   "{n} shows another picture on the desktop": "{n} affiche une autre image sur le bureau",
-  "{n} show another picture on the desktop": "{n} affichent une autre image sur le bureau"
+  "{n} show another picture on the desktop": "{n} affichent une autre image sur le bureau",
+  "Installer Backup Folder": "Dossier de sauvegarde de l'installateur",
+  "Open installer backup": "Ouvrir la sauvegarde de l'installateur",
+  "Delete installer backup": "Supprimer la sauvegarde de l'installateur",
+  "Delete the GOG installer files of {title} in {dir}? The game stays installed; the files download again on a reinstall.": "Supprimer les fichiers d'installation GOG de {title} dans {dir} ? Le jeu reste installé ; les fichiers sont retéléchargés lors d'une réinstallation.",
+  "Delete": "Supprimer",
+  "Could not delete the backup: {error}": "La sauvegarde n'a pas pu être supprimée : {error}"
 }

@@ -44,6 +44,10 @@ pub(crate) enum GameAction {
     },
     Favourite,
     OpenFolder,
+    /// Opens the game's GOG offline-installer backup folder.
+    GogBackup,
+    /// Deletes that backup (the game stays installed).
+    GogBackupDelete,
     Settings,
     /// The Mods manager (installed PC games).
     Mods,
@@ -221,6 +225,22 @@ impl CollectionView {
                     "directory files browse pasta diretorio arquivos abrir",
                 ));
             }
+            if super::open_links::gog_backup_dir(&self.data_paths, &game.app_name).is_some() {
+                v.push(item(
+                    A::GogBackup,
+                    "gog-backup",
+                    tr!("Open installer backup"),
+                    Icon::FolderOpen,
+                    "gog offline installer backup files open abrir instaladores",
+                ));
+                v.push(item(
+                    A::GogBackupDelete,
+                    "gog-backup-delete",
+                    tr!("Delete installer backup"),
+                    Icon::DeleteOutline,
+                    "gog offline installer backup delete remove apagar excluir",
+                ));
+            }
             v.push(item(
                 A::Settings,
                 "settings",
@@ -381,6 +401,8 @@ impl CollectionView {
             A::Hide => self.toggle_hidden_of(key, cx),
             A::RemoveRecent => self.edit_game_lists(key, cx, |paths, g| heronite_data::config_games::remove_recent(paths, &g.app_name)),
             A::OpenFolder => self.open_install_folder(key, cx),
+            A::GogBackup => self.open_gog_backup(key, cx),
+            A::GogBackupDelete => self.open_gog_backup_delete(key, window, cx),
             A::Settings => {
                 let (Some(ctx), Some(g)) = (self.dialog_ctx(), self.lib.as_ref().and_then(|l| l.get(key)).cloned()) else { return };
                 let tab = crate::dialogs::game_settings::Tab::settings_start(&g);

@@ -65,6 +65,9 @@ The app finds out it runs in a sandbox (`heronite_platform::flatpak`):
   copy. A game in a folder outside the home, `/mnt`, `/media` and
   `/run/media` is out of the app's reach until
   `flatpak override --user --filesystem=<folder> io.github.sudoivan.Heronited`.
+- GOG offline installers (settings → Downloads) live under
+  `~/Games/GOG Offline Installers` by default, which the home access covers.
+  The same override applies if you point the folder elsewhere.
 
 Programs installed on the host itself (a native emulator, Ludusavi, the
 system's Wine, gpu-screen-recorder) are not seen from inside the sandbox: use
