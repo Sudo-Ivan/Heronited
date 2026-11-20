@@ -52,8 +52,8 @@
       "files": {
         "source.toml": {
           "url": "https://raw.githubusercontent.com/Sudo-Ivan/Heronited/main/extensions/metadata/vndb/source.toml",
-          "sha256": "793489b77d5b4da349eea542cd89b874a34d7a66387c10588bc678ccb89e08e7",
-          "size": 1373
+          "sha256": "5e10ccddbfa8607c68580720b4aefae4ecedcae039a37122406afde4a60d03ee",
+          "size": 1374
         },
         "source.js": {
           "url": "https://raw.githubusercontent.com/Sudo-Ivan/Heronited/main/extensions/metadata/vndb/source.js",
@@ -88,8 +88,8 @@
       "files": {
         "source.toml": {
           "url": "https://raw.githubusercontent.com/Sudo-Ivan/Heronited/main/extensions/metadata/wikipedia/source.toml",
-          "sha256": "5d12d1646140a78c7e9614f028aa98178db81d45df879e3f0e26248841e71c54",
-          "size": 659
+          "sha256": "842bdde61d09412c70ac27a8f26e46278842b5181dbab75ac424419411f25a5b",
+          "size": 660
         },
         "source.js": {
           "url": "https://raw.githubusercontent.com/Sudo-Ivan/Heronited/main/extensions/metadata/wikipedia/source.js",
