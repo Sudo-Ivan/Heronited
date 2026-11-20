@@ -17,7 +17,7 @@ anyhow = "1"
 log = "0.4"
 regex = "1"
 # The Amazon Games app keeps its installs in SQLite (compiled in, as for Lutris).
-rusqlite = { version = "0.40", features = ["bundled"] }
+rusqlite = { version = "0.43", features = ["bundled"] }
 
 [dev-dependencies]
 heronite-data = { path = "../data", features = ["testing"] }
