@@ -121,7 +121,13 @@ fn get_json(url: &str, token: Option<&str>) -> Result<Value, String> {
 
 /// [`SystemNet`]'s downloads, within `limit` when there is one, reporting
 /// bytes written through `progress` when there is one.
-fn download(url: &str, dest: &Path, cancel: Cancel, limit: Option<Duration>, mut progress: Option<&mut dyn FnMut(u64)>) -> Result<(), String> {
+fn download(
+    url: &str,
+    dest: &Path,
+    cancel: Cancel,
+    limit: Option<Duration>,
+    mut progress: Option<&mut dyn FnMut(u64)>,
+) -> Result<(), String> {
     let mut resp = agent().get(url).config().timeout_global(limit).build().call().map_err(http_error)?;
     let total = resp.headers().get("content-length").and_then(|v| v.to_str().ok()).and_then(|v| v.parse::<u64>().ok()).unwrap_or(0);
     let mut body = resp.body_mut().with_config().limit(u64::MAX).reader();
