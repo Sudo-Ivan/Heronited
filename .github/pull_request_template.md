@@ -10,4 +10,3 @@
 
 - [ ] `cargo fmt --all`, `cargo clippy --workspace --all-targets -- -D warnings`, and `cargo test --workspace` pass
 - [ ] New third-party files are listed in `THIRD-PARTY-NOTICES.md`
-- [ ] **Release label** (maintainers): add `release:patch`, `release:minor`, or `release:major` to publish a new version when this is merged, or leave it off for no release

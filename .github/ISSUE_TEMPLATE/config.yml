@@ -1,11 +1,11 @@
 blank_issues_enabled: false
 contact_links:
   - name: Questions and help
-    url: https://github.com/RafaelGoulartB/Heronite/discussions/categories/q-a
+    url: https://github.com/Sudo-Ivan/Heronited/discussions/categories/q-a
     about: Ask how to do something or get help with a setup.
   - name: Ideas and discussion
-    url: https://github.com/RafaelGoulartB/Heronite/discussions/categories/ideas
+    url: https://github.com/Sudo-Ivan/Heronited/discussions/categories/ideas
     about: Talk about ideas before opening a feature request.
   - name: Report a security vulnerability
-    url: https://github.com/RafaelGoulartB/Heronite/security/advisories/new
+    url: https://github.com/Sudo-Ivan/Heronited/security/advisories/new
     about: Report it privately; please do not open a public issue.

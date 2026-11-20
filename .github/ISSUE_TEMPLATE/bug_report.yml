@@ -26,14 +26,14 @@ body:
     id: system
     attributes:
       label: System information
-      description: In Heronite, open **Settings › About** and click **Copy to clipboard**, then paste it here. It includes the Heronite version, distribution, CPU, GPU, and memory.
+      description: In Heronited, open **Settings › About** and click **Copy to clipboard**, then paste it here. It includes the Heronited version, distribution, CPU, GPU, and memory.
       render: text
     validations:
       required: true
   - type: dropdown
     id: install
     attributes:
-      label: How did you install Heronite?
+      label: How did you install Heronited?
       options:
         - AppImage from the GitHub releases
         - Built from source
