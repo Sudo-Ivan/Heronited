@@ -4,14 +4,14 @@
 # scripts/packages.sh fills in ${VERSION}, ${BIN} (binaries folder) and
 # ${MARKERS} (folder holding package-format-{deb,rpm,arch}, see
 # Package::MARKER in crates/update).
-name: heronite
+name: heronited
 arch: amd64
 platform: linux
 version: ${VERSION}
 release: 1
 section: games
 priority: optional
-maintainer: RafaGoulartB <rafagoulartb@gmail.com>
+maintainer: Ivan <ivan@quad4.io>
 description: |-
   Fast native game launcher for Steam, Epic, GOG, emulators and more.
   Every game you own in one Collection: Steam, Epic Games, GOG, Amazon Games,
@@ -19,8 +19,8 @@ description: |-
   native Linux and Windows games, launched natively, with Wine or Proton, or
   through an emulator. Records every session, with play time statistics and a
   controller-first console mode.
-vendor: Heronite
-homepage: https://heronite.app
+vendor: Heronited
+homepage: https://github.com/Sudo-Ivan/Heronited
 license: GPL-3.0-only
 
 contents:
@@ -31,21 +31,21 @@ contents:
   - src: ${BIN}/heronite-epic-login
     dst: /usr/bin/heronite-epic-login
     file_info: { mode: 0755 }
-  - src: packaging/linux/app.heronite.Heronite.desktop
-    dst: /usr/share/applications/app.heronite.Heronite.desktop
-  - src: packaging/linux/app.heronite.Heronite.png
-    dst: /usr/share/icons/hicolor/256x256/apps/app.heronite.Heronite.png
-  - src: packaging/linux/app.heronite.Heronite.metainfo.xml
-    dst: /usr/share/metainfo/app.heronite.Heronite.metainfo.xml
+  - src: packaging/linux/io.github.sudoivan.Heronited.desktop
+    dst: /usr/share/applications/io.github.sudoivan.Heronited.desktop
+  - src: packaging/linux/io.github.sudoivan.Heronited.png
+    dst: /usr/share/icons/hicolor/256x256/apps/io.github.sudoivan.Heronited.png
+  - src: packaging/linux/io.github.sudoivan.Heronited.metainfo.xml
+    dst: /usr/share/metainfo/io.github.sudoivan.Heronited.metainfo.xml
   - src: LICENSE
-    dst: /usr/share/doc/heronite/LICENSE
+    dst: /usr/share/doc/heronited/LICENSE
   - src: THIRD-PARTY-NOTICES.md
-    dst: /usr/share/doc/heronite/THIRD-PARTY-NOTICES.md
+    dst: /usr/share/doc/heronited/THIRD-PARTY-NOTICES.md
   - src: licenses
-    dst: /usr/share/doc/heronite/licenses
+    dst: /usr/share/doc/heronited/licenses
     type: tree
   - src: LICENSE
-    dst: /usr/share/licenses/heronite/LICENSE
+    dst: /usr/share/licenses/heronited/LICENSE
     packager: archlinux
   # Tells the app how it was installed, so updates go through the package
   # manager.

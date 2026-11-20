@@ -15,7 +15,7 @@ use super::{Ended, Report};
 /// a log this size still holds for a run that ended within seconds).
 const LOG_TAIL: u64 = 1 << 20;
 
-/// Whether Heronite starts `game` itself, with a launch log of its own (not
+/// Whether Heronited starts `game` itself, with a launch log of its own (not
 /// Steam, another launcher, a store client or an emulator).
 pub fn reads(game: &CollectionGame) -> bool {
     !(game.via_steam

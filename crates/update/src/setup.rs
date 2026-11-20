@@ -1,10 +1,10 @@
-//! A copy installed on Windows by Heronite's setup (Inno Setup, per user,
-//! `%LOCALAPPDATA%\Programs\Heronite` by default). The setup writes
+//! A copy installed on Windows by Heronited's setup (Inno Setup, per user,
+//! `%LOCALAPPDATA%\Programs\Heronited` by default). The setup writes
 //! [`Installer::MARKER`] next to the program, holding `windows-installer`.
 //!
 //! Its files belong to the setup (the uninstaller lists them), so an update
 //! runs the release's setup instead of replacing them: the app downloads
-//! `Heronite-Setup-<arch>.exe` and checks its signature like any other
+//! `Heronited-Setup-<arch>.exe` and checks its signature like any other
 //! download ([`crate::install::download_signed`]), then starts it as it
 //! quits ([`Installer::run_setup`]). The setup waits for this process to
 //! exit (`/WAITPID`), replaces the files silently and, after a restart,

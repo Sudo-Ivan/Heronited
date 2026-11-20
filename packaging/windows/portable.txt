@@ -1,16 +1,16 @@
-This is a portable copy of Heronite.
+This is a portable copy of Heronited.
 
-While this file sits next to heronite.exe, Heronite keeps everything in
+While this file sits next to heronite.exe, Heronited keeps everything in
 this folder: your library and settings in "data" and "config", thumbnails and
 other throwaway files in "cache". It does not use your user folders and
 registers nothing in Windows on its own (no heronite:// links), so you can
-carry the folder to another computer or delete it to remove Heronite. Updates
+carry the folder to another computer or delete it to remove Heronited. Updates
 from inside the app replace the program in this folder.
 
 Delete this file to make this copy use your user folders instead, like an
-installed Heronite: %APPDATA%\heronite and %LOCALAPPDATA%\heronite. The
+installed Heronited: %APPDATA%\heronite and %LOCALAPPDATA%\heronite. The
 "data", "config" and "cache" folders here are then no longer used (move their
 contents there by hand if you want to keep them).
 
-Games are installed where you choose in Heronite's settings, not in this
+Games are installed where you choose in Heronited's settings, not in this
 folder unless you pick it.

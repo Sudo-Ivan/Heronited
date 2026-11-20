@@ -112,7 +112,7 @@ pub struct Achievement {
     /// gives no groups (or none for it).
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub group: Option<String>,
-    /// Fields written by a newer Heronite, kept through refreshes.
+    /// Fields written by a newer Heronited, kept through refreshes.
     #[serde(flatten)]
     pub unknown: Map<String, Value>,
 }
@@ -161,7 +161,7 @@ pub struct AchievementGroup {
     /// Retired by the developer (seasonal achievements).
     #[serde(default, skip_serializing_if = "is_false")]
     pub archived: bool,
-    /// Fields written by a newer Heronite, kept through refreshes.
+    /// Fields written by a newer Heronited, kept through refreshes.
     #[serde(flatten)]
     pub unknown: Map<String, Value>,
 }
@@ -214,7 +214,7 @@ pub struct AchievementSet {
     /// none or gives none.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub groups: Vec<AchievementGroup>,
-    /// Fields written by a newer Heronite, kept through refreshes.
+    /// Fields written by a newer Heronited, kept through refreshes.
     #[serde(flatten)]
     pub unknown: Map<String, Value>,
 }
@@ -315,7 +315,7 @@ pub struct GameAchievements {
     pub empty_at: BTreeMap<Source, DateTime<Utc>>,
     /// Where its game files are, chosen by hand.
     pub local: Option<LocalPin>,
-    /// What a newer Heronite wrote that this one does not know.
+    /// What a newer Heronited wrote that this one does not know.
     pub unknown: Unknown,
 }
 
@@ -334,7 +334,7 @@ pub struct LocalPin {
     pub off: bool,
 }
 
-/// Parts of a game's copy written by a newer Heronite (a set from a source
+/// Parts of a game's copy written by a newer Heronited (a set from a source
 /// this version does not know, a new field). They are kept as they are and
 /// written back, so going back to an older version loses nothing.
 #[derive(Debug, Clone, PartialEq, Default)]

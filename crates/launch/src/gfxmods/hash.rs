@@ -1,4 +1,4 @@
-//! SHA-256 in lowercase hex: how the manifests record the files Heronite
+//! SHA-256 in lowercase hex: how the manifests record the files Heronited
 //! wrote, and how downloads are checked.
 
 use std::path::Path;

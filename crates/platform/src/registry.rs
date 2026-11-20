@@ -253,7 +253,7 @@ mod tests {
     fn reads_a_value_every_windows_has() {
         let root = string(Hive::LocalMachine, r"SOFTWARE\Microsoft\Windows NT\CurrentVersion", "SystemRoot").unwrap();
         assert!(root.to_lowercase().ends_with("windows"), "{root}");
-        assert_eq!(string(Hive::CurrentUser, r"Software\Heronite\Missing", "Nothing"), None);
+        assert_eq!(string(Hive::CurrentUser, r"Software\Heronited\Missing", "Nothing"), None);
         let build = dword(Hive::LocalMachine, r"SOFTWARE\Microsoft\Windows NT\CurrentVersion", "CurrentMajorVersionNumber");
         assert!(build.is_some_and(|v| v >= 10), "{build:?}");
     }
@@ -263,7 +263,7 @@ mod tests {
         // A REG_BINARY every Windows user profile has; only read.
         let mask = binary(Hive::CurrentUser, r"Control Panel\Desktop", "UserPreferencesMask").unwrap();
         assert!(!mask.is_empty() && mask.len() < 512, "{mask:?}");
-        assert_eq!(binary(Hive::CurrentUser, r"Software\Heronite\Missing", "Nothing"), None);
+        assert_eq!(binary(Hive::CurrentUser, r"Software\Heronited\Missing", "Nothing"), None);
         // Another type is not binary.
         assert_eq!(binary(Hive::LocalMachine, r"SOFTWARE\Microsoft\Windows NT\CurrentVersion", "SystemRoot"), None);
     }
@@ -272,9 +272,9 @@ mod tests {
     fn lists_the_keys_under_a_key() {
         let versions = subkeys(Hive::LocalMachine, r"SOFTWARE\Microsoft\Windows NT");
         assert!(versions.iter().any(|k| k == "CurrentVersion"), "{versions:?}");
-        assert!(subkeys(Hive::CurrentUser, r"Software\Heronite\Missing").is_empty());
+        assert!(subkeys(Hive::CurrentUser, r"Software\Heronited\Missing").is_empty());
 
-        // Its own root: `writes_and_removes_a_value` clears `Software\Heronite` meanwhile.
+        // Its own root: `writes_and_removes_a_value` clears `Software\Heronited` meanwhile.
         let key = format!(r"Software\HeroniteSubkeysTest\{}", std::process::id());
         for child in ["b", "a"] {
             set_string(Hive::CurrentUser, &format!(r"{key}\{child}"), "Value", "x").unwrap();
@@ -292,7 +292,7 @@ mod tests {
     #[test]
     fn lists_the_values_of_a_key_with_their_types() {
         use windows_sys::Win32::System::Registry::REG_BINARY;
-        // Its own root: `writes_and_removes_a_value` clears `Software\Heronite` meanwhile.
+        // Its own root: `writes_and_removes_a_value` clears `Software\Heronited` meanwhile.
         let key = format!(r"Software\HeroniteValuesTest\{}", std::process::id());
         set_string(Hive::CurrentUser, &key, "", "default").unwrap();
         set_string(Hive::CurrentUser, &key, "InstallDir", "C:/Program Files (x86)/Ubisoft/").unwrap();
@@ -330,15 +330,15 @@ mod tests {
 
     #[test]
     fn writes_and_removes_a_value() {
-        let key = format!(r"Software\Heronite\Tests\{}", std::process::id());
+        let key = format!(r"Software\Heronited\Tests\{}", std::process::id());
         set_string(Hive::CurrentUser, &key, "Value", r#""C:\Program Files\x.exe" --flag"#).unwrap();
         assert_eq!(string(Hive::CurrentUser, &key, "Value").as_deref(), Some(r#""C:\Program Files\x.exe" --flag"#));
         delete_value(Hive::CurrentUser, &key, "Value").unwrap();
         assert_eq!(string(Hive::CurrentUser, &key, "Value"), None);
         // Already gone: still fine.
         delete_value(Hive::CurrentUser, &key, "Value").unwrap();
-        // SAFETY: a test key of this process, under HKCU\Software\Heronite.
-        let tree = wide(r"Software\Heronite");
+        // SAFETY: a test key of this process, under HKCU\Software\Heronited.
+        let tree = wide(r"Software\Heronited");
         unsafe { windows_sys::Win32::System::Registry::RegDeleteTreeW(HKEY_CURRENT_USER, tree.as_ptr()) };
     }
 }

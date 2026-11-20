@@ -11,7 +11,7 @@ What works on Windows, what is left, and what Windows does not need.
 - Other launchers: Playnite's installed games (Settings → Other launchers), started through Playnite; Heroic's games added by hand and its Epic, GOG and Amazon install records (`%APPDATA%\heroic`), once its import is turned on there. Nothing is copied from Heroic at the first start (`Feature::HeroicMigration` is off, on Linux too)
 - Epic Games, GOG and Amazon Games through the Windows builds of legendary, gogdl and nile: login (WebView2 window), library, downloads, installs and moves, first launch, cloud saves, and the games of the official launchers (Epic Games Launcher, GOG Galaxy). Epic has one EOS Overlay switch instead of one per Wine prefix; Amazon's `.msi` installers run through `msiexec`
 - GOG Galaxy services (`comet`): Comet runs beside a GOG game's Windows build, so its achievements, stats and leaderboards reach the GOG account without GOG Galaxy, and new unlocks show over the game (`heronite_launch::galaxy`). Settings → Achievements → GOG registers Comet's dummy `GalaxyCommunication` service as administrator (LocalService, in a folder only administrators may change) for the games that look for it. Not yet checked on a real Windows: the service's registration, and a standard user starting it (`sc start GalaxyCommunication`)
-- Battle.net, the EA app, Ubisoft Connect and the Rockstar Games Launcher as they are (no Wine): set up with the official installer or found already installed, sign-in and games read from this PC (`heronite_clients::place`), opened and closed by Heronite (`heronite_clients::native`), games started through the client; the session follows the programs running from the game's folder
+- Battle.net, the EA app, Ubisoft Connect and the Rockstar Games Launcher as they are (no Wine): set up with the official installer or found already installed, sign-in and games read from this PC (`heronite_clients::place`), opened and closed by Heronited (`heronite_clients::native`), games started through the client; the session follows the programs running from the game's folder
 - Xbox (Windows only, `Feature::XboxStore`): Microsoft Store and PC Game Pass games the Xbox app installed, found among the user's packages (`heronite_platform::packages`, `heronite-xbox`) and started by their AUMID through `explorer.exe shell:AppsFolder\...`
 - Settings → Storage: drives, games, store tools, caches, leftover folders (to the Recycle Bin) and old downloads
 - Emulators and ROM folders
@@ -24,7 +24,7 @@ What works on Windows, what is left, and what Windows does not need.
 - Steam's per-game launch options (Settings → Launch of a Steam game, `Feature::SteamGameSettings`): through the running client, or in `userdata\<account>\config\localconfig.vdf` while Steam is closed, as on Linux; the account is the registry's `ActiveProcess\ActiveUser`, else the latest login. No compatibility tool: Steam starts Windows games as they are
 - Native launch extras: before/after scripts (`.bat`, `.cmd`, `.ps1`, programs), delayed companions and presets (variables and arguments); for Steam games they run around `steam://rungameid` (`heronite_launch::steam_extras`); real-process tests cover environment, working folders, normal exit, stop and cancellation before a companion starts
 - Restoring a backup made on Linux
-- Game settings → GPU: the card a game's program asks Windows for ("Power saving" or "High performance", the `HKCU\Software\Microsoft\DirectX\UserGpuPreferences` value of Settings → Display → Graphics), written right before the game starts and put back after it only while it still holds Heronite's value (`heronite_launch::gpu::preference`). DXGI names the card behind each choice. Steam games, store clients, Playnite, Xbox games and emulators keep Windows' own choice; tests use a fake registry
+- Game settings → GPU: the card a game's program asks Windows for ("Power saving" or "High performance", the `HKCU\Software\Microsoft\DirectX\UserGpuPreferences` value of Settings → Display → Graphics), written right before the game starts and put back after it only while it still holds Heronited's value (`heronite_launch::gpu::preference`). DXGI names the card behind each choice. Steam games, store clients, Playnite, Xbox games and emulators keep Windows' own choice; tests use a fake registry
 - Steam tests: library and session fixtures run on Windows without reading the host's registry, Steam folders or process list; achievement fixtures are isolated too
 - Tray menus follow the app's light/dark theme (including System and Custom) on Windows 10 1903+ and Windows 11. High contrast keeps Windows' native colours. Older Windows versions, or missing uxtheme exports, fall back to the native menu with a warning
 
@@ -56,7 +56,7 @@ needed.
 
 Off by default, enabled in Settings → Overlay. It uses native topmost tool
 windows over windowed and borderless-fullscreen games, on the foreground
-window's monitor. Legacy exclusive fullscreen is not supported: Heronite
+window's monitor. Legacy exclusive fullscreen is not supported: Heronited
 does not inject code into games.
 
 - **Keyboard:** Ctrl+Shift+G by default (saved shortcuts are kept), registered
@@ -67,7 +67,7 @@ does not inject code into games.
   refuses foreground requests made without user input (a controller read
   through XInput is none): the request is then repeated with the panel's
   thread input attached to the foreground window's thread for that call
-  (`AttachThreadInput`). When Heronite's own main window has it (the
+  (`AttachThreadInput`). When Heronited's own main window has it (the
   shortcut pressed there), the panel is activated directly, as windows of
   the same thread may be, and checked again 250 ms later so the keys (Esc
   included) reach the panel. No input is simulated or sent to the game.
@@ -123,7 +123,7 @@ Windows runs Windows games directly, so these Linux parts are not needed:
 
 Add the native or portable executable on the Emulators page and open RetroArch
 once so it creates its config. Enable emulator sign-in in Settings → Achievements.
-Heronite follows RetroArch's Windows search order: `retroarch.cfg` beside each
+Heronited follows RetroArch's Windows search order: `retroarch.cfg` beside each
 executable, then `%APPDATA%\retroarch.cfg`. Executables found on `PATH` and the
 APPDATA fallback also work without a registered installation; a Scoop shim is
 followed to the app's folder, and a Chocolatey shim (whose target cannot be
@@ -139,7 +139,7 @@ there. A relative config with a ROM working folder, a drive-relative path
 (`C:x.cfg`, often an unquoted `C:\x.cfg`) or a game-dependent config template
 is reported in Settings and skipped, rather than editing a guessed file; the
 other configs are still written. Signing out clears only configs that still
-hold Heronite's account.
+hold Heronited's account.
 DuckStation and the other emulators are intentionally not enabled on Windows by
 this change. Real account authentication still needs a check inside RetroArch.
 

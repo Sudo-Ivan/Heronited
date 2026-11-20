@@ -1,6 +1,6 @@
 # Writing a metadata extension
 
-An extension adds a metadata source to Heronite: a site or a database that
+An extension adds a metadata source to Heronited: a site or a database that
 gives games their description, dates, genres, covers or other facts. It is
 listed in Settings → Metadata like the built-in sources, can be switched on
 and off, ordered, configured, searched and pinned like them, and is asked
@@ -277,7 +277,7 @@ ctx.log("found 3 pages");      // a line in the app's log, tagged with the exten
 throw ctx.unreachable("busy"); // the service cannot be asked now: not a failure (see below)
 ```
 
-`ctx.http` requests carry the app's user agent (`Heronite/<version>`; a
+`ctx.http` requests carry the app's user agent (`Heronited/<version>`; a
 script cannot set `User-Agent`, `Host` and the like, nor a header name or
 value with line breaks), go out at the manifest's rate, and follow
 redirects only to the manifest's hosts. An HTTP error status is not an
@@ -439,7 +439,7 @@ gallery of the lists, and "Install from a file…" takes a `.zip` or the
 ## Lists of extensions
 
 The gallery ("Get more sources") reads lists: small JSON documents that
-name extensions and where their two files are. Heronite always reads its
+name extensions and where their two files are. Heronited always reads its
 own list, `extensions/metadata/index.json` on the repository's main
 branch; you can add others by their address ("Lists…"), and remove them
 (what you installed from a list stays installed). The last good copy of
@@ -453,8 +453,8 @@ each entry's files are read from the folder beside it,
 `url`s; their SHA-256 and sizes are checked all the same, and nothing
 outside that folder is read. No copy of it is kept: it is read each time.
 What is installed from it is shown as "From a list on this computer",
-never as from the Heronite list, and is offered updates only by that same
-list (the Heronite list does not update it, even once it lists the same
+never as from the Heronited list, and is offered updates only by that same
+list (the Heronited list does not update it, even once it lists the same
 extension: remove it and install it from there).
 
 Installing from a list downloads the entry's `source.toml` and
@@ -468,9 +468,9 @@ whose list offers a newer version is flagged in the gallery ("Updates")
 and in its row, and you install the update like any other.
 
 What this checks, and what it does not: the files are the ones the list
-names. Nobody reviews an extension because it is on a list; Heronite's own
+names. Nobody reviews an extension because it is on a list; Heronited's own
 list holds what was merged into the repository by a pull request, and a
-list you add is kept by someone Heronite does not know. An extension from
+list you add is kept by someone Heronited does not know. An extension from
 a file was checked by nobody.
 
 ### The format
@@ -479,14 +479,14 @@ a file was checked by nobody.
 {
   "index": 1,
   "type": "metadata",
-  "name": "Heronite",
+  "name": "Heronited",
   "extensions": [
     {
       "id": "wikipedia",
       "name": "Wikipedia",
       "version": "1.0.0",
       "api": 1,
-      "author": "Heronite",
+      "author": "Heronited",
       "homepage": "https://www.wikipedia.org",
       "kind": "details",
       "adult": false,
@@ -498,12 +498,12 @@ a file was checked by nobody.
       "settings": [{ "label": "API key", "required": true }],
       "files": {
         "source.toml": {
-          "url": "https://raw.githubusercontent.com/RafaelGoulartB/Heronite/main/extensions/metadata/wikipedia/source.toml",
+          "url": "https://raw.githubusercontent.com/Sudo-Ivan/Heronited/main/extensions/metadata/wikipedia/source.toml",
           "sha256": "5d12d1646140a78c7e9614f028aa98178db81d45df879e3f0e26248841e71c54",
           "size": 659
         },
         "source.js": {
-          "url": "https://raw.githubusercontent.com/RafaelGoulartB/Heronite/main/extensions/metadata/wikipedia/source.js",
+          "url": "https://raw.githubusercontent.com/Sudo-Ivan/Heronited/main/extensions/metadata/wikipedia/source.js",
           "sha256": "382556b0935ac6b7c20478b4fe0f1d55c4a039cc331f659d5c4482e3b1c4218e",
           "size": 3199
         }
@@ -514,7 +514,7 @@ a file was checked by nobody.
 ```
 
 - `index` is the version of the format; a list of a later one is refused
-  ("made for a newer Heronite"). `type` says what kind of extensions the
+  ("made for a newer Heronited"). `type` says what kind of extensions the
   list holds; only `"metadata"` exists today, and a list of another type
   is refused ("This list is not a list of metadata sources."). It is
   optional, so a list written by hand without it is read as a list of
@@ -593,7 +593,7 @@ an origin such as `https://en.wikipedia.org` to a local fixture server
 
 `api` is the version of everything this page describes. A build reads
 manifests of its version and older ones; a manifest with a higher `api` is
-refused at install ("made for a newer Heronite") and, once installed, shows
+refused at install ("made for a newer Heronited") and, once installed, shows
 as "Could not be loaded". Additions that old scripts do not notice (a new
 `ctx` helper, a new optional key) do not change the number; a change that
 would break a script does. `ctx.unreachable` and a hit's `altTitle` and

@@ -105,7 +105,7 @@ pub struct FocusReturn {
 
 impl FocusReturn {
     /// Checks, a moment after the panel opened, that it still has the
-    /// foreground, and takes it back from another window of Heronite (the
+    /// foreground, and takes it back from another window of Heronited (the
     /// main window) that got it. Another program's window keeps it: the user
     /// may have switched to it. Call on the UI thread, the panel's.
     pub fn hold(&self) {
@@ -250,7 +250,7 @@ pub fn drop_frame(handle: NonZeroIsize) -> io::Result<()> {
 /// kept it when that fails. Windows lets only the process that got the last
 /// input event take it, and a controller read through XInput is no input
 /// event (a keyboard shortcut is). Refused, it is asked again:
-/// - Heronite's own window in front (the main window, on this same thread
+/// - Heronited's own window in front (the main window, on this same thread
 ///   like every GPUI window): activating a window of the thread that has the
 ///   foreground is always allowed;
 /// - another program's window (the game): with this thread's input attached
@@ -307,7 +307,7 @@ fn describe(hwnd: HWND) -> String {
     if pid == 0 {
         "no window".into()
     } else if ours(hwnd) {
-        "another Heronite window".into()
+        "another Heronited window".into()
     } else {
         format!("a window of process {pid}")
     }

@@ -297,7 +297,7 @@ pub fn on() -> Option<Rgba> {
 /// Heading and body font families.
 pub fn fonts() -> (&'static str, &'static str) {
     match theme().interface.font {
-        ConsoleFont::Heronite => ("Rubik", "Cabin"),
+        ConsoleFont::Heronited => ("Rubik", "Cabin"),
         ConsoleFont::Cabin => ("Cabin", "Cabin"),
         ConsoleFont::Rubik => ("Rubik", "Rubik"),
         ConsoleFont::System => (".SystemUIFont", ".SystemUIFont"),

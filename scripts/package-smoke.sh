@@ -31,7 +31,7 @@ echo "ok: $1 on $(. /etc/os-release; echo "$PRETTY_NAME")"
 # Inside the container: the AppImage finds every library and runs.
 APPIMAGE_CHECK='
 set -e
-cd /tmp && /dist/Heronite-x86_64.AppImage --appimage-extract >/dev/null
+cd /tmp && /dist/Heronited-x86_64.AppImage --appimage-extract >/dev/null
 missing=$(ldd squashfs-root/usr/bin/heronite-rs | grep "not found" || true)
 [ -z "$missing" ] || { echo "AppImage: $missing"; exit 1; }
 squashfs-root/AppRun --help | head -1

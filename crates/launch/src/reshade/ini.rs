@@ -5,7 +5,7 @@
 //!
 //! Edits keep every other line as it was (order, comments, unknown keys):
 //! ReShade writes window state and options into `ReShade.ini`, and the
-//! user's changes must survive Heronite's.
+//! user's changes must survive Heronited's.
 
 /// One line of the file, kept as written.
 #[derive(Debug, Clone)]

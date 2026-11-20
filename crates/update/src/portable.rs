@@ -3,12 +3,12 @@
 //! with the user's `data`, `config`, `cache` and `Screenshots` folders
 //! beside them.
 //!
-//! The release's `Heronite-Portable-<arch>.zip` has one top folder,
-//! `Heronite/`, with the program files. An update downloads it into
+//! The release's `Heronited-Portable-<arch>.zip` has one top folder,
+//! `Heronited/`, with the program files. An update downloads it into
 //! `<copy>\cache\update` (same volume as the copy, so moves are renames),
 //! checks its signature, unpacks it there while refusing any entry that
 //! could land elsewhere (absolute paths, `..`, links, anything outside
-//! `Heronite/` or inside the user's folders), then swaps the files in: each
+//! `Heronited/` or inside the user's folders), then swaps the files in: each
 //! file replaced is first renamed to `<name>.old` (Windows lets a running
 //! program or a loaded library be renamed, not deleted or overwritten), the
 //! new one is moved in, and a failure puts every old file back. The running
@@ -32,7 +32,7 @@ use crate::release::{Release, WindowsAsset};
 /// as `heronite-rs.exe`; `scripts/windows/package.ps1` names it).
 pub const PROGRAM: &str = "heronite.exe";
 /// The zip's one top folder.
-pub const TOP: &str = "Heronite";
+pub const TOP: &str = "Heronited";
 /// The stores' login window, in the copy's
 /// [`HELPERS_DIR`](heronite_platform::dirs::HELPERS_DIR).
 const LOGIN_HELPER: &str = "heronite-epic-login.exe";
@@ -191,7 +191,7 @@ fn is_user_dir(first: &str) -> bool {
 }
 
 /// The path inside the copy of the zip entry `name`: `None` for the top
-/// folder itself; an error for anything outside `Heronite/`, absolute or
+/// folder itself; an error for anything outside `Heronited/`, absolute or
 /// climbing, with a bad name, or inside the user's folders. `\` separates
 /// folders too (Windows PowerShell's `Compress-Archive` writes it).
 fn entry_path(name: &str) -> Result<Option<PathBuf>, String> {
@@ -406,34 +406,34 @@ mod tests {
 
     #[test]
     fn entry_names_stay_inside_the_program_folder() {
-        assert_eq!(entry_path("Heronite/"), Ok(None));
-        assert_eq!(entry_path("Heronite/heronite.exe"), Ok(Some(PathBuf::from("heronite.exe"))));
-        assert_eq!(entry_path("Heronite/res/a b.pak"), Ok(Some(PathBuf::from(r"res\a b.pak"))));
-        assert_eq!(entry_path(r"Heronite\res\a.pak"), Ok(Some(PathBuf::from(r"res\a.pak"))));
+        assert_eq!(entry_path("Heronited/"), Ok(None));
+        assert_eq!(entry_path("Heronited/heronite.exe"), Ok(Some(PathBuf::from("heronite.exe"))));
+        assert_eq!(entry_path("Heronited/res/a b.pak"), Ok(Some(PathBuf::from(r"res\a b.pak"))));
+        assert_eq!(entry_path(r"Heronited\res\a.pak"), Ok(Some(PathBuf::from(r"res\a.pak"))));
         for bad in [
             "heronite.exe",
             "Other/heronite.exe",
             "heronite/x",
-            "/Heronite/x",
-            "Heronite/../x",
-            "Heronite/a/../../x",
-            "Heronite/./x",
-            "Heronite//x",
-            r"Heronite/a\..\..\x",
-            r"Heronite\..\x",
-            r"\Heronite\x",
-            r"Heronite\Data\x",
-            "Heronite/C:x",
-            "Heronite/x.exe:stream",
-            "Heronite/data/collection.json",
-            "Heronite/Config/x",
-            "Heronite/CACHE/",
-            "Heronite/screenshots/x.png",
-            "Heronite/x.",
-            "Heronite/x ",
-            "Heronite/NUL",
-            "Heronite/com1.txt",
-            "Heronite/a\u{1}b",
+            "/Heronited/x",
+            "Heronited/../x",
+            "Heronited/a/../../x",
+            "Heronited/./x",
+            "Heronited//x",
+            r"Heronited/a\..\..\x",
+            r"Heronited\..\x",
+            r"\Heronited\x",
+            r"Heronited\Data\x",
+            "Heronited/C:x",
+            "Heronited/x.exe:stream",
+            "Heronited/data/collection.json",
+            "Heronited/Config/x",
+            "Heronited/CACHE/",
+            "Heronited/screenshots/x.png",
+            "Heronited/x.",
+            "Heronited/x ",
+            "Heronited/NUL",
+            "Heronited/com1.txt",
+            "Heronited/a\u{1}b",
         ] {
             assert!(entry_path(bad).is_err(), "{bad:?} accepted");
         }
@@ -450,7 +450,10 @@ mod tests {
         let tmp = tempfile::tempdir().unwrap();
         let no = AtomicBool::new(false);
         let zip = tmp.path().join("p.zip");
-        make_zip(&zip, &[("Heronite/", b""), ("Heronite/heronite.exe", EXE), ("Heronite/LICENSE", b"MIT"), ("Heronite/res/a.pak", b"a")]);
+        make_zip(
+            &zip,
+            &[("Heronited/", b""), ("Heronited/heronite.exe", EXE), ("Heronited/LICENSE", b"MIT"), ("Heronited/res/a.pak", b"a")],
+        );
         let files = unpack(&zip, &tmp.path().join("ok"), &no).unwrap();
         assert_eq!(files, [PathBuf::from("heronite.exe"), "LICENSE".into(), r"res\a.pak".into()]);
         assert_eq!(fs::read(tmp.path().join(r"ok\res\a.pak")).unwrap(), b"a");
@@ -461,19 +464,19 @@ mod tests {
             let err = unpack(&zip, &dest, &no).unwrap_err().to_string();
             assert!(err.contains(why), "{err}");
         };
-        refused(&[("Heronite/heronite.exe", EXE), ("Heronite/../evil.dll", b"x")], "outside");
-        refused(&[("Heronite/heronite.exe", EXE), ("Heronite/data/x.json", b"x")], "outside");
-        refused(&[("Heronite/LICENSE", b"MIT")], "has no heronite.exe");
-        refused(&[("Heronite/heronite.exe", b"#!/bin/sh")], "has no heronite.exe");
-        refused(&[("Heronite/heronite.exe", EXE), ("Heronite/LICENSE", b"a"), ("Heronite/license", b"b")], "twice");
+        refused(&[("Heronited/heronite.exe", EXE), ("Heronited/../evil.dll", b"x")], "outside");
+        refused(&[("Heronited/heronite.exe", EXE), ("Heronited/data/x.json", b"x")], "outside");
+        refused(&[("Heronited/LICENSE", b"MIT")], "has no heronite.exe");
+        refused(&[("Heronited/heronite.exe", b"#!/bin/sh")], "has no heronite.exe");
+        refused(&[("Heronited/heronite.exe", EXE), ("Heronited/LICENSE", b"a"), ("Heronited/license", b"b")], "twice");
 
         // A symbolic link entry (Unix mode S_IFLNK).
         let link = tmp.path().join("link.zip");
         let mut w = zip::ZipWriter::new(File::create(&link).unwrap());
         let opts = SimpleFileOptions::default().compression_method(CompressionMethod::Stored);
-        w.start_file("Heronite/heronite.exe", opts).unwrap();
+        w.start_file("Heronited/heronite.exe", opts).unwrap();
         w.write_all(EXE).unwrap();
-        w.add_symlink("Heronite/escape", r"C:\Windows", opts).unwrap();
+        w.add_symlink("Heronited/escape", r"C:\Windows", opts).unwrap();
         w.finish().unwrap();
         let err = unpack(&link, &tmp.path().join("l"), &no).unwrap_err().to_string();
         assert!(err.contains("link"), "{err}");
@@ -491,7 +494,7 @@ mod tests {
 
     /// A copy with an old program, a marker and the user's folders.
     fn copy_in(dir: &Path) -> Portable {
-        let root = dir.join("Heronite");
+        let root = dir.join("Heronited");
         for d in ["data", "config", "cache"] {
             fs::create_dir_all(root.join(d)).unwrap();
             fs::write(root.join(d).join("mine.json"), d).unwrap();
@@ -555,11 +558,11 @@ mod tests {
         let tmp = tempfile::tempdir().unwrap();
         let root = tmp.path().join("copy");
         fs::create_dir_all(&root).unwrap();
-        fs::write(root.join("Heronite Launcher.exe"), b"MZ old").unwrap();
-        let copy = Portable::detect(root.clone(), root.join("Heronite Launcher.exe")).unwrap();
+        fs::write(root.join("Heronited Launcher.exe"), b"MZ old").unwrap();
+        let copy = Portable::detect(root.clone(), root.join("Heronited Launcher.exe")).unwrap();
         let (from, files) = new_files(tmp.path());
         swap_in(&from, &files, &copy.root, &exe_name(&copy.exe)).unwrap();
-        assert_eq!(fs::read(root.join("Heronite Launcher.exe")).unwrap(), EXE);
+        assert_eq!(fs::read(root.join("Heronited Launcher.exe")).unwrap(), EXE);
         assert!(!root.join(PROGRAM).exists());
     }
 
@@ -626,11 +629,11 @@ mod tests {
 
     /// Second test key, for the Windows fixtures; not the release key. Made
     /// with minisign 0.12 (`minisign -G -W`; the secret key was not kept):
-    /// `portable-0.1.4.zip` holds `Heronite/` with a stand-in
+    /// `portable-0.1.4.zip` holds `Heronited/` with a stand-in
     /// `heronite.exe` (`MZ …`), `portable.txt` and `LICENSE`, stored, and
     /// was signed with `minisign -S -t "version:0.1.4
-    /// file:Heronite-Portable-x86_64.zip"`.
-    const TEST_KEY_2: &str = "RWRdPqM6P+uWa0r7iqtDR7FLHNLdT+gAgZVuLbxsKa3Gr8etIwrwS/cN";
+    /// file:Heronited-Portable-x86_64.zip"`.
+    const TEST_KEY_2: &str = "RWS9EqYEPXr4PRkbXF5TcspeY/pQc5VQhmS7HGUZKPEUEVdUHzmizT1v";
     const ZIP_014: &[u8] = include_bytes!("../tests/fixtures/portable-0.1.4.zip");
     const ZIP_014_SIG: &str = include_str!("../tests/fixtures/portable-0.1.4.zip.minisig");
 

@@ -125,7 +125,7 @@ fn file_name(url: &str) -> Result<String, String> {
 }
 
 /// Installs `found` beside the game's ReShade (`refresh`: download it again,
-/// to update). Another RenoDX mod Heronite installed is replaced.
+/// to update). Another RenoDX mod Heronited installed is replaced.
 pub fn install(ops: &Ops, game_id: &str, found: &Found, risk: &Risk, refresh: bool) -> Result<Manifest, String> {
     let mut m = manifest::load(ops.paths, game_id).ok_or("ReShade is not installed for this game")?;
     if let Some(why) = refusal(&m, found, risk) {
@@ -148,12 +148,12 @@ pub fn install(ops: &Ops, game_id: &str, found: &Found, risk: &Risk, refresh: bo
     let previous = installed(&m);
     let ours = |rel: &str, path: &Path| m.file(rel).is_some_and(|f| sha256_file(path).is_ok_and(|s| s == f.sha256));
     if dest.exists() && !ours(&name, &dest) {
-        return Err(format!("{} is already there (not installed by Heronite)", dest.display()));
+        return Err(format!("{} is already there (not installed by Heronited)", dest.display()));
     }
     let old = previous.as_ref().filter(|p| p.file != name).map(|p| dir.join(&p.file)).filter(|p| p.exists());
     if let Some(old) = &old {
         if !ours(&previous.as_ref().unwrap().file, old) {
-            return Err(format!("{} was changed since Heronite installed it", old.display()));
+            return Err(format!("{} was changed since Heronited installed it", old.display()));
         }
     }
     let sha = journaled(|j| {
@@ -280,7 +280,7 @@ mod tests {
         let dir = g.dir.path();
         let o = ops(&g.paths, &net);
         std::fs::write(dir.join("renodx-ue-extended.addon64"), b"the user's own").unwrap();
-        assert!(install(&o, "sp", &found("generic-unreal"), &Risk::default(), false).unwrap_err().contains("not installed by Heronite"));
+        assert!(install(&o, "sp", &found("generic-unreal"), &Risk::default(), false).unwrap_err().contains("not installed by Heronited"));
         std::fs::remove_file(dir.join("renodx-ue-extended.addon64")).unwrap();
         install(&o, "sp", &found("generic-unreal"), &Risk::default(), false).unwrap();
         std::fs::write(dir.join("renodx-ue-extended.addon64"), b"edited").unwrap();

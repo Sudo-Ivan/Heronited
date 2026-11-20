@@ -1,4 +1,4 @@
-//! "Remove Steam games" (Stores → Steam): takes the Steam entries Heronite
+//! "Remove Steam games" (Stores → Steam): takes the Steam entries Heronited
 //! added out of the Collection, in one pass over each file (a library of
 //! thousands of games would take minutes one game at a time), and forgets the
 //! cached library. Nothing is uninstalled and Steam's own files are left
@@ -29,7 +29,7 @@ pub struct Removal {
     pub running: usize,
 }
 
-/// The app names of the Steam entries Heronite added. Blocking.
+/// The app names of the Steam entries Heronited added. Blocking.
 fn added(paths: &DataPaths) -> Result<Vec<String>, String> {
     let metas: LocalMetaFile = json_store::read(&paths.local_meta()).map_err(|e| format!("{e:#}"))?;
     Ok(steam_owned::added_entries(&metas))
@@ -161,7 +161,7 @@ fn run(paths: &DataPaths, roots: &Roots, all: Vec<String>, running: &HashSet<Str
 }
 
 impl SteamLibrary {
-    /// Takes the Steam games Heronite added out of the Collection and forgets
+    /// Takes the Steam games Heronited added out of the Collection and forgets
     /// the cached library, so no game joins a Steam copy any more. Nothing is
     /// uninstalled and Steam is not touched; games the user added or got from
     /// another store stay (one that had Steam's install as its twin loses that
@@ -284,11 +284,11 @@ mod tests {
             paths.sideload_library(),
             &format!(
                 r#"{{"games":[{},{},{},{},{}]}}"#,
-                entry("steam_10", "Heronite Test One"),
-                entry("steam_11", "Heronite Test Eleven"),
-                entry("steam_400", "Heronite Test Two"),
-                entry("mine", "Heronite Test Mine"),
-                entry("ctl", "Heronite Test Control"),
+                entry("steam_10", "Heronited Test One"),
+                entry("steam_11", "Heronited Test Eleven"),
+                entry("steam_400", "Heronited Test Two"),
+                entry("mine", "Heronited Test Mine"),
+                entry("ctl", "Heronited Test Control"),
             ),
         );
         write(
@@ -306,7 +306,7 @@ mod tests {
         );
         write(
             paths.steam_owned(),
-            r#"{"games":[{"appId":"10","name":"Heronite Test One"},{"appId":"870780","name":"Heronite Test Control","installed":true}],"updatedAt":"x"}"#,
+            r#"{"games":[{"appId":"10","name":"Heronited Test One"},{"appId":"870780","name":"Heronited Test Control","installed":true}],"updatedAt":"x"}"#,
         );
         write(paths.sessions(), r#"{"sessions":{"steam_10":[],"mine":[]}}"#);
         write(paths.timestamps(), r#"{"steam_10":{"totalPlayed":3},"mine":{"totalPlayed":1}}"#);
@@ -387,7 +387,7 @@ mod tests {
         // title in the menu: the same file name in the other folder.
         let own = shortcut(&desktop, "Portal 2", "steam_10");
         let gog = shortcut(menu, "Portal 2", "gog_1234");
-        let own_menu = shortcut(menu, "Heronite Test One", "steam_10");
+        let own_menu = shortcut(menu, "Heronited Test One", "steam_10");
         let renamed = shortcut(menu, "A title the user changed", "steam_11");
         let all = added(&f.paths).unwrap();
         run(&f.paths, &f.roots, all, &HashSet::new()).unwrap();

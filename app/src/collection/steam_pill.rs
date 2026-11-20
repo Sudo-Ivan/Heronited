@@ -1,7 +1,7 @@
 //! The Steam pill of the Collection's header, next to the update pill
 //! (`services::steam_library`). It shows only while a restart of Steam is
 //! what brings in the rest of a library that was never read (Steam was
-//! open before Heronite turned on the access it needs), then while Steam
+//! open before Heronited turned on the access it needs), then while Steam
 //! restarts; it goes once the library comes in, and for good after
 //! "Ignore". Hovering it shows why and the restart. The Steam page has the
 //! full status. A Collection without games has the welcome instead.

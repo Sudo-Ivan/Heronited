@@ -16,7 +16,7 @@ pub const FIREFOX_UA: &str = "Mozilla/5.0 (X11; Linux x86_64; rv:128.0) Gecko/20
 /// The app by name and version, for APIs that ask clients to say who they
 /// are (every request of an extension carries it), as the GOG and Sunshine
 /// clients do. Nothing about the user.
-pub const APP_UA: &str = concat!("Heronite/", env!("CARGO_PKG_VERSION"));
+pub const APP_UA: &str = concat!("Heronited/", env!("CARGO_PKG_VERSION"));
 
 /// Base URLs of every remote service.
 #[derive(Debug, Clone)]

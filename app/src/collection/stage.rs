@@ -69,7 +69,7 @@ pub fn solid(s: Scrim) -> AnyElement {
 }
 
 /// The stage. `art` is already blurred/saturated; `None` shows the plain page
-/// colour like Heronite does when the background is disabled or missing.
+/// colour like Heronited does when the background is disabled or missing.
 /// `opacity` (0-1, "Collection background → Opacity") is how visible the art
 /// is over the page colour; the scrims stay as they are.
 pub fn stage(art: Option<ImageSource>, art_id: SharedString, s: Scrim, opacity: f32) -> AnyElement {

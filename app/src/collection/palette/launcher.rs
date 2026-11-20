@@ -1,6 +1,6 @@
 //! What the palette means in the quick launcher (`crate::quick_launch`),
 //! the same view in a small window of its own: which items it runs by
-//! itself, with no main window, and which open Heronite to run there.
+//! itself, with no main window, and which open Heronited to run there.
 
 use super::sources::{game_verbs, Act, Entry, GameBits};
 use crate::collection::game_actions::GameAction;
@@ -17,7 +17,7 @@ pub(crate) enum Chosen {
     Hide(String),
     OpenLogs,
     Quit,
-    /// Anything else: Heronite opens and runs it as Ctrl K would.
+    /// Anything else: Heronited opens and runs it as Ctrl K would.
     InApp(Act),
 }
 
@@ -41,7 +41,7 @@ pub(crate) fn chosen(act: &Act, bits: Option<&GameBits>) -> Chosen {
 }
 
 /// What Enter on `e` runs in the quick launcher: a game of the list is
-/// played (stopped while it runs); one to install is shown in Heronite.
+/// played (stopped while it runs); one to install is shown in Heronited.
 pub(crate) fn enter_act(e: &Entry) -> Act {
     match (&e.act, &e.game) {
         (Act::SelectGame(k), Some(b)) if b.installed || b.playing => Act::Game(k.clone(), GameAction::Primary),
@@ -49,7 +49,7 @@ pub(crate) fn enter_act(e: &Entry) -> Act {
     }
 }
 
-/// Whether the quick launcher runs `e` without opening Heronite (the others
+/// Whether the quick launcher runs `e` without opening Heronited (the others
 /// are marked ↗). A game's action list stays in the launcher.
 pub(crate) fn runs_alone(e: &Entry) -> bool {
     let act = enter_act(e);
@@ -57,7 +57,7 @@ pub(crate) fn runs_alone(e: &Entry) -> bool {
 }
 
 /// A game's actions in the quick launcher: its verbs (Play, settings,
-/// folder, favourites, hide, log), and showing it in Heronite where the
+/// folder, favourites, hide, log), and showing it in Heronited where the
 /// Collection's full list is.
 pub(crate) fn game_level(title: &str, bits: &GameBits) -> Vec<Entry> {
     let mut v: Vec<Entry> = game_verbs(title, bits).into_iter().filter(|e| !matches!(e.act, Act::GameActions(_))).collect();
@@ -99,7 +99,7 @@ mod tests {
         let alone: Vec<_> = verbs.iter().filter(|e| runs_alone(e)).map(|e| e.title.to_string()).collect();
         assert_eq!(alone, ["Play Control", "Open Control folder", "Add Control to favourites", "Hide Control"]);
         let opens: Vec<_> = verbs.iter().filter(|e| !runs_alone(e)).map(|e| e.title.to_string()).collect();
-        assert_eq!(opens, ["Control settings", "Control log", "Show Control in Heronite"]);
+        assert_eq!(opens, ["Control settings", "Control log", "Show Control in Heronited"]);
     }
 
     #[test]

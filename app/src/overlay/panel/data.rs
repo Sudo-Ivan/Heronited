@@ -132,7 +132,7 @@ impl OverlayPanel {
         .detach();
     }
 
-    /// MangoHud's HUD of a game Heronite did not set MangoHud up for (its
+    /// MangoHud's HUD of a game Heronited did not set MangoHud up for (its
     /// own limiter file has it otherwise).
     fn load_watched_hud(&mut self, cx: &mut Context<Self>) {
         let Some(game) = self.game.as_ref().filter(|g| g.fps.is_none()) else { return };

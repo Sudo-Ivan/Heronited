@@ -11,7 +11,7 @@
 //! launcher's is written, moved or deleted.
 //!
 //! Not `legendary egl-sync`: it links the games to the launcher, so a later
-//! sync takes the launcher's (older) version back over one Heronite updated,
+//! sync takes the launcher's (older) version back over one Heronited updated,
 //! and it may write manifests into the launcher's folder.
 //!
 //! It runs after each library refresh when the launcher has games
@@ -111,7 +111,7 @@ pub fn updated_by_launcher_from(data_paths: &DataPaths, dir: &Path) -> Vec<Launc
         .filter(|g| {
             let Some(entry) = installed.get(&g.app_name) else { return false };
             // Only the latest: a launcher copy older than legendary's (one
-            // Heronite updated) is never taken back.
+            // Heronited updated) is never taken back.
             latest_version(&assets, &g.app_name) == Some(g.version.as_str())
                 && text(entry, "version") != g.version
                 && text(entry, "platform") == "Windows"
@@ -397,7 +397,7 @@ mod tests {
             &data_paths,
             json!({
                 "Fortnite": {"version": "1", "platform": "Windows", "install_path": fortnite, "egl_guid": ""},
-                // Heronite updated it; the launcher's copy is the old one.
+                // Heronited updated it; the launcher's copy is the old one.
                 "Older": record(&at("Older"), "2"),
                 "Same": record(&at("Same"), "2"),
                 "Synced": {"version": "1", "platform": "Windows", "install_path": at("Synced").to_string_lossy(), "egl_guid": "GUIDSynced"},

@@ -73,7 +73,7 @@ pub(super) fn fake(client: Client, state: &str) -> ClientState {
         }
         _ => {}
     }
-    let prefix = PathBuf::from(format!("/home/rafa/Games/Heronite/Prefixes/{}", client.prefix_folder()));
+    let prefix = PathBuf::from(format!("/home/rafa/Games/Heronited/Prefixes/{}", client.prefix_folder()));
     let games: Vec<ClientGame> = if matches!(state, "ready" | "signedout" | "empty") {
         Vec::new()
     } else {

@@ -87,7 +87,7 @@ impl SettingsPanel {
     }
 
     /// What shows MangoHud when it starts hidden: the in-game overlay can
-    /// for the games Heronite starts, not for Steam's.
+    /// for the games Heronited starts, not for Steam's.
     pub(super) fn mangohud_hidden_help(&self) -> String {
         if self.steam.is_some() {
             tr!("Starts hidden: its toggle key shows it (Right Shift + F12 unless changed).").into()

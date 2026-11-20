@@ -187,7 +187,7 @@ impl CollectionView {
                     .items_center()
                     .justify_center()
                     .p(px(32.))
-                    // Heronite blurs what is behind (16px); darker instead.
+                    // Heronited blurs what is behind (16px); darker instead.
                     .bg(theme::rgb_a(4, 6, 8, 0.8))
                     .font_family(theme::font_body())
                     .on_mouse_down(

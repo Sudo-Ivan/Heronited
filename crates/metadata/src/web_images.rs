@@ -1,6 +1,6 @@
 //! Web image search for the art picker: port of `local-library/web-images.ts`.
 //!
-//! Heronite drives DuckDuckGo through a hidden Chromium and reads the
+//! Heronited drives DuckDuckGo through a hidden Chromium and reads the
 //! `i.js` response over CDP. Here the same call is made directly: fetch the
 //! results page for the `vqd` token, then `i.js`. When DuckDuckGo refuses
 //! (403 / no token / no results) the search falls back to Bing's image HTML
@@ -276,7 +276,7 @@ static SEARCH_LOCK: Mutex<()> = Mutex::new(());
 
 /// `searchCollectionWebImages`: images for `query`. With `transparent`, a
 /// failed search is retried once without the filter. Errors read
-/// "Could not search images. Try another term.", like Heronite's.
+/// "Could not search images. Try another term.", like Heronited's.
 pub fn search_web_images(http: &Http, query: &str, transparent: bool) -> Result<Vec<WebImage>> {
     search_web_images_shaped(http, query, transparent, None)
 }

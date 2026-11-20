@@ -7,13 +7,13 @@
 //! same page and are kept as they are).
 //!
 //! A game set to a [`Preference`] in its GPU tab ([`KEY_PREFERENCE`]) gets
-//! the value for the program Heronite actually starts, right before it starts
+//! the value for the program Heronited actually starts, right before it starts
 //! ([`apply`]), and the value goes back to what it was once the game is over
 //! ([`restore`]): put back when there was one, removed when there was none.
-//! It goes back only while it still holds what Heronite wrote, so a choice
+//! It goes back only while it still holds what Heronited wrote, so a choice
 //! made in Windows' Settings meanwhile is never overwritten.
 //!
-//! What Heronite wrote and what it replaced are kept in
+//! What Heronited wrote and what it replaced are kept in
 //! `local_library/gpu-preferences.json` before the registry is touched, so a
 //! session the app could not finish (it crashed, the computer went off) is
 //! put back later: when the game is picked up again and ends, at the next
@@ -85,7 +85,7 @@ impl Preference {
 /// The per-program values of the registry.
 pub trait Registry: Send + Sync {
     /// The data of `exe`'s value; `None` when there is none. A value of
-    /// another type than text is an error: it is not Heronite's to replace.
+    /// another type than text is an error: it is not Heronited's to replace.
     fn read(&self, exe: &str) -> io::Result<Option<String>>;
     fn write(&self, exe: &str, data: &str) -> io::Result<()>;
     fn delete(&self, exe: &str) -> io::Result<()>;
@@ -218,7 +218,7 @@ pub fn target_exe(program: &str) -> Option<String> {
     (absolute && exe && !path.contains(r"\..\")).then_some(path)
 }
 
-/// The file of what Heronite wrote.
+/// The file of what Heronited wrote.
 pub fn ledger_path(paths: &DataPaths) -> PathBuf {
     paths.local_library().join("gpu-preferences.json")
 }
@@ -232,12 +232,12 @@ struct LedgerFile {
     extra: Map<String, Value>,
 }
 
-/// One value Heronite wrote and has not put back yet.
+/// One value Heronited wrote and has not put back yet.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 struct Written {
     exe: String,
-    /// The data Heronite wrote.
+    /// The data Heronited wrote.
     wrote: String,
     /// The data before; `None`: there was no value.
     previous: Option<String>,
@@ -293,19 +293,19 @@ pub fn apply(reg: &dyn Registry, file: &Path, exe: &str, preference: Preference)
 /// What [`restore`] did.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Restored {
-    /// Heronite had written nothing for the program.
+    /// Heronited had written nothing for the program.
     Nothing,
     /// The value is back to what it was.
     PutBack,
     /// There was no value before: it is gone again.
     Removed,
-    /// The value changed since Heronite wrote it (in Windows' Settings): it
+    /// The value changed since Heronited wrote it (in Windows' Settings): it
     /// stays as it is.
     LeftAlone,
 }
 
-/// Puts `exe`'s value back after the game, if Heronite wrote it and it still
-/// holds what Heronite wrote.
+/// Puts `exe`'s value back after the game, if Heronited wrote it and it still
+/// holds what Heronited wrote.
 pub fn restore(reg: &dyn Registry, file: &Path, exe: &str) -> anyhow::Result<Restored> {
     let _guard = LOCK.lock().unwrap_or_else(|e| e.into_inner());
     let mut f: LedgerFile = json_store::read(file)?;
@@ -364,7 +364,7 @@ pub fn restore_all_except(reg: &dyn Registry, file: &Path, running: &dyn Fn(&str
 
 /// Asks the runtime to set the value for the program it starts (Windows).
 /// Not for a game another program starts (a store client, Steam): the
-/// program that runs it is not the one Heronite starts. Nor for emulators.
+/// program that runs it is not the one Heronited starts. Nor for emulators.
 pub fn attach(plan: &mut LaunchPlan, g: &Gpu) {
     attach_on(plan, g, cfg!(windows));
 }

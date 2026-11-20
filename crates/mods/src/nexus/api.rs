@@ -40,7 +40,7 @@ fn note_rate_limits<T>(reply: &http::Reply<T>) {
 
 /// GET `BASE + path` with the key. The error keeps its HTTP status.
 pub(super) fn rest<T: DeserializeOwned>(api_key: &str, path: &str) -> Result<T, HttpError> {
-    let headers = [("apikey", api_key), ("Application-Name", "Heronite"), ("Application-Version", env!("CARGO_PKG_VERSION"))];
+    let headers = [("apikey", api_key), ("Application-Name", "Heronited"), ("Application-Version", env!("CARGO_PKG_VERSION"))];
     let reply = http::get_json_reply::<T>(&format!("{BASE}{path}"), &headers)?;
     note_rate_limits(&reply);
     Ok(reply.value)

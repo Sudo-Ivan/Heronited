@@ -68,7 +68,7 @@ pub fn shim_target(shim_file: &str) -> Option<PathBuf> {
 mod tests {
     use super::*;
 
-    /// A Scoop root with Heronite 1.2.0 in it, `current` a plain folder
+    /// A Scoop root with Heronited 1.2.0 in it, `current` a plain folder
     /// (junctions are Windows-only). Returns the root and the 1.2.0 program.
     fn scoop_root() -> (tempfile::TempDir, PathBuf) {
         let tmp = tempfile::tempdir().unwrap();
@@ -94,7 +94,7 @@ mod tests {
     #[test]
     fn the_marker_alone_is_enough() {
         let tmp = tempfile::tempdir().unwrap();
-        let exe = tmp.path().join("Heronite").join("heronite.exe");
+        let exe = tmp.path().join("Heronited").join("heronite.exe");
         std::fs::create_dir_all(exe.parent().unwrap()).unwrap();
         assert!(!installed(&exe));
         std::fs::write(exe.with_file_name(MARKER), "windows-installer\r\n").unwrap();

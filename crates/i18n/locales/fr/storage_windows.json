@@ -1,10 +1,10 @@
 {
-  "An update of Heronite is using {path}": "Une mise à jour d’Heronite utilise {path}",
+  "An update of Heronited is using {path}": "Une mise à jour d’Heronited utilise {path}",
   "Could not move {path} to the Recycle Bin: {error}": "Impossible de déplacer {path} dans la Corbeille : {error}",
-  "Deleted. Heronite downloads them again when needed.": "Supprimés. Heronite les téléchargera à nouveau si nécessaire.",
+  "Deleted. Heronited downloads them again when needed.": "Supprimés. Heronited les téléchargera à nouveau si nécessaire.",
   "Disk space of games, store tools, caches": "Espace disque des jeux, outils des boutiques et caches",
   "GOG redistributables": "Composants redistribuables GOG",
-  "Heronite updates": "Mises à jour d’Heronite",
+  "Heronited updates": "Mises à jour d’Heronited",
   "Leftover folders go to the Recycle Bin, where they can be restored; the rest is deleted.": "Les dossiers résiduels sont placés dans la Corbeille, d’où ils peuvent être restaurés ; le reste est supprimé.",
   "Move to the Recycle Bin": "Déplacer dans la Corbeille",
   "No game points to these folders any more. They go to the Recycle Bin, where they can be restored.": "Plus aucun jeu n’utilise ces dossiers. Ils sont placés dans la Corbeille, d’où ils peuvent être restaurés.",

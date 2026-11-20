@@ -571,7 +571,7 @@ fn signed_out_split(d: &mut SettingsPage, account: Option<&RetroAccount>, narrow
                     tr!("Emulators signed in for you:"),
                     tr!("RetroArch, DuckStation, PCSX2, PPSSPP, Dolphin and Flycast."),
                 ))
-                .child(benefit(Icon::Star, tr!("Points and hardcore mode,"), tr!("kept by Heronite even if the account goes away."))),
+                .child(benefit(Icon::Star, tr!("Points and hardcore mode,"), tr!("kept by Heronited even if the account goes away."))),
         );
     div()
         .flex()

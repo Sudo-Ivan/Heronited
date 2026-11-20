@@ -1,7 +1,7 @@
 # UI conventions (app/)
 
 The Collection screen (list, cards, header bar, focus panel, stage) keeps the
-look of the Electron Heronite Collection
+look of the Electron Heronited Collection
 ([`src/frontend/screens/LocalLibrary`](https://github.com/RafaelGoulartB/HeroicGamesLauncher/tree/master/src/frontend/screens/LocalLibrary)).
 Everything that floats over or replaces it (menus, dropdowns, context menus,
 dialogs, drawers, pages, settings) follows the **Glass design system** below.
@@ -155,7 +155,7 @@ what the Cover aspect asks for and the Cover shapes card counts it) and "Review 
   others, in the card of their kind, drawn from the same descriptor. After its name a row has a small grey pill,
   "Extension · 1.2.0" ("Extension" when the version is not known); a details extension has the drag handle and takes part
   in the order like a built-in one, and its fields feed the merge. Its open row adds, under "Fills": who made it ("Made by
-  okabe") and where it came from ("From the Heronite list", "From lists.example.org", "From lists.example.org, a list you
+  okabe") and where it came from ("From the Heronited list", "From lists.example.org", "From lists.example.org, a list you
   removed", or "Installed from a file: nobody checked this source"; amber unless it came from the app's list), "Connects
   to: api.example.org, img.example.org" (every host it may contact, pictures included; "Connects to nothing on the
   internet" when it has none; left out when its manifest could not be read), its homepage as a link with the address
@@ -173,7 +173,7 @@ what the Cover aspect asks for and the Cover shapes card counts it) and "Review 
   again; both add "The last error: …" in small muted text. An extension that was installed or updated opens its row,
   scrolls to it and flashes it once the page lists it.
   Under the sources, a dashed row, "Get more sources" with a plus tile, opens the gallery (`more.rs`); once a copy of a
-  list was read it adds how many sources the lists offer that are not installed: "· 2 more from the Heronite list",
+  list was read it adds how many sources the lists offer that are not installed: "· 2 more from the Heronited list",
   "· 5 more from lists.example.org" (one list), "· 5 more from your lists" (several), "· Nothing new on your lists"; no
   copy, no count. "Install from a file…" at its right goes straight to the file chooser and the installer. Console mode
   shows one muted row, "Get more sources" with "On the desktop" and "Sources made by the community are installed from
@@ -199,10 +199,10 @@ what the Cover aspect asks for and the Cover shapes card counts it) and "Review 
   The quick launcher (`app/src/quick_launch/`) is the same palette in a window of its own (`Mode::Launcher`): the
   panel at its full size with the pane, no backdrop: the window is the panel, nothing is drawn around it (no shadow, which the window's edge would cut square), and it fades in without sliding. Its list
   is the pages, Settings sections, global actions and games (no View menu, page commands or random pick: they are the
-  Collection's). Enter on a game plays it (stops it while it runs; one to install is shown in Heronite), Shift Enter
-  shows it in Heronite, → lists its actions (its verbs and "Show X in Heronite"). An item that opens Heronite has a
-  13px `OpenInNew` at the right of its row and "Opens Heronite" in the pane; the footer says what Enter does (play,
-  stop, run, open in Heronite). It closes on Esc, after running something and when it loses the keyboard.
+  Collection's). Enter on a game plays it (stops it while it runs; one to install is shown in Heronited), Shift Enter
+  shows it in Heronited, → lists its actions (its verbs and "Show X in Heronited"). An item that opens Heronited has a
+  13px `OpenInNew` at the right of its row and "Opens Heronited" in the pane; the footer says what Enter does (play,
+  stop, run, open in Heronited). It closes on Esc, after running something and when it loses the keyboard.
   Settings → Quick launcher (`pages/settings/quick_launch.rs`, in App after Controller) has a "How it works" card (the
   shortcut's keys, Enter, Shift Enter and the ↗ mark, one line each) and an "Opening it" card: the keyboard shortcut
   field (none unless set; refused with a line when the overlay, the screenshot or the replay has the keys, and the
@@ -227,7 +227,7 @@ blur: reuse this one.
 
 **Interface vs Collection appearance** (Settings → Appearance, two independent
 groups). *Collection background* = the stage art behind the list/details: on/off,
-blur, darkening, colour, edge shading in Heronite's `local_library/settings.json`
+blur, darkening, colour, edge shading in Heronited's `local_library/settings.json`
 (`background`), plus Opacity (`collectionOpacity`, default 100). Its art is
 `Variant::Backdrop`: the stage with its highlights rolled off (`BACKDROP_KNEE` /
 `BACKDROP_CAP`) so white text keeps 4.5:1 over white art; the scrims keep a
@@ -304,7 +304,7 @@ ffmpeg (`heronite_media::stream`, `fill` + `looped`) at 24 fps into the still st
 twice as much), with the still stage's blur and colour done by ffmpeg (`gblur`,
 `eq`) and only the roll-off on its reading thread (`backdrop_frame_rolloff`): about 6% of one core while it plays (35%
 with the blur on the frames). One slot, the newest frame drawn, as the trailers. It stops (its first frame
-shows) with Motion other than Full, while Heronite is not the active window, a game runs or a trailer plays, the stage
+shows) with Motion other than Full, while Heronited is not the active window, a game runs or a trailer plays, the stage
 is not drawn, or the window has not drawn for 1.5 s; a file ffmpeg cannot play stays still for the session. Off, or
 without ffmpeg, every video is drawn as its first frame wherever a picture is (`Opts::video_still` =
 `heronite_media::stills::video_still`, also for a WebM downloaded from the web). Under the switch a line says why one
@@ -363,7 +363,7 @@ click or drag on (drags go through `on_drag_move`, so they follow the pointer ou
 26, drawers 24), `glass_menu_surface(radius)` (menus/dropdown lists, radius 14). Children added after the constructor paint above the layers. Children
 are not clipped to the rounded corners: give edge-to-edge children their own radius.
 
-**Collection header** (`collection/header.rs`, the one place the main screen departs from Heronite, by user
+**Collection header** (`collection/header.rs`, the one place the main screen departs from Heronited, by user
 decision): faint, no bar fill. Over the list column: ☰ (`tool_button`, radius 10, icon `theme::tool_icon()`), the
 search pill (`search_fill`, accent ring while focused, clear button) and the View button (`Icon::Tune`, accent while
 anything is filtered). Its menu (`collection/view_menu/`) starts with a search box: the active filters sit in it as
@@ -476,7 +476,7 @@ row shows the percent and the queue's length; a waiting game's card says its pla
 `HERONITE_DEBUG_FAKE_DOWNLOAD=<appName>` (a fake queue), `HERONITE_DEBUG_FAKE_PAUSED=1` (paused),
 `HERONITE_DEBUG_DOWNLOADS_STOP=<appName>` (the stop question), `HERONITE_DEBUG_DROPDOWN=downloads` (the popover).
 
-**Focus panel** (`collection/focus/`, the second place that departs from Heronite, by user decision): a fixed left column
+**Focus panel** (`collection/focus/`, the second place that departs from Heronited, by user decision): a fixed left column
 (`focus_left.rs`: big cover, Play, status selector + favourite / metadata / settings, the journal's "Where I left off"
 card only once the player wrote one (click: the Journal; also in the grid drawer), star rating, facts card with score
 (a green / amber / red badge from 75 / 50, with its source, IGDB or Steam, unless typed by hand), library, save backup and Linux) next to the scrolling details; no footer. The title + meta line sit above both, fixed and
@@ -867,14 +867,14 @@ file, from "Install from a file…" and "Update from a file…" (`HubEvent::Open
 opens the dialog from any page). Opening the gallery reads the lists from the network; the file's installer reads the
 package off the UI thread. Esc goes back from the installer to the gallery, closes "Lists…", then closes the dialog.
 - **The gallery** (1020px at most): a line, "Sources made by the community. Once installed, a source sits in your lists
-  like any other.", then, in amber, one line per list that could not be read now but has an older copy ("The Heronite
+  like any other.", then, in amber, one line per list that could not be read now but has an older copy ("The Heronited
   list: There is no list at this address. Showing the copy read before."). A search field ("Search sources": every word
   must be in the name, author, id or description) and the filters: "All 7", "Game details", "Pictures", "Extras" and,
   only when some installed extension has a newer version in its list, "Updates 1" (accent tint). Below, on the left, the
   entries, one card each (each id once, the first list that offers it): its mark, name, "okabe · 1.4.2" (and, for a list
   the user added, "· lists.example.org"), the description in two lines, a kind pill, "Adult content" in amber when it is,
   what it fills ("Text · Covers") and a small button by its state: "Install", "Update to 1.1.0", "Installed" (disabled; an
-  extension installed from a file counts as installed, never as an update) or "Needs a newer Heronite" (disabled); a
+  extension installed from a file counts as installed, never as an update) or "Needs a newer Heronited" (disabled); a
   click on the card picks it, a click on the button starts the install. On the right (340px), the picked entry (the first
   shown when none is picked): its mark, name, "okabe · version 1.4.2", pills (kind, the games it is for, "Adult content",
   "1.0.0 installed" in accent for an update), the description, "What it is allowed to do" (below) and "Fills", then,
@@ -886,24 +886,24 @@ package off the UI thread. Esc goes back from the installer to the gallery, clos
     pictures come from other hosts, "Reads from your games: title, platform, year, file or install folder name (never a path), store and
     ids", "No access to your files, your accounts or other sources' keys", in amber "Its pictures are hidden until “Allow
     adult covers” is on" for an adult source, and "Asks you for: API key (needed), Region" when it has options.
-  - **The trust line** says only what Heronite checked, with a tick when the Heronite list (at its own address) is the
+  - **The trust line** says only what Heronited checked, with a tick when the Heronited list (at its own address) is the
     origin and a warning, in amber, otherwise (`words::origin`, `words::guarantee`); the app's own list set to another
-    address is worded as a list the user added. "From the Heronite list": "Its files are checked against
-    the Heronite list (SHA-256) before anything is installed." A list the user added ("From lists.example.org"; "…, a
-    list you removed" when it was removed since): "Its files are checked against this list (SHA-256), but Heronite does
+    address is worded as a list the user added. "From the Heronited list": "Its files are checked against
+    the Heronited list (SHA-256) before anything is installed." A list the user added ("From lists.example.org"; "…, a
+    list you removed" when it was removed since): "Its files are checked against this list (SHA-256), but Heronited does
     not know who keeps the list. Install only what you trust." A file: "Installed from a file: nobody checked this
     source", "Install it only if you trust where the file comes from." Nobody reviews what a list names: the check is
     that the files are the ones it names.
-  - **The footer**: on the left where the copy shown comes from and how old it is ("From the Heronite list · read
+  - **The footer**: on the left where the copy shown comes from and how old it is ("From the Heronited list · read
     today", "From 2 lists · read yesterday", "· read 3 days ago · could not be read now" when the list was not
     reachable and the copy kept is shown; "Reading the lists…" meanwhile), then "Refresh" (reads every list again; dimmed
     meanwhile), "Install from a file…", "Lists…" and Done.
   - **Lists…** takes the place of the entries, with "Back to the sources" and "Lists in use": a row per list, the app's
-    own first ("The Heronite list", the tick, no Remove) then the ones added (their host, a link icon, Remove), each
+    own first ("The Heronited list", the tick, no Remove) then the ones added (their host, a link icon, Remove), each
     with its address and how it stands ("3 sources · read today", the sentence of why it could not be read, or "Not read
     yet"). "Add a list by its address" is a field (https://; Enter or Add) with a red reason when it is refused ("Only
     https addresses can be added.", "There is no list at this address.", "This list is in use already."…). A line with a
-    warning icon closes it: "Anyone can publish a list. Heronite checks that a source's files are the ones its list
+    warning icon closes it: "Anyone can publish a list. Heronited checks that a source's files are the ones its list
     names, not what the source does: add only lists from people you trust. Removing a list keeps the sources installed
     from it." Lists are kept in `settings.metadata.extensionLists`.
   - **Empty states**: "Reading the lists…" while no copy exists yet; with no copy and no list read, a Wi-Fi-off icon,
@@ -925,13 +925,13 @@ package off the UI thread. Esc goes back from the installer to the gallery, clos
   settings, its place) stays.", "Version 1.0.0 is installed already: this puts its files back. What you set for it
   stays.", "Version 2.0.0 is installed: this replaces it with an older one. What you set for it stays."), pills (kind,
   the games it is for, "Adult content"), the description and when it is asked, "What it is allowed to do", "Fills", the
-  trust box (a tick on a quiet tint, or a warning on an amber one), "Its source.toml has keys this Heronite does not
+  trust box (a tick on a quiet tint, or a warning on an amber one), "Its source.toml has keys this Heronited does not
   know; they are left out." when it has any, and "SHA-256 …" in small text. The footer is Cancel (Close when it did not
   read) and the primary button: "Install", "Update", "Install again" or "Install the older version" ("Installing…"
   and dimmed meanwhile). An error reads in plain words in red with the engine's own words under it in
   small muted text, for the extension's author ("This is not an extension. Choose its .zip, or the source.toml in its
   folder.", "The package has no source.js.", "Its source.toml has a mistake, so it cannot be installed.", "It was made
-  for a newer Heronite. Update Heronite to install it.", "Its id is the id of a source Heronite has, so it cannot be
+  for a newer Heronited. Update Heronited to install it.", "Its id is the id of a source Heronited has, so it cannot be
   installed.", "A file downloaded is not the one the list names, so nothing was installed.", "It could not be saved in
   the data folder."…; every `ExtensionError` has its sentence in `words::error`, and a test fails for a new one); a file
   that does not read adds "Nothing was installed. Choose another file, or ask the source's author for one that works."
@@ -1335,7 +1335,7 @@ limiting") starts with that switch off. Home's rows scroll to keep the focus in
 sight when the panel is short for them. Home's captures share one "Capture" row (by user decision: option B2): a round button each
 for the screenshot, the replay (while it records) and the moment (with a journal), ◀ ▶ choose one, A runs it and the
 description and the A hint name it; a click on a button runs that one. With only the screenshot it is a plain "Take
-screenshot" row. The Screenshots and Notes tabs keep their own rows. "Back to game" comes before "Back to Heronite" only
+screenshot" row. The Screenshots and Notes tabs keep their own rows. "Back to game" comes before "Back to Heronited" only
 while the game has a window and another one has the focus (`heronite_overlay::game_window`, read when the panel opens):
 it gives that window the focus and closes the panel. Only Hyprland can be asked (`hyprctl clients -j` has each window's
 pid); elsewhere the row never shows. The game's panel has the same, as a round → button beside Stop (where Play has its
@@ -1364,15 +1364,15 @@ on quit. Opened that way the surface takes the keyboard (`KeyboardInteractivity:
 until it closes), console mode's keys drive it (`console::input::pad_from_key`) and the hints show keys
 (`kit::key_glyph`: Enter, Esc, Q / E). "Open it without a game too" (`withoutGame`, off by default) keeps the input thread and the
 shortcut running while the app runs; the panel then has no Screenshots tab, the header says "No game running", the mixer
-has only System, and Home ends with "Open Heronite".
+has only System, and Home ends with "Open Heronited".
 The panel takes controller presses from the service (`OverlayPanel::on_pad`) and the mouse as console mode does
 (`console::pointer`: tabs, rows, hints; a click on a volume bar sets that level, on its icon mutes it; a capture
 opens on a click); it never reads `OverlayService`
 (which is usually updating when it calls in) and reaches it through deferred `with_service`. GNOME and X11 cannot show
 it (no layer-shell): Settings says so. Debug: `HERONITE_DEBUG_OVERLAY=window[:<app_name>]` draws the panel in a normal
-window (`app.heronite.overlay`) as if the game ran (Hyprland ignores its size requests there; audio changes are skipped
+window (`io.github.sudoivan.overlay`) as if the game ran (Hyprland ignores its size requests there; audio changes are skipped
 under any `HERONITE_DEBUG_OVERLAY`), `=layer` the real surface; `HERONITE_DEBUG_OVERLAY_PAD=rb,down,a`
-plays presses, then `HERONITE_DEBUG_OVERLAY_MOUSE` mouse events (as `HERONITE_DEBUG_MOUSE`); `HERONITE_DEBUG_OVERLAY_NOTICE=volume|shot|replay` adds a notice (`app.heronite.overlay-notice`), `=achievement|achievement-queue` one or six made-up achievement notices (icon from `HERONITE_DEBUG_OVERLAY_NOTICE_ICON`);
+plays presses, then `HERONITE_DEBUG_OVERLAY_MOUSE` mouse events (as `HERONITE_DEBUG_MOUSE`); `HERONITE_DEBUG_OVERLAY_NOTICE=volume|shot|replay` adds a notice (`io.github.sudoivan.overlay-notice`), `=achievement|achievement-queue` one or six made-up achievement notices (icon from `HERONITE_DEBUG_OVERLAY_NOTICE_ICON`);
 `HERONITE_DEBUG_OVERLAY_FPS=<limit>` shows the FPS limit row as gamescope's, `=mangohud:<limit>` (or `mangohud-hidden:<limit>`) MangoHud's two rows (nothing applied); `HERONITE_DEBUG_OVERLAY=window:none` opens it with no game;
 `HERONITE_DEBUG_OVERLAY_KEYBOARD=1` opens
 it as the keyboard shortcut does, `=shortcut` registers the real shortcut instead; `HERONITE_DEBUG_OVERLAY_DISPLAY=<px>` stands in for the display height (800 for a Steam Deck, 2160 for 4K), and
@@ -1408,7 +1408,7 @@ Replay controls, live Linux FPS controls and Bluetooth disconnect are hidden.
   [`@mui/icons-material`](https://github.com/mui/material-ui/tree/master/packages/mui-icons-material)
   package, register them in `icons.rs` and list the source in
   `THIRD-PARTY-NOTICES.md` when it is a new one.
-- Text is written in English (Heronite's `en` locale strings in
+- Text is written in English (Heronited's `en` locale strings in
   [`public/locales/en/translation.json`](https://github.com/RafaelGoulartB/HeroicGamesLauncher/blob/master/public/locales/en/translation.json))
   and every user-visible string goes through `heronite_i18n`: `tr!("Play")`,
   `tr!("{n} of {total}", n, total)`, `trn!(count, "{n} game", "{n} games")`,
@@ -1441,7 +1441,7 @@ Replay controls, live Linux FPS controls and Bluetooth disconnect are hidden.
   ones in no group never split a game alone) gets a row of its sets in the dialog (All first, each "name · DLC · unlocked/total"; the filters count within the set shown; in All each
   achievement carries its set's name) and a "Sets" section in the overlay's Achievements tab (bar and count per
   set). Steam's unnamed base group reads "Base game", achievements in no known group "Other achievements".
-  Counts are Heronite's unlocked/total, never Steam's "set complete"; with DLC sets the dialog says the counts
+  Counts are Heronited's unlocked/total, never Steam's "set complete"; with DLC sets the dialog says the counts
   include them whether or not the DLC is owned (no source says which). `HERONITE_DEBUG_DIALOG=achievements`
   opens the dialog of the selected game, `HERONITE_DEBUG_ACH_SET=<group id>|other` on that set.
 - The Timeline puts each unlock on its day by the screenshots' rule: a chip ("3 achievements") and the icons
@@ -1510,7 +1510,7 @@ Replay controls, live Linux FPS controls and Bluetooth disconnect are hidden.
   picked) and `HERONITE_DEBUG_DIALOG=extension-file:<path>` the installer of a package (a zip, a folder, or a file in
   it; nothing is installed until Install is pressed: use a data copy). `HERONITE_DEBUG_EXTENSIONS=<state>[+<state>…]`
   makes the lists up, without the network: `list` (the two examples and made-up sources, one adult, one for a newer
-  Heronite), `update` (the installed extensions count as from the app's list, which offers Wikipedia 1.1.0), `old`
+  Heronited), `update` (the installed extensions count as from the app's list, which offers Wikipedia 1.1.0), `old`
   (a copy 3 days old, not readable now), `offline`, `404`, `invalid`, `empty`, `other` (a list the user added), `lists`
   (the "Lists…" manager open), `pick:<id>`, `busy` / `error` (the picked entry installing, or its install failed;
   installing from a made-up list always fails as a download would). `HERONITE_EXTENSIONS_INDEX=<https address|path

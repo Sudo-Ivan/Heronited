@@ -1,6 +1,6 @@
 # VNDB
 
-A metadata source for Heronite that reads visual novels from VNDB, the
+A metadata source for Heronited that reads visual novels from VNDB, the
 Visual Novel Database (vndb.org), through its public API
 (<https://api.vndb.org/kana>). No key or account.
 
@@ -21,7 +21,7 @@ when the game was already matched with VNDB, or when you ask it by name
   and a screenshot as the background.
 - Adult pictures: VNDB's users vote on how suggestive or violent each
   picture is. A cover or screenshot that VNDB would not show as safe (an
-  average vote above 0.4, or no vote) is flagged adult: Heronite drops it,
+  average vote above 0.4, or no vote) is flagged adult: Heronited drops it,
   and takes the picture from the next source, unless "Allow adult covers"
   is on. The background is the safe landscape screenshot with the most
   votes.
@@ -43,4 +43,4 @@ cargo run -p heronite-metadata-ext --example run -- extensions/metadata/vndb fet
 ```
 
 VNDB's API is free for non-commercial use; its data is under VNDB's data
-license (<https://vndb.org/d17#4>). Heronite is not affiliated with VNDB.
+license (<https://vndb.org/d17#4>). Heronited is not affiliated with VNDB.

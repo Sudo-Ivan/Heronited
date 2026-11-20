@@ -53,7 +53,7 @@ pub enum OfferState {
     Installed,
     /// Installed from this list in an older version (the one installed).
     Update(String),
-    /// Made for a newer Heronite.
+    /// Made for a newer Heronited.
     Unsupported,
 }
 
@@ -193,7 +193,7 @@ impl ExtensionsState {
     pub fn from_env() -> Self {
         let fake = Fake::from_env();
         let checkout = checkout_index();
-        // The made-up lists stand for the Heronite list.
+        // The made-up lists stand for the Heronited list.
         let debug = cfg!(debug_assertions) && fake.is_none();
         let own = own_list(debug, crate::env::value("HERONITE_EXTENSIONS_INDEX"), checkout.clone()).key();
         let checkout = checkout.map(|p| ListLocation::File(p).key()).filter(|k| *k == own);
@@ -304,12 +304,12 @@ mod tests {
     fn a_debug_build_reads_the_repository_list_and_a_release_build_never_does() {
         let checkout = Some(PathBuf::from("/src/heronite/extensions/metadata/index.json"));
         let heronite = ListLocation::Address(HERONITE_LIST.into());
-        assert_eq!(own_list(false, None, checkout.clone()), heronite, "a release build: always the Heronite list");
+        assert_eq!(own_list(false, None, checkout.clone()), heronite, "a release build: always the Heronited list");
         assert_eq!(own_list(false, None, None), heronite);
         assert_eq!(own_list(true, None, checkout.clone()), ListLocation::File("/src/heronite/extensions/metadata/index.json".into()));
         assert_eq!(own_list(true, None, None), heronite, "a debug build away from its repository");
         // The switch wins in any build: an address or a path.
-        let branch = "https://raw.githubusercontent.com/someone/Heronite/branch/extensions/metadata/index.json";
+        let branch = "https://raw.githubusercontent.com/someone/Heronited/branch/extensions/metadata/index.json";
         for debug in [false, true] {
             assert_eq!(own_list(debug, Some(branch.into()), checkout.clone()), ListLocation::Address(branch.into()));
             // Absolute here; on Windows that adds the current drive.

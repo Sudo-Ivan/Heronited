@@ -161,11 +161,11 @@ pub struct LinkRequest {
     pub candidates: Vec<String>,
 }
 
-/// Where Heronite stands with `nxm://` / `ror2mm://` links.
+/// Where Heronited stands with `nxm://` / `ror2mm://` links.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum HandlerState {
     Unknown,
-    /// Heronite opens them.
+    /// Heronited opens them.
     Ours,
     /// Another program does (Vortex in Wine, r2modman…).
     Other,
@@ -499,7 +499,7 @@ impl ModsService {
         self.read_handlers(cx);
     }
 
-    /// Makes Heronite open `nxm://` and `ror2mm://` links.
+    /// Makes Heronited open `nxm://` and `ror2mm://` links.
     pub fn register_handlers(&mut self, cx: &mut Context<Self>) {
         self.write_handlers(cx);
     }

@@ -1,12 +1,12 @@
 //! The quick launcher: the command palette (Ctrl K) in a small window of its
 //! own, opened from anywhere without the main window. Type a few letters,
-//! Enter plays the game; Shift Enter shows it in Heronite.
+//! Enter plays the game; Shift Enter shows it in Heronited.
 //!
 //! It is the same view, ranking and history as Ctrl K
 //! (`collection::palette`, `Mode::Launcher`). It runs by itself what needs no
 //! main window (play, stop, open the folder, favourites, hide, the logs
 //! folder, quit; `collection::palette::launcher::Chosen`); anything else
-//! opens Heronite and runs there, marked ↗.
+//! opens Heronited and runs there, marked ↗.
 //!
 //! Opened by its keyboard shortcut (`hotkey`, none unless set in Settings →
 //! Quick launcher), `--quick-launch` and `heronite://quick-launch` (through

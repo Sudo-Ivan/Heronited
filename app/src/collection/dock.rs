@@ -356,7 +356,7 @@ impl CollectionView {
                     .child(kbd("F3"))
                     .on_click(cx.listener(|this, _, window, cx| this.open_batch_edit(window, cx))),
             )
-            // Only games added to Heronite can leave the Collection; the dialog asks first.
+            // Only games added to Heronited can leave the Collection; the dialog asks first.
             .when(removable, |d| {
                 d.child(div().w(px(1.)).h(px(24.)).mx(px(4.)).flex_none().bg(theme::glass_border())).child(
                     tinted_dock_button(

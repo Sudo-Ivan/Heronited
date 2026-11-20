@@ -196,6 +196,6 @@ mod tests {
         assert!(!packages.is_empty());
         assert!(packages.iter().all(|p| p.root.is_dir() && !p.full_name.is_empty()));
         // An unknown package has no resources.
-        assert_eq!(resolve("Heronite.Missing_1.0.0.0_x64__abc", "ms-resource:AppName"), None);
+        assert_eq!(resolve("Heronited.Missing_1.0.0.0_x64__abc", "ms-resource:AppName"), None);
     }
 }

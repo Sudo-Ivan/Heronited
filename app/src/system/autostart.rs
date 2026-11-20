@@ -1,5 +1,5 @@
 //! "Start with the system": an XDG autostart entry
-//! (`~/.config/autostart/app.heronite.Heronite.desktop`) on Linux, a value of the
+//! (`~/.config/autostart/io.github.sudoivan.Heronited.desktop`) on Linux, a value of the
 //! user's `Run` key (`HKCU\Software\Microsoft\Windows\CurrentVersion\Run`)
 //! on Windows, that follows the `startWithSystem` global setting. The entry
 //! passes `--autostart`: only that start honours "Start minimized"
@@ -21,15 +21,15 @@ use std::path::{Path, PathBuf};
 use heronite_data::DataPaths;
 use heronite_shortcuts::desktop::quote_exec_arg;
 
-const FILE_NAME: &str = "app.heronite.Heronite.desktop";
+const FILE_NAME: &str = "io.github.sudoivan.Heronited.desktop";
 /// The entry of the versions up to 1.0, named after their app id: removed
-/// when the entry is written or turned off, so Heronite never starts twice.
+/// when the entry is written or turned off, so Heronited never starts twice.
 const OLD_FILE_NAME: &str = "com.heronite.rs.desktop";
 
-/// The `Run` key of the user and the value that starts Heronite.
+/// The `Run` key of the user and the value that starts Heronited.
 const RUN_KEY: &str = r"Software\Microsoft\Windows\CurrentVersion\Run";
 #[cfg(windows)]
-const RUN_VALUE: &str = "Heronite";
+const RUN_VALUE: &str = "Heronited";
 
 /// Where the entry lives.
 #[derive(Debug, PartialEq)]
@@ -62,7 +62,7 @@ fn place(data_paths: &DataPaths) -> Option<Place> {
 
 fn entry_text(exe: &Path) -> String {
     format!(
-        "[Desktop Entry]\nType=Application\nName=Heronite\nComment=Every game you own, on Linux, in one native launcher\nExec={} --autostart\nIcon=app.heronite.Heronite\nTerminal=false\nX-GNOME-Autostart-enabled=true\n",
+        "[Desktop Entry]\nType=Application\nName=Heronited\nComment=Every game you own, on Linux, in one native launcher\nExec={} --autostart\nIcon=io.github.sudoivan.Heronited\nTerminal=false\nX-GNOME-Autostart-enabled=true\n",
         quote_exec_arg(&exe.to_string_lossy())
     )
 }
@@ -171,12 +171,12 @@ mod tests {
     #[test]
     fn writes_and_removes_the_run_value() {
         use heronite_platform::registry::{string, Hive};
-        let key = format!(r"Software\Heronite\Tests\autostart-{}", std::process::id());
-        let exe = Path::new(r"C:\Program Files\Heronite\heronite-rs.exe");
+        let key = format!(r"Software\Heronited\Tests\autostart-{}", std::process::id());
+        let exe = Path::new(r"C:\Program Files\Heronited\heronite-rs.exe");
         apply_in_key(&key, exe, true).unwrap();
         assert_eq!(
             string(Hive::CurrentUser, &key, RUN_VALUE).as_deref(),
-            Some(r#""C:\Program Files\Heronite\heronite-rs.exe" --autostart"#)
+            Some(r#""C:\Program Files\Heronited\heronite-rs.exe" --autostart"#)
         );
         apply_in_key(&key, exe, false).unwrap();
         assert_eq!(string(Hive::CurrentUser, &key, RUN_VALUE), None);

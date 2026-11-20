@@ -294,7 +294,7 @@ fn capture_into(config: &CaptureConfig, game: &ActiveGame) -> Result<(PathBuf, i
 fn notify(title: &str, body: &str) {
     let (title, body) = (title.to_owned(), body.to_owned());
     let spawned = std::thread::Builder::new().name("heronite-capture-notify".into()).spawn(move || {
-        if let Err(e) = notify_rust::Notification::new().appname("Heronite").summary(&title).body(&body).show() {
+        if let Err(e) = notify_rust::Notification::new().appname("Heronited").summary(&title).body(&body).show() {
             log::error!("Collection screenshot notification failed: {e}");
         }
     });

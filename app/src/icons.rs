@@ -164,7 +164,7 @@ pub enum Icon {
     /// Emulator logos (Simple Icons, CC0), for the Emulators page.
     BrandDolphin,
     BrandRetroArch,
-    /// The other emulators of the catalog, drawn for Heronite after their
+    /// The other emulators of the catalog, drawn for Heronited after their
     /// console or their name.
     EmuPcsx2,
     EmuRpcs3,

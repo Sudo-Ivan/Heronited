@@ -3,7 +3,7 @@ name = "heronite-epic"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
-description = "Epic Games Store through legendary (login, library, install, update, cloud saves) compatible with Heronite's data files"
+description = "Epic Games Store through legendary (login, library, install, update, cloud saves) compatible with Heronited's data files"
 
 [dependencies]
 heronite-data = { path = "../data" }

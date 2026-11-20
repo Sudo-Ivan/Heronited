@@ -75,7 +75,7 @@ pub fn install(ops: &Ops, req: &Request, previous: Option<&Manifest>) -> Result<
     let old_off = match occupant(dir, &req.proxy) {
         Occupant::Other { path, product } => {
             return Err(format!(
-                "{} belongs to {}; Heronite will not replace it",
+                "{} belongs to {}; Heronited will not replace it",
                 path.display(),
                 product.as_deref().unwrap_or("another program")
             ))
@@ -154,7 +154,7 @@ fn write_install(
 }
 
 /// Puts the checked `d3dcompiler_47.dll` next to the game. A different one
-/// already there (the game's own) is left alone. `Some("fxc2")`: Heronite's
+/// already there (the game's own) is left alone. `Some("fxc2")`: Heronited's
 /// copy is there.
 fn add_compiler(ops: &Ops, cache: &Cache, arch: Arch, dir: &Path, j: &mut Journal, m: &mut Manifest) -> Result<Option<String>, String> {
     let dest = dir.join(COMPILER);
@@ -185,7 +185,7 @@ pub(super) fn ours(rel: &str, path: &Path, manifests: &[Option<&Manifest>], j: &
 
 /// Copies a package's files to `roots` (`InstallPath`, `TextureInstallPath`
 /// relative to the manifest's folder). A different file already there that
-/// Heronite did not write is kept.
+/// Heronited did not write is kept.
 #[allow(clippy::too_many_arguments)]
 pub(super) fn install_archive(
     zip: &Path,
@@ -219,7 +219,7 @@ pub(super) fn install_archive(
             if sha256_file(&path).is_ok_and(|s| s == sha) {
                 m.record(&rel, sha, kind, Some(source));
             } else {
-                log::info!("ReShade: kept {} (not Heronite's)", path.display());
+                log::info!("ReShade: kept {} (not Heronited's)", path.display());
             }
             continue;
         }
@@ -245,7 +245,7 @@ pub(super) fn copy_preset(
     if in_place {
         return Ok(name);
     }
-    // A different preset of the same name that is not Heronite's copy stays.
+    // A different preset of the same name that is not Heronited's copy stays.
     let (stem, ext) = name.rsplit_once('.').map_or((name.as_str(), "ini"), |(s, e)| (s, e));
     let mut chosen = name.clone();
     for n in 2.. {
@@ -262,7 +262,7 @@ pub(super) fn copy_preset(
     Ok(chosen)
 }
 
-/// `ReShade.ini` with what Heronite needs added (and the preset set when
+/// `ReShade.ini` with what Heronited needs added (and the preset set when
 /// one was imported). Everything else in an existing file stays.
 pub fn config_text(existing: Option<&str>, preset: Option<&str>, compat: Option<&Compat>) -> String {
     let mut ini = Ini::parse(existing.unwrap_or(""));

@@ -352,7 +352,7 @@ impl SteamLocator {
     }
 }
 
-/// Global setting: close Steam once the game that made Heronite open it ends.
+/// Global setting: close Steam once the game that made Heronited open it ends.
 pub const KEY_CLOSE_AFTER_GAME: &str = "heroniteCloseSteamAfterGame";
 
 /// The absolute library paths a `libraryfolders.vdf` lists (none when the

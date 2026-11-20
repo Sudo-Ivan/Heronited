@@ -32,7 +32,7 @@ pub const TITLE_ID_KEY: &str = "xboxTitleId";
 pub const STORE_ID_KEY: &str = "xboxStoreId";
 
 /// In a game's Collection metadata: the minutes Xbox network counted for it
-/// (every device, Heronite's sessions included).
+/// (every device, Heronited's sessions included).
 pub const MINUTES_KEY: &str = "xboxMinutes";
 
 /// In a game's Collection metadata: when Xbox network last saw it played

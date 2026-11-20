@@ -27,7 +27,7 @@ use serde_json::Value;
 use crate::net::Net;
 use crate::plan::{LaunchPlan, PlanContext, WineRuntime};
 
-/// The game's own id (a Heronite key, not inherited from the defaults).
+/// The game's own id (a Heronited key, not inherited from the defaults).
 pub const KEY: &str = "heroniteUmuId";
 /// The umu database page, to look an id up by hand.
 pub const WEBSITE: &str = "https://umu.openwinecomponents.org/";

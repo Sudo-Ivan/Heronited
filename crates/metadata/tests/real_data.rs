@@ -98,7 +98,7 @@ fn details_edit_touches_only_one_record() {
     }
     assert_eq!(new["description"], "Edited by the Rust backend");
 
-    // Heronite's reader still loads everything and sees the edit.
+    // Heronited's reader still loads everything and sees the edit.
     let lib = Library::load(&paths).unwrap();
     let again = lib.get(&game.key).unwrap();
     assert_eq!(again.metadata.as_ref().unwrap().description.as_deref(), Some("Edited by the Rust backend"));

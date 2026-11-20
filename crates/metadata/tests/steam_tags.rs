@@ -52,7 +52,7 @@ fn fetches_tags_and_names_once_then_serves_the_cache() {
     assert_eq!(s.count(|r| r.path() == TAG_LIST), 2, "the language and the English fallback");
     for req in &log {
         let ua = req.header("user-agent").unwrap_or_default();
-        assert!(ua.starts_with("Heronite/"), "says who asks: {ua}");
+        assert!(ua.starts_with("Heronited/"), "says who asks: {ua}");
     }
 
     let file = SteamTagsFile::load(&paths);

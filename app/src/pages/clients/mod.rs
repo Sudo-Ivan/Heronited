@@ -63,7 +63,7 @@ pub type RockstarPage = ClientPage<RockstarKind>;
 pub struct ClientPage<K: ClientKind> {
     ctx: PageCtx,
     svc: Entity<Clients>,
-    /// "Remove from Heronite" asked and waiting for the answer.
+    /// "Remove from Heronited" asked and waiting for the answer.
     confirm_forget: bool,
     /// Name of the Wine build the client runs with (`None` while read).
     wine: Option<String>,

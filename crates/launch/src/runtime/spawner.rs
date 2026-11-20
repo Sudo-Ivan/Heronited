@@ -195,7 +195,7 @@ impl SystemSpawner {
         if let Some(dir) = cmd.cwd.as_deref().filter(|d| !d.is_empty()) {
             c.current_dir(dir);
         }
-        // Another Flatpak (an emulator) starts from the host when Heronite
+        // Another Flatpak (an emulator) starts from the host when Heronited
         // runs as a Flatpak itself.
         if cmd.program == "flatpak" {
             c = heronite_platform::flatpak::host(c);

@@ -408,7 +408,7 @@ impl MetadataHub {
         .detach();
     }
 
-    /// Idle maintenance like Heronite's `scheduleIdleMaintenance` (90 s after
+    /// Idle maintenance like Heronited's `scheduleIdleMaintenance` (90 s after
     /// startup): fills missing Collection metadata when `autoFillMissing` is
     /// on, and local covers; then refreshes the sources' databases that are
     /// a week old (only those the user downloaded, while the source is on).

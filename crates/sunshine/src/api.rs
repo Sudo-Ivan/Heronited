@@ -13,7 +13,7 @@
 //! or `Referer` header, which this client never sends.
 //!
 //! Only a Sunshine on this computer is talked to ([`is_this_computer`]): the
-//! entries hold this computer's paths (Heronite's executable, the covers),
+//! entries hold this computer's paths (Heronited's executable, the covers),
 //! which mean nothing to a Sunshine elsewhere. That is also why its
 //! self-signed certificate is not verified: what answers on the loopback
 //! address is already on this machine.
@@ -120,7 +120,7 @@ impl Client {
             .max_redirects_will_error(false)
             .timeout_connect(Some(Duration::from_secs(5)))
             .timeout_global(Some(Duration::from_secs(30)))
-            .user_agent("Heronite")
+            .user_agent("Heronited")
             .build()
             .into();
         Ok(Self { base, auth, agent })

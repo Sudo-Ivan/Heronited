@@ -133,7 +133,7 @@ pub fn update_value_indented<R>(path: &Path, indent: &[u8], f: impl FnOnce(&mut 
 
 /// Typed read-modify-write. `T` must keep unknown fields (use
 /// `#[serde(flatten)] extra: serde_json::Map<String, Value>`) so nothing
-/// Heronite wrote is lost.
+/// Heronited wrote is lost.
 pub fn update<T, R>(path: &Path, f: impl FnOnce(&mut T) -> Result<R>) -> Result<R>
 where
     T: DeserializeOwned + Serialize + Default,
@@ -181,7 +181,7 @@ where
     Ok(result)
 }
 
-/// Modification time, used to notice external changes (Heronite writing).
+/// Modification time, used to notice external changes (Heronited writing).
 pub fn mtime(path: &Path) -> Option<SystemTime> {
     fs::metadata(path).and_then(|m| m.modified()).ok()
 }

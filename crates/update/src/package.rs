@@ -104,8 +104,8 @@ impl Package {
     }
 
     /// End of this format's file name in a release (nfpm's default names:
-    /// `heronite_0.2.0-1_amd64.deb`, `heronite-0.2.0-1.x86_64.rpm`,
-    /// `heronite-0.2.0-1-x86_64.pkg.tar.zst`). `None` for the AUR, Scoop
+    /// `heronited_0.2.0-1_amd64.deb`, `heronited-0.2.0-1.x86_64.rpm`,
+    /// `heronited-0.2.0-1-x86_64.pkg.tar.zst`). `None` for the AUR, Scoop
     /// and the COPR: the app never downloads their package.
     pub fn file_suffix(self) -> Option<String> {
         match self {
@@ -192,7 +192,7 @@ mod tests {
         assert_eq!(Package::detect(&exe), Some(Package::Copr));
         std::fs::write(&marker, "snap").unwrap();
         assert_eq!(Package::detect(&exe), None);
-        assert_eq!(Package::Deb.install_command("/tmp/heronite_0.2.0_amd64.deb"), "sudo apt install /tmp/heronite_0.2.0_amd64.deb");
+        assert_eq!(Package::Deb.install_command("/tmp/heronited_0.2.0_amd64.deb"), "sudo apt install /tmp/heronited_0.2.0_amd64.deb");
         if super::ARCH == "x86_64" {
             assert_eq!(Package::Deb.file_suffix().as_deref(), Some("_amd64.deb"));
             assert_eq!(Package::Arch.file_suffix().as_deref(), Some("-x86_64.pkg.tar.zst"));
@@ -204,7 +204,7 @@ mod tests {
         assert_eq!(Package::parse("aur"), Some(Package::Aur));
         assert_eq!(Package::Aur.label(), "AUR");
         assert_eq!(Package::Aur.file_suffix(), None);
-        assert_eq!(Package::Aur.install_args(std::path::Path::new("/tmp/heronite.pkg.tar.zst")), None);
+        assert_eq!(Package::Aur.install_args(std::path::Path::new("/tmp/heronited.pkg.tar.zst")), None);
     }
 
     #[test]
@@ -213,7 +213,7 @@ mod tests {
         assert!(Package::Scoop.managed() && Package::Aur.managed());
         assert!(!Package::Deb.managed() && !Package::Rpm.managed() && !Package::Arch.managed());
         assert_eq!(Package::Scoop.file_suffix(), None);
-        assert_eq!(Package::Scoop.install_args(std::path::Path::new("C:/heronite.zip")), None);
+        assert_eq!(Package::Scoop.install_args(std::path::Path::new("C:/heronited.zip")), None);
         assert_eq!(Package::Scoop.install_command(""), "scoop update heronite");
     }
 
@@ -223,7 +223,7 @@ mod tests {
         assert_eq!(Package::Copr.label(), "COPR");
         assert!(Package::Copr.managed());
         assert_eq!(Package::Copr.file_suffix(), None, "COPR builds it: no release file");
-        assert_eq!(Package::Copr.install_args(std::path::Path::new("/tmp/heronite-1.2.0-1.x86_64.rpm")), None);
+        assert_eq!(Package::Copr.install_args(std::path::Path::new("/tmp/heronited-1.2.0-1.x86_64.rpm")), None);
         let update = if super::ostree_booted() { "rpm-ostree upgrade" } else { "sudo dnf upgrade" };
         assert_eq!(Package::Copr.install_command(""), update);
     }

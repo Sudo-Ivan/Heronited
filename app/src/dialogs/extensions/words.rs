@@ -5,7 +5,7 @@
 //!
 //! The trust words say only what the code checks: an entry of a list is
 //! installed when its files are the ones the list names (SHA-256); nobody
-//! reviews a file the user picks, and Heronite knows nothing of a list the
+//! reviews a file the user picks, and Heronited knows nothing of a list the
 //! user added.
 
 use std::time::SystemTime;
@@ -30,8 +30,8 @@ pub fn error(e: &ExtensionError) -> String {
         ExtensionError::UnsafePath(_) => tr!("A file of the package points outside of it, so the package was refused.").into(),
         ExtensionError::MissingFile(file) => tr!("The package has no {file}.", file),
         ExtensionError::Manifest(_) => tr!("Its source.toml has a mistake, so it cannot be installed.").into(),
-        ExtensionError::NewerApi(_) => tr!("It was made for a newer Heronite. Update Heronite to install it.").into(),
-        ExtensionError::IdTaken(_) => tr!("Its id is the id of a source Heronite has, so it cannot be installed.").into(),
+        ExtensionError::NewerApi(_) => tr!("It was made for a newer Heronited. Update Heronited to install it.").into(),
+        ExtensionError::IdTaken(_) => tr!("Its id is the id of a source Heronited has, so it cannot be installed.").into(),
         ExtensionError::Script(_) => tr!("Its script does not load, so it cannot be installed.").into(),
         ExtensionError::NotInstalled(_) => tr!("This extension is not installed any more.").into(),
         ExtensionError::Io(_) => tr!("It could not be saved in the data folder.").into(),
@@ -62,7 +62,7 @@ pub fn list_error(e: &ListError) -> String {
         ListError::Status(404) => tr!("There is no list at this address.").into(),
         ListError::Status(status) => tr!("The list's server answered with an error ({status}).", status),
         ListError::TooLarge => tr!("The list is larger than a list may be (1 MB).").into(),
-        ListError::Invalid(IndexError::NewerFormat(_)) => tr!("This list was made for a newer Heronite.").into(),
+        ListError::Invalid(IndexError::NewerFormat(_)) => tr!("This list was made for a newer Heronited.").into(),
         ListError::Invalid(IndexError::NotJson(_)) => tr!("This address does not hold a list of sources.").into(),
         ListError::Invalid(IndexError::WrongType(_)) => tr!("This list is not a list of metadata sources.").into(),
         ListError::Invalid(IndexError::Invalid(_)) => tr!("The list has mistakes, so it is not used.").into(),
@@ -80,10 +80,10 @@ pub fn list_detail(e: &ListError) -> Option<String> {
     }
 }
 
-/// Where a source comes from, in a few words ("From the Heronite list").
+/// Where a source comes from, in a few words ("From the Heronited list").
 pub fn origin(o: &Origin) -> String {
     match o {
-        Origin::Heronite => tr!("From the Heronite list").into(),
+        Origin::Heronited => tr!("From the Heronited list").into(),
         Origin::List(url) => tr!("From {host}", host = host_of(url)),
         Origin::GoneList(url) => tr!("From {host}, a list you removed", host = host_of(url)),
         Origin::File => tr!("Installed from a file: nobody checked this source").into(),
@@ -94,9 +94,9 @@ pub fn origin(o: &Origin) -> String {
 /// What that origin guarantees, for the installer and the gallery.
 pub fn guarantee(o: &Origin) -> String {
     match o {
-        Origin::Heronite => tr!("Its files are checked against the Heronite list (SHA-256) before anything is installed.").into(),
+        Origin::Heronited => tr!("Its files are checked against the Heronited list (SHA-256) before anything is installed.").into(),
         Origin::List(_) | Origin::GoneList(_) => tr!(
-            "Its files are checked against this list (SHA-256), but Heronite does not know who keeps the list. Install only what you trust."
+            "Its files are checked against this list (SHA-256), but Heronited does not know who keeps the list. Install only what you trust."
         )
         .into(),
         Origin::File => tr!("Install it only if you trust where the file comes from.").into(),
@@ -109,36 +109,36 @@ pub fn guarantee(o: &Origin) -> String {
 
 /// Whether the origin deserves the caution colour.
 pub fn cautious(o: &Origin) -> bool {
-    !matches!(o, Origin::Heronite)
+    !matches!(o, Origin::Heronited)
 }
 
-/// The origin of a list's entry. The app's own list is the Heronite list
+/// The origin of a list's entry. The app's own list is the Heronited list
 /// only at its address: another one set by `HERONITE_EXTENSIONS_INDEX` is
 /// a list like one the user added.
 pub fn list_origin(url: &str, builtin: bool) -> Origin {
     if is_local(url) {
         Origin::Local(url.to_owned())
     } else if builtin && url == HERONITE_LIST {
-        Origin::Heronite
+        Origin::Heronited
     } else {
         Origin::List(url.to_owned())
     }
 }
 
-/// What a list is called: "The Heronite list", its host, or, for a list
+/// What a list is called: "The Heronited list", its host, or, for a list
 /// on this computer, "This copy of the repository" (`checkout`, a debug
 /// build's own list) or "A list on this computer".
 pub fn list_name(url: &str, builtin: bool, checkout: bool) -> String {
     match list_origin(url, builtin) {
         Origin::Local(_) if checkout => tr!("This copy of the repository").into(),
         Origin::Local(_) => tr!("A list on this computer").into(),
-        Origin::Heronite => tr!("The Heronite list").into(),
+        Origin::Heronited => tr!("The Heronited list").into(),
         _ => host_of(url),
     }
 }
 
 /// Where the entries of one list come from, for the gallery's footer
-/// ("From the Heronite list", "From this copy of the repository").
+/// ("From the Heronited list", "From this copy of the repository").
 pub fn list_from(url: &str, builtin: bool, checkout: bool) -> String {
     if checkout && is_local(url) {
         tr!("From this copy of the repository").into()
@@ -280,25 +280,25 @@ mod tests {
 
     #[test]
     fn the_trust_words_follow_where_it_came_from() {
-        assert_eq!(origin(&Origin::Heronite), "From the Heronite list");
+        assert_eq!(origin(&Origin::Heronited), "From the Heronited list");
         assert_eq!(origin(&Origin::List("https://lists.example.org/a/index.json".into())), "From lists.example.org");
         assert!(origin(&Origin::GoneList("https://lists.example.org/x.json".into())).contains("a list you removed"));
         assert_eq!(origin(&Origin::File), "Installed from a file: nobody checked this source");
-        assert!(!cautious(&Origin::Heronite) && cautious(&Origin::File) && cautious(&Origin::List(String::new())));
-        assert_eq!(list_origin(HERONITE_LIST, true), Origin::Heronite);
+        assert!(!cautious(&Origin::Heronited) && cautious(&Origin::File) && cautious(&Origin::List(String::new())));
+        assert_eq!(list_origin(HERONITE_LIST, true), Origin::Heronited);
     }
 
     #[test]
     fn another_address_for_the_apps_own_list_is_not_the_heronite_list() {
         // `HERONITE_EXTENSIONS_INDEX=https://…`: the app's own list, at
         // another address.
-        let branch = "https://raw.githubusercontent.com/someone/Heronite/branch/extensions/metadata/index.json";
+        let branch = "https://raw.githubusercontent.com/someone/Heronited/branch/extensions/metadata/index.json";
         let origin = list_origin(branch, true);
         assert_eq!(origin, Origin::List(branch.into()));
-        assert!(cautious(&origin) && guarantee(&origin) != guarantee(&Origin::Heronite));
+        assert!(cautious(&origin) && guarantee(&origin) != guarantee(&Origin::Heronited));
         assert_eq!(list_name(branch, true, false), "raw.githubusercontent.com");
         assert_eq!(list_from(branch, true, false), "From raw.githubusercontent.com");
-        assert_eq!(list_name(HERONITE_LIST, true, false), "The Heronite list");
+        assert_eq!(list_name(HERONITE_LIST, true, false), "The Heronited list");
     }
 
     #[test]
@@ -308,14 +308,14 @@ mod tests {
         assert_eq!(list_origin(path, true), Origin::Local(path.into()));
         let local = Origin::Local(path.into());
         assert_eq!(origin(&local), "From a list on this computer");
-        assert!(cautious(&local) && guarantee(&local) != guarantee(&Origin::Heronite));
+        assert!(cautious(&local) && guarantee(&local) != guarantee(&Origin::Heronited));
         assert_eq!(list_name(path, true, true), "This copy of the repository");
         assert_eq!(list_name(path, true, false), "A list on this computer");
-        assert_eq!(list_name(HERONITE_LIST, true, false), "The Heronite list");
+        assert_eq!(list_name(HERONITE_LIST, true, false), "The Heronited list");
         assert_eq!(list_name("https://a.example.org/x.json", false, false), "a.example.org");
         assert_eq!(list_from(path, true, true), "From this copy of the repository");
         assert_eq!(list_from(path, true, false), "From a list on this computer");
-        assert_eq!(list_from(HERONITE_LIST, true, true), "From the Heronite list");
+        assert_eq!(list_from(HERONITE_LIST, true, true), "From the Heronited list");
     }
 
     #[test]

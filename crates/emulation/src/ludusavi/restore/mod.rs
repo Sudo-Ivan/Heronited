@@ -49,7 +49,7 @@ pub struct Tool {
 /// Why there is no [`Tool`].
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum ToolError {
-    /// Ludusavi is not installed (or not where Heronite looks).
+    /// Ludusavi is not installed (or not where Heronited looks).
     NotFound,
     /// The settings could not be read.
     Settings(String),

@@ -141,14 +141,14 @@ pub fn render(d: &mut SettingsPage, window: &mut Window, cx: &mut Context<Settin
             div().flex().items_center().gap(px(8.)).child(div().flex_1().child(field)).children(clear),
         ))
         .child(meta_text(tr!(
-            "Opens the quick launcher from anywhere while Heronite runs, in the tray too; press it again to close it. Click the field and press the key combination; Backspace removes it."
+            "Opens the quick launcher from anywhere while Heronited runs, in the tray too; press it again to close it. Click the field and press the key combination; Backspace removes it."
         )))
         .children(status.map(|(text, error)| {
             div().text_size(px(12.)).text_color(if error { theme::danger_text() } else { theme::success() }).child(text)
         }));
     let command = d.quick_launch.command.clone().map(|command| {
         let description = tr!(
-            "Where the desktop takes no shortcut from Heronite, bind a key to this command in its keyboard settings. It also starts Heronite when it is not running: {command}",
+            "Where the desktop takes no shortcut from Heronited, bind a key to this command in its keyboard settings. It also starts Heronited when it is not running: {command}",
             command = &command
         );
         row(
@@ -181,10 +181,10 @@ pub fn render(d: &mut SettingsPage, window: &mut Window, cx: &mut Context<Settin
             tr!("Open it and type a few letters of a game, a page or a setting."),
         ))
         .child(step(enter_play, tr!("Enter plays the game, or stops it while it runs.")))
-        .child(step(shift_enter, tr!("Shift Enter shows the game in Heronite; → lists its actions.")))
+        .child(step(shift_enter, tr!("Shift Enter shows the game in Heronited; → lists its actions.")))
         .child(step(
             icon(Icon::OpenInNew, px(16.), theme::text_dim()).into_any_element(),
-            tr!("Items marked like this open Heronite and run there."),
+            tr!("Items marked like this open Heronited and run there."),
         ))
         .into_any_element()]);
 

@@ -1,10 +1,10 @@
 # Architecture
 
-HeroniteRust is a GPUI rewrite of the Heronite launcher (a Heroic Games
+HeroniteRust is a GPUI rewrite of the Heronited launcher (a Heroic Games
 Launcher fork). It is a separate app with its own data folder,
 `~/.local/share/heronite/` (`DataPaths`; `HERONITE_DATA_DIR` overrides
 it). The folder keeps Heroic's layout and electron-store formats, but nothing
-in it is shared with Heroic or Heronite, and this app never reads or writes
+in it is shared with Heroic or Heronited, and this app never reads or writes
 Heroic's folders. UI state lives in `~/.config/heronite/` and caches in
 `~/.cache/heronite/` (`AppPaths`).
 
@@ -86,7 +86,7 @@ app (bin heronite-rs) ── GPUI UI, desktop integration
  │                      Proton) via the client or its files         → data, launch, shortcuts
  ├─ heronite-sunshine   the games in Sunshine's application
  │                      list through its web API, for
- │                      Moonlight; only entries marked as Heronite's  → data, platform
+ │                      Moonlight; only entries marked as Heronited's  → data, platform
  └─ heronite-update     app updates: release check, signed download,
                         AppImage swap / package install, relaunch   → data
 epic-login (bin)        WebKit window for the Epic, GOG (`--store gog`) and Amazon
@@ -105,7 +105,7 @@ device when the last window closes (the app lives on in the tray); see its
 `PATCHES.md`. `vendor/gpui-pre-windows` is GPUI's Windows platform, patched so
 a window the user closes is torn down while its handle is valid (upstream
 leaked it and logged errors); see its `PATCHES.md`. Both open every window
-through `vendor/gpui-zoom` (Heronite's own crate): the interface scale of
+through `vendor/gpui-zoom` (Heronited's own crate): the interface scale of
 Settings → Appearance → Zoom, on top of the screen's. GPUI sees a screen that
 many times denser and smaller, so the whole interface (all in `px`) resizes and
 stays sharp (not the in-game overlay: pop-ups and layer-shell surfaces keep the
@@ -190,7 +190,7 @@ text size) and applies it.
   `Compatibility.ini`; the DLL, `d3dcompiler_47` and shader packages
   downloaded into `<data>/tools/reshade`), keeps what it wrote in
   `<data>/reshade/<game>.json` so switching, updating, removing and adopting a
-  manual install only touch Heronite's files, and adds `<dll>=n,b` to
+  manual install only touch Heronited's files, and adds `<dll>=n,b` to
   `WINEDLLOVERRIDES` at launch while it is on (never failing the launch; a
   Steam game under Proton has it in its Steam launch options instead, and
   `reshade::steam` finds a Steam game's folder and tells its Windows build
@@ -200,14 +200,14 @@ text size) and applies it.
   (ReShade is the first), the journal that undoes a failed write in a game's
   folder, `WINEDLLOVERRIDES` editing, the anti-cheat check, downloads and
   hashes; `gfxmods::apply` adds every mod that is on to a launch.
-  `gfxmods::catalog` reads Heronite's catalog of mods per game
+  `gfxmods::catalog` reads Heronited's catalog of mods per game
   (`data/graphics-mods.json`, fetched from its raw address at most daily,
   the copy built into the app as fallback, built by
   `scripts/graphics-mods-catalog.py` and changed only through reviewed pull
   requests) and matches a game by Steam app id, executable, title or engine.
   `gfxmods::renodx` puts RenoDX's HDR add-on beside a ReShade that is the
   build with add-on support (`reshade::manage::set_addon`; both are refused
-  for games with anti-cheat). Heronite only places files and sets variables
+  for games with anti-cheat). Heronited only places files and sets variables
   for them; it never injects into a game. `fps_limit` holds a
   game's one FPS limit and picks the one limiter that applies it (MangoHud,
   DXVK / VKD3D-Proton or gamescope; Heroic's separate limiters are read as
@@ -364,7 +364,7 @@ text size) and applies it.
   keeps its command alive, so the setup ends once the client's program is
   there and no installer runs. `adopt` uses a client already installed in
   another prefix, `forget` drops its settings (never the prefix). The user
-  signs in and installs games inside the client; Heronite reads, without
+  signs in and installs games inside the client; Heronited reads, without
   Wine, what it installed and whether it is signed in: `reg` (Wine's
   `system.reg` / `user.reg`), `winpath` (`C:\` paths through `dosdevices`,
   ignoring case), and one module per client (`battlenet`: the Agent's
@@ -377,7 +377,7 @@ text size) and applies it.
   WoW"`, `origin2://game/launch?...`, `uplay://launch/<id>/0`,
   `-launchTitleInFolder "<folder>"`); the ones the user removed stay out
   (`local_library/clients.json`). `run` opens the client outside the app's
-  process group (it stays open when Heronite quits) and closes it
+  process group (it stays open when Heronited quits) and closes it
   (`wineserver -k`). Their games start in `heronite-launch` (`clients`): the
   client's program with `launcherArgs`, in its prefix and with its
   settings, Proton's `run` verb and umu's container open to later requests
@@ -402,8 +402,8 @@ text size) and applies it.
   their command line and Chromium's `DevToolsActivePort`).
   Steam opens that interface only if its flag file is there when it starts,
   so `prepare_access` writes it into every Steam install found (native,
-  Flatpak, Snap, and the one running) as soon as Heronite sees Steam: a Steam
-  opened after Heronite never needs a restart. `steamwebhelper`'s command
+  Flatpak, Snap, and the one running) as soon as Heronited sees Steam: a Steam
+  opened after Heronited never needs a restart. `steamwebhelper`'s command
   line tells a Steam still starting (`LibraryAccess::Starting`) from one that
   started without the flag (`NeedsRestart`); when another program holds the
   port (Steam on Windows asks for 8080; a torrent client's web interface may
@@ -412,7 +412,7 @@ text size) and applies it.
   with Steam closed, `files` edits `localconfig.vdf` and `config.vdf` in
   place (`vdf_edit` touches only the changed entry). `wrap` writes the script
   that runs the before/after scripts from the launch options. `library`
-  reads the account's library from the client (Heronite never signs in to
+  reads the account's library from the client (Heronited never signs in to
   Steam: the QR sign-in of 1.5.0 and 1.6.0, a session of the mobile app's kind
   made from a PC, got accounts locked by Steam's security; `account` only
   ends a sign-in those versions saved in `local_library/steam-account.json`,
@@ -857,7 +857,7 @@ text size) and applies it.
      `network` (false for a local database: it never counts towards
      "offline"), `searchable`, `asked` and `game_kind` when it is a
      fallback for a kind of game, `about` (a `n_!` line for its open row,
-     with "Heronite is not affiliated with …"), `options` (`n_!` labels,
+     with "Heronited is not affiliated with …"), `options` (`n_!` labels,
      help and choice labels, defaults), `download` for a database it
      downloads, `leads_for` when it should go ahead of title-only matches
      for its audience. Options not in the legacy keys are stored under
@@ -1016,7 +1016,7 @@ text size) and applies it.
 | `diagnosis/` | the launch diagnosis for the UI: `gather` reads what `heronite_launch::diagnose` needs for a game, `apply` applies a fix (winetricks components, game settings, the best Proton, ending a wineserver, `vm.max_map_count` through `pkexec`), `text` says it; the fixes applied this run are remembered so one that did not help is not offered as the answer again. The Collection runs it when a game ends within `FAILED_LAUNCH_WINDOW` and opens `dialogs/launch_problem`; without a window the cause goes into the notification |
 | `overlay/` | the in-game overlay (off by default): `OverlayService` follows the launch events like `services::session`, runs `heronite_overlay::input` while a game runs, and opens the panel (`panel/`, its Notes tab in `notes.rs` with the compact on-screen keyboard, its Achievements tab in `achievements.rs` from `services::achievements` when the game has a set) and notices (`toast.rs`; achievement notices queue) through `window.rs`: Wayland layer-shell on Linux, native topmost tool windows on Windows (`window/windows.rs`, HWND placement/focus in `heronite-platform::overlay_window`). Windows notices do not activate and pass pointer input through; a keyboard panel returns focus only while it still owns foreground. The keyboard shortcut uses the existing capture `GlobalHotkey` (Windows: `RegisterHotKey`, Ctrl+Shift+G default). `labels.rs` has every text that names the controller chord (Guide on Linux, Back + Start on Windows), for Settings, its search, the palette, "Getting started" and the panel. `moment.rs` marks a moment in the game's journal (a capture and an empty note); Linux-only `Feature::Replay` gates `services::replay` and its controls independently of the overlay; `replay.rs` saves the replay and marks it as a moment (`clip` in the journal entry) |
 | `quick_launch/` | the quick launcher: the command palette (`collection::palette`, `Mode::Launcher`) in a window of its own, opened without the main window by `--quick-launch` / `heronite://quick-launch` (the running instance's socket; with none, one starts without its window) and, the same request again, closed. `window` is the surface (Wayland layer-shell centred on the focused screen with the keyboard, else a borderless window, on Windows a topmost pop-up on the foreground window's screen that does not open over exclusive fullscreen; the view alone, without the component library's `Root`, which would paint the theme's background and a window frame around the panel), `view` its root view (the pages and actions at once, the library's games once read off the UI thread), `run` what a choice does: play, stop, open the folder, favourites, hide, the logs folder and quit run there (`hub::play_game`, `hub::stop_running`, like the tray's recent games), anything else opens the window and runs as Ctrl K would (`CollectionView::run_from_launcher`, once its library is loaded). Favourites and hiding go through the open window when there is one, so it reloads and shows the change at once (without changing its page or selection). `hotkey` registers its keyboard shortcut (none unless set in Settings → Quick launcher) while the app runs, in the tray too, like the overlay's (`GlobalHotkey`; on Hyprland the bind sends `SIGRTMIN+2`), and the quit removes it. `HERONITE_DEBUG_QUICK_LAUNCH=<query>` opens it alone at start in a normal window |
-| `collection/` | the main screen (`CollectionView`): list, header and its View menu (`view_menu`: filter search, views, sort, grouping), the Focus / Grid switch (`view_mode`) and its options menu (`view_options`), focus panel, grid view (`grid`, `grid_drawer`), wider list and drawer by dragging their edge (`resize`), Settings → Appearance on the Collection (`look`: background picture and slideshow, accent from the game, start view, Focus or Grid by the window's width), the picture with no game selected (`home`: yours, or a random game's art or screenshot, a new one every 20 seconds; also behind glass), covers by family (`family_art`: each view's picture of the family it draws, keeping the tall cover's and the background's texture ids), selecting several games (`selection`: Ctrl / Shift click, Ctrl A, the batch changes and their undo; `dock`: the bar that shows them; `metadata_menu`: the menu of its Metadata button and the selection's context menu; `metadata_pill`: the header pill of a bulk metadata update and of the idle fill's games to review; `metadata_review`: opens "Review matches" on the queue, a job's games or the selection, and the debug openers of the review and of the one-game "Metadata"), stage, context menu, command palette, screenshots, the game's Journal (`journal/`: the Timeline's other view, notes written in place), and the glue to dialogs and services; `welcome/` is the empty Collection of a new setup: what Heronite found on this PC and brings in by itself (Steam's library, with "Open Steam" or "Restart Steam" when that is what is missing; emulators and the usual ROM folders, set up once with `heronite_emulation::setup`), the other sources, the other launchers found with games (a click turns their import on), the stores, and a shelf of empty covers (`HERONITE_DEBUG_WELCOME=<steam>[:<emulation>]` shows a state); `launchers` reloads the Collection when another launcher's games come in; `onboarding` hosts "Getting started" (`dialogs/onboarding`: three cards, your games, your look and while you play, that open inside it or switch things on in place, plus tips; `art` draws its pictures without needing games: empty covers, a preview of the Collection in the current look and chosen view (the bare layout until there are games) and the overlay panel; the look view puts Focus and Grid first, over the preview), which opens by itself once per setup (on a new setup, once the first games arrive), from the bulb in the header until it is closed once, and from the command palette (`onboarding.json` in the app state) |
+| `collection/` | the main screen (`CollectionView`): list, header and its View menu (`view_menu`: filter search, views, sort, grouping), the Focus / Grid switch (`view_mode`) and its options menu (`view_options`), focus panel, grid view (`grid`, `grid_drawer`), wider list and drawer by dragging their edge (`resize`), Settings → Appearance on the Collection (`look`: background picture and slideshow, accent from the game, start view, Focus or Grid by the window's width), the picture with no game selected (`home`: yours, or a random game's art or screenshot, a new one every 20 seconds; also behind glass), covers by family (`family_art`: each view's picture of the family it draws, keeping the tall cover's and the background's texture ids), selecting several games (`selection`: Ctrl / Shift click, Ctrl A, the batch changes and their undo; `dock`: the bar that shows them; `metadata_menu`: the menu of its Metadata button and the selection's context menu; `metadata_pill`: the header pill of a bulk metadata update and of the idle fill's games to review; `metadata_review`: opens "Review matches" on the queue, a job's games or the selection, and the debug openers of the review and of the one-game "Metadata"), stage, context menu, command palette, screenshots, the game's Journal (`journal/`: the Timeline's other view, notes written in place), and the glue to dialogs and services; `welcome/` is the empty Collection of a new setup: what Heronited found on this PC and brings in by itself (Steam's library, with "Open Steam" or "Restart Steam" when that is what is missing; emulators and the usual ROM folders, set up once with `heronite_emulation::setup`), the other sources, the other launchers found with games (a click turns their import on), the stores, and a shelf of empty covers (`HERONITE_DEBUG_WELCOME=<steam>[:<emulation>]` shows a state); `launchers` reloads the Collection when another launcher's games come in; `onboarding` hosts "Getting started" (`dialogs/onboarding`: three cards, your games, your look and while you play, that open inside it or switch things on in place, plus tips; `art` draws its pictures without needing games: empty covers, a preview of the Collection in the current look and chosen view (the bare layout until there are games) and the overlay panel; the look view puts Focus and Grid first, over the preview), which opens by itself once per setup (on a new setup, once the first games arrive), from the bulb in the header until it is closed once, and from the command palette (`onboarding.json` in the app state) |
 | `dialogs/` | one view per dialog; they talk back through `DialogEvent`. `metadata_update/` is "Update metadata" (three steps: games, what to update, results), `families` (a view that starts drawing a cover family queues its download) and, in `hub`, the `MetadataHub` that owns the metadata service, the bulk jobs' progress, their undo and the idle fill, read by the dialog, the Metadata menu, the header pill and Settings → Metadata; it also keeps the review queue the pill and the palette read. `metadata_review/` is "Review matches" (the game on the left, the games the sources proposed on the right, a search of every source by another name, and the answers: use a match, in no source, skip; `fake.rs` makes it up for the debug hooks). `metadata/` is the "Metadata" of one game: "Found as" (`found_as`, and `change` to pick another game of one source), a row per field (a cover row per kept family) with the sources to take it from and a lock (`fields`), and what it asks and saves (`actions`). `covers/` is "Covers", a game's picture of each cover family and its background (`slots` the left column, `found` the pictures LaunchBox (the game's boxes of every region, with their region and size), SteamGridDB and the web found for the picked slot, `actions` what it searches and saves, `words` how a family reads on every screen that names one, `console` the same in console mode, `fake` the debug searches); Game settings → Images, the one-game Metadata, the palette and, in console mode, the game page's Manage open it. `extensions/` is "Get more sources" and the installer of an extension, one dialog with two faces (`gallery` the entries a list offers and the picked one's panel, `confirm` the installer, shared by a file and a list's entry, `lists_manager` "Lists…", `permissions` the "What it is allowed to do" lines, `words` every error, origin and trust sentence, `actions` what reads, downloads, installs and adds lists off the UI thread, `state` what the hub keeps of the installed extensions and the lists, `fake` the debug lists); Settings → Metadata, the palette and the Collection's debug hooks open it through `HubEvent::OpenSources`. `metadata_update/family_notice.rs` is the notice under both Cover aspect pickers (offer, started, no source) and the hub's `download_family`; `metadata_update/source_downloads.rs` the hub's downloads of the sources' databases (start, cancel, remove, the progress Settings draws, the idle refresh) |
 | `pages/` | ☰ pages (Settings, Downloads, Epic, GOG, Amazon Games, Steam, the store clients' `clients/`: Battle.net, EA app, Ubisoft Connect, Rockstar Games, Wine Manager, Emulators); they talk back through `PageEvent`. Settings → Metadata (`pages/settings/metadata/`) is drawn from the source registry; its `extension.rs` is what an extension's open row adds to a source's (the "Extension · 1.0.0" pill, the problem block, who made it, where it came from, where it connects, "Update from a file…", "Remove") and `more.rs` the dashed "Get more sources" row under the sources; its `shapes.rs` is the "Cover shapes" card (a row per cover family, the automatic download switch, the downloads of the families shown cropped) and its Console mode rows. `methods` is the layout of a store read in two ways (Steam, Xbox): a library strip, then "Method 1 · Local" (no login) and "Method 2 · Online · Optional" (the account) side by side |
 | `ui/` | building blocks: `controls`, `fields`, `dialog`/`drawer`, `dropdown`, `glass`, `scrollbar`; `window_area` (`content_size` / `content_bounds`: the room the views have inside a client-side window frame; layouts size from it, never from `window.viewport_size()`) |
@@ -1056,7 +1056,7 @@ text size) and applies it.
   `crates/update/src/lib.rs`, trusted comment `version:<X.Y.Z>`) it checks
   first; a release without the list (up to 1.0) is checked against each
   file's own `.minisig` (`release::Proof`). From an
-  AppImage (`$APPIMAGE`) it downloads `Heronite-x86_64.AppImage` next to the
+  AppImage (`$APPIMAGE`) it downloads `Heronited-x86_64.AppImage` next to the
   running one and renames it over the old file: the running app keeps the old
   inode, and nothing is written into it. From our .deb / .rpm / Arch package
   (marker `/usr/share/heronite/package-format`, written by

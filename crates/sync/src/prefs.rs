@@ -200,7 +200,7 @@ impl Default for SyncPrefs {
     }
 }
 
-pub const DEFAULT_REMOTE_FOLDER: &str = "Heronite";
+pub const DEFAULT_REMOTE_FOLDER: &str = "Heronited";
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "camelCase", default)]
@@ -355,7 +355,7 @@ mod tests {
         p.connected = Some(Provider::Drive);
         assert!(p.ready());
         p.provider = Provider::Custom;
-        p.custom_remote = "mine:Heronite".into();
+        p.custom_remote = "mine:Heronited".into();
         assert!(p.ready());
     }
 }

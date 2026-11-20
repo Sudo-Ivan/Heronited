@@ -4,7 +4,7 @@
   "Could not delete {dir}: {error}": "Impossible de supprimer {dir} : {error}",
   "Could not delete {path}: {error}": "Impossible de supprimer {path} : {error}",
   "Could not download the Windows components this game needs: {error}": "Impossible de télécharger les composants Windows nécessaires à ce jeu : {error}",
-  "Could not get gogdl, which Heronite uses for GOG: {error}": "Impossible d’obtenir gogdl, que Heronite utilise pour GOG : {error}",
+  "Could not get gogdl, which Heronited uses for GOG: {error}": "Impossible d’obtenir gogdl, que Heronited utilise pour GOG : {error}",
   "Failed to log in with gogdl: {error}": "Échec de la connexion avec gogdl : {error}",
   "GOG did not accept that code": "GOG n’a pas accepté ce code",
   "Logged in, but the account information could not be read": "Connexion établie, mais les informations du compte n’ont pas pu être lues",

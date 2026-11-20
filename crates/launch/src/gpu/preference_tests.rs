@@ -87,7 +87,7 @@ fn a_change_made_in_windows_settings_meanwhile_is_never_overwritten() {
     reg.set(GAME, "GpuPreference=1;");
     assert_eq!(restore(&reg, &file, GAME).unwrap(), Restored::LeftAlone);
     assert_eq!(reg.get(GAME).as_deref(), Some("GpuPreference=1;"));
-    // And Heronite has forgotten it: the next run starts from the user's value.
+    // And Heronited has forgotten it: the next run starts from the user's value.
     assert_eq!(restore(&reg, &file, GAME).unwrap(), Restored::Nothing);
 }
 
@@ -121,7 +121,7 @@ fn a_session_that_crashed_still_puts_back_what_was_there_first() {
     let (_d, file) = ledger();
     let reg = FakeRegistry::default().with(GAME, "GpuPreference=1;");
     apply(&reg, &file, GAME, Preference::HighPerformance).unwrap();
-    // The app died with the game: the next launch must not take Heronite's
+    // The app died with the game: the next launch must not take Heronited's
     // own value for the user's.
     let again = apply(&reg, &file, GAME, Preference::HighPerformance).unwrap();
     assert_eq!(again, Applied::Wrote { data: "GpuPreference=2;".into(), previous: Some("GpuPreference=1;".into()) });

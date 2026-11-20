@@ -50,7 +50,7 @@ impl std::fmt::Display for ExtensionError {
             Self::MissingFile(m) => write!(f, "missing file: {m}"),
             Self::Manifest(m) => write!(f, "source.toml: {m}"),
             Self::NewerApi(n) => {
-                write!(f, "made for a newer Heronite (contract version {n}; this build supports {})", crate::manifest::API_VERSION)
+                write!(f, "made for a newer Heronited (contract version {n}; this build supports {})", crate::manifest::API_VERSION)
             }
             Self::IdTaken(id) => write!(f, "the id \"{id}\" belongs to a built-in source"),
             Self::Script(m) => write!(f, "source.js: {m}"),

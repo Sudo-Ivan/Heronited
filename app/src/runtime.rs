@@ -364,7 +364,7 @@ pub fn failed_launch_message(title: &str, exit: ExitInfo) -> String {
     }
 }
 
-/// Why an Epic game does not start while Heronite is signed out of Epic.
+/// Why an Epic game does not start while Heronited is signed out of Epic.
 pub fn epic_signed_out_message(title: &str) -> String {
     tr!(
         "{title} needs your Epic Games account, and you are signed out of it. Log in on the Epic Games page, or turn on \"Play offline\" in the game's settings.",
@@ -373,7 +373,7 @@ pub fn epic_signed_out_message(title: &str) -> String {
 }
 
 /// Opens `app_id` through the Steam client, with the game's scripts and
-/// programs alongside where Heronite runs them (`heronite_launch::steam_extras`).
+/// programs alongside where Heronited runs them (`heronite_launch::steam_extras`).
 fn steam_plan(ctx: &PlanContext, game: &CollectionGame, app_id: &str) -> LaunchPlan {
     let probe = SystemProbe;
     let settings = heronite_launch::settings::load_game_settings(&ctx.paths, &game.app_name, &ctx.global, &probe);

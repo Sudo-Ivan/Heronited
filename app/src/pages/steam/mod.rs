@@ -3,11 +3,11 @@
 //! login. The card says whether it can be read and opens or restarts Steam
 //! when that is what is missing.
 //!
-//! Heronite no longer signs in to Steam: its sign-in with a QR code, as the
+//! Heronited no longer signs in to Steam: its sign-in with a QR code, as the
 //! Steam mobile app, got accounts locked by Steam's security.
 //!
 //! A switch turns reading Steam off for the users who add their games by
-//! themselves; "Remove Steam games" takes out the ones Heronite added (asked
+//! themselves; "Remove Steam games" takes out the ones Heronited added (asked
 //! first, in the card).
 
 use gpui_kit::prelude::*;
@@ -158,7 +158,7 @@ impl SteamPage {
         }
         let text = match s.state() {
             SteamState::Off => {
-                let mut said = tr!("Reading is off: Heronite adds no Steam game by itself. Turn it on to bring your library in again.").to_string();
+                let mut said = tr!("Reading is off: Heronited adds no Steam game by itself. Turn it on to bring your library in again.").to_string();
                 if s.removable > 0 {
                     said.push(' ');
                     said.push_str(&trn!(
@@ -172,26 +172,26 @@ impl SteamPage {
             // Said only when the flag file is there: another tool may hold its place.
             SteamState::Closed => Some(match s.flag {
                 Some(ClientApiFlag::On) => {
-                    tr!("Open Steam and Heronite reads your library by itself. The access it needs is turned on already: no restart.")
+                    tr!("Open Steam and Heronited reads your library by itself. The access it needs is turned on already: no restart.")
                 }
                 Some(ClientApiFlag::Blocked) => tr!(
-                    "Open Steam and Heronite reads your library by itself, if Steam lets it: another tool on this PC (Millennium, for example) decides whether Steam opens the access Heronite needs."
+                    "Open Steam and Heronited reads your library by itself, if Steam lets it: another tool on this PC (Millennium, for example) decides whether Steam opens the access Heronited needs."
                 ),
-                _ => tr!("Open Steam and Heronite reads your library by itself."),
+                _ => tr!("Open Steam and Heronited reads your library by itself."),
             }),
             SteamState::Blocked => Some(heronite_steam::blocked_message()),
             SteamState::Opening => Some(tr!("Steam is starting. If it asks, sign in: your library is read as soon as Steam is ready.")),
             SteamState::NotAnswering => Some(tr!(
-                "Steam is open but does not let Heronite read its library yet. If it is updating or asking you to sign in, finish that: the library is read by itself. Otherwise restart Steam once. Read library now shows what went wrong."
+                "Steam is open but does not let Heronited read its library yet. If it is updating or asking you to sign in, finish that: the library is read by itself. Otherwise restart Steam once. Read library now shows what went wrong."
             )),
             SteamState::NeedsRestart => Some(tr!(
-                "Steam was open before Heronite could turn on the access it needs. Restart it once (games running from Steam close), or wait: your library comes in the next time Steam opens."
+                "Steam was open before Heronited could turn on the access it needs. Restart it once (games running from Steam close), or wait: your library comes in the next time Steam opens."
             )),
             SteamState::Failed => Some(tr!(
-                "Steam restarted but did not turn on the access Heronite needs, so it is not asked again. Your installed Steam games still show in the Collection."
+                "Steam restarted but did not turn on the access Heronited needs, so it is not asked again. Your installed Steam games still show in the Collection."
             )),
             SteamState::NotInstalled => {
-                Some(tr!("Steam was not found on this PC. Install Steam and sign in, then open it: Heronite reads your library by itself."))
+                Some(tr!("Steam was not found on this PC. Install Steam and sign in, then open it: Heronited reads your library by itself."))
             }
             _ => None,
         };
@@ -344,7 +344,7 @@ impl SteamPage {
         let mut body = vec![toggle_row(
             "steam-reading",
             tr!("Read my Steam library"),
-            Some(tr!("Heronite adds your Steam games to the Collection. Turn it off to add only the games you choose yourself.")),
+            Some(tr!("Heronited adds your Steam games to the Collection. Turn it off to add only the games you choose yourself.")),
             reading,
         )
         .on_click(cx.listener(move |this, _, _, cx| this.set_reading(!reading, cx)))
@@ -406,7 +406,7 @@ impl SteamPage {
                 .icon(Icon::Refresh)
                 .enabled(!syncing && reading),
             Row::toggle("reading", tr!("Read my Steam library"), reading)
-                .desc(tr!("Heronite adds your Steam games to the Collection. Turn it off to add only the games you choose yourself.")),
+                .desc(tr!("Heronited adds your Steam games to the Collection. Turn it off to add only the games you choose yourself.")),
             Row::header(format!("{} \u{b7} {}", tr!("Local"), tr!("No login needed"))),
             Row::info("status", tr!("From Steam on this PC"), status).icon(Icon::Computer),
         ];
@@ -508,7 +508,7 @@ impl Render for SteamPage {
             "Only games come in: no tools, soundtracks or demos. A game you already have from another store or added yourself is not added twice: it gets Steam's install instead. Steam keeps installing, updating and launching its games."
         ));
         let body = methods::page(strip, cards, [note.into_any_element()]);
-        let lead = tr!("Heronite reads your Steam library from the Steam app on this PC. It never asks you to sign in to Steam.");
+        let lead = tr!("Heronited reads your Steam library from the Steam app on this PC. It never asks you to sign in to Steam.");
         div().size_full().relative().child(stores::sheet("steam-page", Page::Steam, lead, cx, body)).into_any_element()
     }
 }

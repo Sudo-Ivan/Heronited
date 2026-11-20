@@ -1,13 +1,13 @@
 <#
 .SYNOPSIS
-  Builds Heronite's Windows release files in dist\:
-    Heronite-Portable-x86_64.zip  one Heronite\ folder: heronite.exe (the cargo build's heronite-rs.exe),
+  Builds Heronited's Windows release files in dist\:
+    Heronited-Portable-x86_64.zip  one Heronited\ folder: heronite.exe (the cargo build's heronite-rs.exe),
                                   helpers\heronite-epic-login.exe (the
                                   stores' login window, out of the way of
                                   the program the user starts),
                                   portable.txt (keeps the data in that folder)
                                   and LICENSE
-    Heronite-Setup-x86_64.exe     the per-user installer (Inno Setup 6,
+    Heronited-Setup-x86_64.exe     the per-user installer (Inno Setup 6,
                                   packaging\windows\heronite.iss)
   The minisign signatures for the in-app updater are made afterwards by
   scripts/sign-release.sh, with the Linux files.
@@ -54,8 +54,8 @@ function Fail([string]$Message) {
 $Root = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
 $Packaging = Join-Path $Root 'packaging\windows'
 $Dist = Join-Path $Root 'dist'
-$ZipName = 'Heronite-Portable-x86_64.zip'
-$SetupName = 'Heronite-Setup-x86_64.exe'
+$ZipName = 'Heronited-Portable-x86_64.zip'
+$SetupName = 'Heronited-Setup-x86_64.exe'
 
 & (Join-Path $PSScriptRoot 'test-installer-languages.ps1')
 
@@ -94,7 +94,7 @@ if (-not $Version) {
     $Version = $line.Matches[0].Groups[1].Value
 }
 if ($Version -notmatch '^\d+\.\d+\.\d+$') { Fail "version '$Version' is not X.Y.Z" }
-Write-Host "Heronite $Version"
+Write-Host "Heronited $Version"
 
 $IsccExe = Find-Iscc
 Write-Host "ISCC: $IsccExe"
@@ -136,17 +136,17 @@ foreach ($name in @($ZipName, $SetupName)) {
     }
 }
 
-# Portable zip: exactly these files, under Heronite/ (forward slashes: the
+# Portable zip: exactly these files, under Heronited/ (forward slashes: the
 # zip format's separator; Compress-Archive in PowerShell 5.1 writes
 # backslashes). Never data, config or cache.
 Add-Type -AssemblyName System.IO.Compression
 Add-Type -AssemblyName System.IO.Compression.FileSystem
 $ZipPath = Join-Path $Dist $ZipName
 $entries = [ordered]@{
-    'Heronite/heronite.exe'            = $Exe
-    'Heronite/helpers/heronite-epic-login.exe' = $LoginExe
-    'Heronite/portable.txt'            = (Join-Path $Packaging 'portable.txt')
-    'Heronite/LICENSE'                 = (Join-Path $Root 'LICENSE')
+    'Heronited/heronite.exe'            = $Exe
+    'Heronited/helpers/heronite-epic-login.exe' = $LoginExe
+    'Heronited/portable.txt'            = (Join-Path $Packaging 'portable.txt')
+    'Heronited/LICENSE'                 = (Join-Path $Root 'LICENSE')
 }
 $zip = [System.IO.Compression.ZipFile]::Open($ZipPath, [System.IO.Compression.ZipArchiveMode]::Create)
 try {
@@ -167,7 +167,7 @@ if ($Signing) {
     $isccArgs += '/DSign'
     $isccArgs += "/Sheronite=powershell.exe -NoProfile -ExecutionPolicy Bypass -File `$q$SignScript`$q `$f"
 }
-$isccArgs += (Join-Path $Packaging 'heronite.iss')
+$isccArgs += (Join-Path $Packaging 'heronited.iss')
 & $IsccExe @isccArgs
 if ($LASTEXITCODE -ne 0) { Fail "ISCC failed ($LASTEXITCODE)" }
 $SetupPath = Join-Path $Dist $SetupName

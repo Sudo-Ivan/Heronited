@@ -1,4 +1,4 @@
-//! Launch presets (`local_library/launch_presets.json`, Heronite's): named
+//! Launch presets (`local_library/launch_presets.json`, Heronited's): named
 //! sets of environment variables, wrapper commands and game arguments saved
 //! from one game and applied to others, such as "NVIDIA DLSS" or "Old
 //! DirectX game".

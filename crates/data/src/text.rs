@@ -1,4 +1,4 @@
-//! Text helpers that reproduce the JavaScript behaviour Heronite relies on:
+//! Text helpers that reproduce the JavaScript behaviour Heronited relies on:
 //! `String.prototype.localeCompare`, `facetKey`, `toPlainText`,
 //! `formatTimestamp`, `removeSpecialcharacters`.
 
@@ -243,7 +243,7 @@ pub(crate) fn parse_calendar_date(value: &str) -> Option<(i32, u32, u32)> {
 /// as is.
 ///
 /// Deviation from the TS: `new Date('2020-05-12')` is parsed as UTC, so
-/// Heronite shows the previous day west of UTC. This does not.
+/// Heronited shows the previous day west of UTC. This does not.
 pub fn format_timestamp(value: &str, locale: DateLocale) -> String {
     let value = value.trim();
     if value.is_empty() {

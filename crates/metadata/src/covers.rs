@@ -16,7 +16,7 @@ use crate::http::Http;
 use crate::types::{ArtKind, Lookup, SourceHit, WebImage};
 use crate::util::{encode_uri_component, normalize_title, re};
 
-const SGDB_UA: &str = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Heronite/0.1";
+const SGDB_UA: &str = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Heronited/0.1";
 const ENCRYPTED_PREFIX: &str = "sgdb:v1:";
 
 /// `art_square` / `art_cover` of a game.

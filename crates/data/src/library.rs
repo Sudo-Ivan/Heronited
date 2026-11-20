@@ -54,7 +54,7 @@ pub struct CollectionGame {
     /// "Library" of the Details panel: Steam, Emulator, Epic, GOG, Amazon,
     /// Xbox, Local, Other.
     pub source_label: &'static str,
-    /// `GameInfo.is_installed` (Heronite keeps it current for Steam, ROMs and
+    /// `GameInfo.is_installed` (Heronited keeps it current for Steam, ROMs and
     /// executables when it refreshes its install states), or the Steam copy
     /// is installed ([`via_steam`](Self::via_steam)).
     pub installed: bool,
@@ -218,7 +218,7 @@ impl CollectionGame {
         };
         let minutes = timestamp.map(|t| t.total_played.get()).filter(|m| *m > 0.0).unwrap_or(0.0);
         let non_empty = |s: &Option<String>| s.clone().filter(|v| !v.is_empty());
-        // What Xbox network counted (every device, Heronite's sessions
+        // What Xbox network counted (every device, Heronited's sessions
         // included): the larger total and the later play win.
         let (store_minutes, store_last) = crate::xbox::played(meta.as_deref());
         let minutes = minutes.max(store_minutes as f64);
@@ -462,7 +462,7 @@ struct RawStore {
     timestamp: Option<Value>,
 }
 
-/// Modification time and size of every input file, to notice that Heronite
+/// Modification time and size of every input file, to notice that Heronited
 /// (or the user) changed something.
 #[derive(Debug, Clone, PartialEq, Eq)]
 struct FileStamp(Vec<Option<(SystemTime, u64)>>);

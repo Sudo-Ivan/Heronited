@@ -2,7 +2,7 @@
 //!
 //! [`probe`] reports the monitors (identified by EDID, see
 //! [`MonitorId::key`]), their current and available modes, HDR and VRR, and
-//! what the desktop lets Heronite change ([`Capabilities`], which the
+//! what the desktop lets Heronited change ([`Capabilities`], which the
 //! settings UI uses to hide what a compositor cannot do).
 //!
 //! * Windows: `QueryDisplayConfig` and `DisplayConfigGetDeviceInfo`.

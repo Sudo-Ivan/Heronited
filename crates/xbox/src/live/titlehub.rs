@@ -17,7 +17,7 @@ const MAX_ITEMS: u32 = 1000;
 /// At most this many titles per `userstats` request.
 const STATS_BATCH: usize = 100;
 
-/// One title of the account's history, as much as Heronite uses.
+/// One title of the account's history, as much as Heronited uses.
 #[derive(Debug, Clone, Default, PartialEq)]
 pub struct Title {
     /// Decimal (`2046611937`): Xbox network's id of the title.

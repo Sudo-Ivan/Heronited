@@ -161,7 +161,7 @@ const fn off_in_flatpak(feature: Feature) -> bool {
     matches!(feature, Feature::Sandbox | Feature::SelfUpdate | Feature::Mods)
 }
 
-/// Whether any of the stores Heronite signs in to is on: what they share
+/// Whether any of the stores Heronited signs in to is on: what they share
 /// (the Downloads page, Settings → Downloads, the download queue) shows then.
 pub fn any_store() -> bool {
     [Feature::EpicStore, Feature::GogStore, Feature::AmazonStore].into_iter().any(supported)

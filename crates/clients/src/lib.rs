@@ -1,11 +1,11 @@
-//! The Windows store clients Heronite starts games through: Battle.net, the
+//! The Windows store clients Heronited starts games through: Battle.net, the
 //! EA app, Ubisoft Connect and the Rockstar Games Launcher (the clients
 //! themselves are [`heronite_data::clients::Client`]).
 //!
 //! On Linux each client is installed into a Wine prefix of its own
 //! ([`setup`]); on Windows it is installed on the PC as it is ([`native`]),
 //! and one already there is used. The user signs in and installs games
-//! inside the client. Heronite reads, without running anything, what the
+//! inside the client. Heronited reads, without running anything, what the
 //! client installed ([`games`]) and whether it is signed in ([`account`]),
 //! brings those games into the Collection ([`collection`]) and opens or
 //! closes the client ([`run`]). Its games are started through it by
@@ -68,7 +68,7 @@ pub struct ClientGame {
     pub launch: String,
 }
 
-/// What Heronite knows about a client on this PC (a few file reads).
+/// What Heronited knows about a client on this PC (a few file reads).
 #[derive(Debug, Clone, PartialEq, Eq, Default)]
 pub struct Status {
     /// The prefix the client is set up in; `None` while it never was, and

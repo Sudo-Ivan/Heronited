@@ -1,6 +1,6 @@
 //! What differs between operating systems.
 //!
-//! Heronite runs on Linux and, in part, on Windows. Every call into the
+//! Heronited runs on Linux and, in part, on Windows. Every call into the
 //! operating system that is not the same on both goes through this crate, so
 //! the other crates stay free of `cfg(unix)` / `cfg(windows)`:
 //!

@@ -358,13 +358,13 @@ mod tests {
     fn windows_folders_are_passed_as_they_are() {
         let env = Env::new();
         let job = make_job(&env, write_installed(Reply::new()));
-        let (result, _) = run(&job, &element(ElementKind::Install, r"D:\Games\Heronite"));
+        let (result, _) = run(&job, &element(ElementKind::Install, r"D:\Games\Heronited"));
         assert_eq!(result.status, heronite_epic::queue::DmStatus::Done, "{:?}", result.error);
-        let (result, _) = run(&job, &element(ElementKind::Update, r"D:\Games\Heronite\Cool Game"));
+        let (result, _) = run(&job, &element(ElementKind::Update, r"D:\Games\Heronited\Cool Game"));
         assert_eq!(result.status, heronite_epic::queue::DmStatus::Done, "{:?}", result.error);
         assert_eq!(
             env.calls(),
-            [format!(r"install --base-path D:\Games\Heronite {ID}"), format!(r"update --path D:\Games\Heronite\Cool Game {ID}")]
+            [format!(r"install --base-path D:\Games\Heronited {ID}"), format!(r"update --path D:\Games\Heronited\Cool Game {ID}")]
         );
     }
 

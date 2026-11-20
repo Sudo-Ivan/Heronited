@@ -1,4 +1,4 @@
-//! Node's `path` helpers of this system, so results match Heronite's
+//! Node's `path` helpers of this system, so results match Heronited's
 //! (`resolve`, `join`, `extname`...) byte for byte: the POSIX ones on Linux,
 //! `path.win32` on Windows (`\` and `/` both separate, drive and share
 //! roots, `\` in what they give).

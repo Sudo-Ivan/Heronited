@@ -1,5 +1,5 @@
 //! What a metadata record knows besides its fields, kept in additive keys of
-//! its `extra` (the file stays Heronite's format, and a build without them
+//! its `extra` (the file stays Heronited's format, and a build without them
 //! keeps them):
 //!
 //! - `sourceMatches`: per source, which game of that source the record is

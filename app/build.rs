@@ -63,13 +63,13 @@ BEGIN
     BEGIN
         BLOCK "040904B0"
         BEGIN
-            VALUE "CompanyName", "Heronite"
-            VALUE "FileDescription", "Heronite"
+            VALUE "CompanyName", "Heronited"
+            VALUE "FileDescription", "Heronited"
             VALUE "FileVersion", "{version}"
             VALUE "InternalName", "heronite-rs"
             VALUE "LegalCopyright", "GPL-3.0-only"
             VALUE "OriginalFilename", "heronite-rs.exe"
-            VALUE "ProductName", "Heronite"
+            VALUE "ProductName", "Heronited"
             VALUE "ProductVersion", "{version}"
         END
     END

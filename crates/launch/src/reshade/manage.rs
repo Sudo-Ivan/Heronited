@@ -52,7 +52,7 @@ pub fn update_dll(ops: &Ops, game_id: &str, version: &str) -> Result<Manifest, S
 /// Switches to the build with add-on support (`on`) or back to the standard
 /// one, at the installed version. `risk`: the game's, from the overview; the
 /// add-on build is refused for a game with any known anti-cheat. Going back
-/// is refused while an add-on Heronite installed is there (it would stop
+/// is refused while an add-on Heronited installed is there (it would stop
 /// loading).
 pub fn set_addon(ops: &Ops, game_id: &str, on: bool, risk: &Risk) -> Result<Manifest, String> {
     let m = load(ops.paths, game_id)?;
@@ -325,7 +325,7 @@ pub struct Removal {
 /// `ReShade.log` hold the user's settings and go to `discard` (the trash)
 /// first: a trash that refuses them leaves them in place and does not stop
 /// the removal. Then the DLL goes (if that fails, nothing else changed and
-/// ReShade stays installed), then the other files Heronite wrote (when
+/// ReShade stays installed), then the other files Heronited wrote (when
 /// unchanged), and the manifest last, so a half-removed ReShade is never
 /// put back before a launch. Files another game's ReShade in the same folder
 /// also lists stay.
@@ -410,7 +410,7 @@ fn api_of_proxy(proxy: &str) -> Option<Api> {
 }
 
 /// Takes over a ReShade installed by hand in `dir` under `proxy`, without
-/// downloading anything: the files there become Heronite's, so switching,
+/// downloading anything: the files there become Heronited's, so switching,
 /// updating and removing work.
 pub fn adopt(paths: &DataPaths, game_id: &str, dir: &Path, proxy: &str) -> Result<Manifest, String> {
     let Occupant::ReShade { path, off, version } = occupant(dir, proxy) else {

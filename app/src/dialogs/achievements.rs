@@ -6,7 +6,7 @@
 //!
 //! A game with Steam Achievement Sets gets a row of its sets (All first),
 //! each with its unlocked/total count; in All every achievement carries its
-//! set's name. Counts are Heronite's own: Steam leaves out the DLC sets a
+//! set's name. Counts are Heronited's own: Steam leaves out the DLC sets a
 //! player doesn't own, which no source tells.
 
 mod listing;

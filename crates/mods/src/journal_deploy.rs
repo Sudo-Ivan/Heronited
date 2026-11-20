@@ -1,5 +1,5 @@
 //! Windows has no overlay file system, and hooking the game's file calls
-//! (MO2's usvfs) is not something Heronite does. So while a game runs, the
+//! (MO2's usvfs) is not something Heronited does. So while a game runs, the
 //! enabled mods' files are **put into its folder**, and they are taken out
 //! again when it ends (`docs/MODS.md`, "Windows").
 //!

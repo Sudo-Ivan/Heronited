@@ -227,7 +227,7 @@ fn read_at_start(log: &str) -> Option<Vec<PathBuf>> {
 
 /// The tools whose folder is not one of `read` (canonical paths). Unlike
 /// file times, this does not count a manifest written again unchanged
-/// (Heronite's `steam_link`) as new.
+/// (Heronited's `steam_link`) as new.
 fn tools_not_in(locator: &SteamLocator, read: &[PathBuf]) -> Vec<CompatTool> {
     let mut out = Vec::new();
     for dir in compat_tool_dirs(locator) {

@@ -86,7 +86,7 @@ pub fn steam_language(language: &str) -> &'static str {
     dashed.split('-').next().and_then(lookup).unwrap_or("english")
 }
 
-/// Reads a cached Steam details file regardless of its age (Heronite refetches
+/// Reads a cached Steam details file regardless of its age (Heronited refetches
 /// after 30 days, this crate never goes to the network).
 pub fn load_steam_details(paths: &DataPaths, steam_app_id: &str, language: &str) -> Option<SteamDetails> {
     let lang = steam_language(language);
@@ -297,7 +297,7 @@ pub struct FocusData {
     pub hltb_checked: bool,
 }
 
-/// Merges Steam details (read from the cache, only when Heronite would show
+/// Merges Steam details (read from the cache, only when Heronited would show
 /// them) and the wiki cache into the Focus values of `game`.
 pub fn focus_data(library: &Library, game: &CollectionGame, wiki: &WikiCache) -> FocusData {
     let entry = wiki.lookup(&game.title, &game.game.title);
@@ -363,7 +363,7 @@ mod tests {
         .unwrap();
         let with_meta = game_with("steam_400", "sideload", |_, _, _, meta, _| meta.steam_app_id = Some("400".into()));
         let d = focus_details(&paths, &with_meta, "en", None);
-        assert!(d.description_html.is_none(), "metadata entry present: no Steam fetch in Heronite");
+        assert!(d.description_html.is_none(), "metadata entry present: no Steam fetch in Heronited");
 
         let mut bare = game_with("steam_400", "sideload", |_, _, _, meta, _| meta.steam_app_id = Some("400".into()));
         std::sync::Arc::get_mut(&mut bare).unwrap().metadata = None;

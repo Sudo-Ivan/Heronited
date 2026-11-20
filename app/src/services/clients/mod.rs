@@ -205,7 +205,7 @@ fn read(paths: &DataPaths, clients: &[Client], sync: bool) -> Vec<(Client, Read)
             let synced = (sync && status.installed()).then(|| collection::sync(paths, client, &status.games).map_err(|e| format!("{e:#}")));
             // Read after the sync, which records when it ran.
             let prefs = if matches!(synced, Some(Ok(_))) { ClientPrefs::load(paths) } else { prefs.clone() };
-            // Only the clients under Wine get shortcuts from Heronite; one
+            // Only the clients under Wine get shortcuts from Heronited; one
             // whose prefix was deleted by hand may still have them.
             let shortcuts = if heronite_clients::native() { Default::default() } else { shortcuts::placed(client) };
             let read = Read {

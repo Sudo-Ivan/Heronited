@@ -327,7 +327,7 @@ mod tests {
             stop: None,
             screenshot: false,
             quick_launch: false,
-            activation_token: Some("gnome-shell/Heronite/1234-0-host_TIME5678".into()),
+            activation_token: Some("gnome-shell/Heronited/1234-0-host_TIME5678".into()),
             no_gui: true,
             console: true,
             fullscreen: true,

@@ -217,7 +217,7 @@ impl Launcher {
             }
         }
         if control.steam {
-            // Heronite's stop only ends tracking for Steam games.
+            // Heronited's stop only ends tracking for Steam games.
             control.set_abort();
         } else {
             control.set_kill();

@@ -4,7 +4,7 @@
 //! The TS hands the image component a `src` and a list of fallbacks; here the
 //! chain is one list, tried in order until an image loads. Local sources
 //! (`localart://`, `file:`, absolute paths) that do not exist on disk are left
-//! out of the chain (Heronite's `CachedImage` skips them when they fail).
+//! out of the chain (Heronited's `CachedImage` skips them when they fail).
 
 use std::path::{Path, PathBuf};
 

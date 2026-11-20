@@ -398,7 +398,7 @@ impl Updater {
 
     /// How to update a copy whose own package manager installs updates
     /// (the AUR, Scoop, the COPR), shown instead of the Update button; `None` when
-    /// Heronite installs them or sends people to the release page.
+    /// Heronited installs them or sends people to the release page.
     pub fn manager_update(&self) -> Option<&'static str> {
         match self.package()? {
             Package::Aur => Some(AUR_UPDATE),
@@ -574,7 +574,7 @@ impl Updater {
         self.save_prefs(cx);
         match latest.filter(|r| r.is_newer_than(&self.current)) {
             Some(release) => {
-                log::info!("Heronite {} is available (this is {})", release.version, self.current);
+                log::info!("Heronited {} is available (this is {})", release.version, self.current);
                 self.release = Some(release);
                 self.phase = Phase::Available;
                 if manual {
@@ -605,9 +605,9 @@ impl Updater {
         self.notified = Some(r.version.clone());
         let how = match self.manager_update() {
             Some(how) => tr(how),
-            None => tr!("Open Heronite to update."),
+            None => tr!("Open Heronited to update."),
         };
-        crate::system::notify::send(tr!("Heronite {version} is available", version = r.version), how);
+        crate::system::notify::send(tr!("Heronited {version} is available", version = r.version), how);
     }
 
     /// Downloads the release and installs it ([`Method`]).
@@ -639,12 +639,12 @@ impl Updater {
             };
             match method {
                 Method::AppImage(target) => {
-                    log::info!("downloading Heronite {} into {}", release.version, target.appimage.display());
+                    log::info!("downloading Heronited {} into {}", release.version, target.appimage.display());
                     (heronite_update::install::install(&release, &target, key, &cancel, &mut progress), None)
                 }
                 #[cfg(windows)]
                 Method::Installer(_) => {
-                    log::info!("downloading the setup of Heronite {} into {}", release.version, dir.display());
+                    log::info!("downloading the setup of Heronited {} into {}", release.version, dir.display());
                     match Installer::download(&release, &dir.join(&release.version), key, &cancel, &mut progress) {
                         // Kept: it runs as the app quits.
                         Ok(setup) => (Ok(()), Some(setup)),
@@ -653,7 +653,7 @@ impl Updater {
                 }
                 #[cfg(windows)]
                 Method::Portable(copy) => {
-                    log::info!("downloading Heronite {} into {}", release.version, copy.root.display());
+                    log::info!("downloading Heronited {} into {}", release.version, copy.root.display());
                     (heronite_update::portable::install(&release, &copy, key, &cancel, &mut progress), None)
                 }
                 Method::Package { kind, .. } => {
@@ -712,26 +712,26 @@ impl Updater {
         let version = self.release.as_ref().map(|r| r.version.clone()).unwrap_or_default();
         self.phase = match result {
             Ok(()) if self.installs_on_quit() => {
-                log::info!("the setup of Heronite {version} is downloaded; it runs when the app quits");
+                log::info!("the setup of Heronited {version} is downloaded; it runs when the app quits");
                 self.prefs.updated_to = Some(version.clone());
                 self.save_prefs(cx);
                 self.setup_on_quit();
                 if !crate::system::has_window(cx) {
                     crate::system::notify::send(
-                        tr!("Heronite {version} is ready to install", version),
-                        tr!("It installs when you quit Heronite."),
+                        tr!("Heronited {version} is ready to install", version),
+                        tr!("It installs when you quit Heronited."),
                     );
                 }
                 Phase::Ready
             }
             Ok(()) => {
-                log::info!("Heronite {version} is installed; it runs from the next start");
+                log::info!("Heronited {version} is installed; it runs from the next start");
                 self.prefs.updated_to = Some(version.clone());
                 self.save_prefs(cx);
                 if !crate::system::has_window(cx) {
                     crate::system::notify::send(
-                        tr!("Heronite {version} is installed", version),
-                        tr!("It starts the next time you open Heronite."),
+                        tr!("Heronited {version} is installed", version),
+                        tr!("It starts the next time you open Heronited."),
                     );
                 }
                 Phase::Ready
@@ -890,7 +890,7 @@ mod tests {
     /// A release with every package, signed by one checksum list.
     fn signed_release() -> Release {
         Release {
-            packages: ["heronite_1.2.0-1_amd64.deb", "heronite-1.2.0-1.x86_64.rpm", "heronite-1.2.0-1-x86_64.pkg.tar.zst"]
+            packages: ["heronited_1.2.0-1_amd64.deb", "heronited-1.2.0-1.x86_64.rpm", "heronited-1.2.0-1-x86_64.pkg.tar.zst"]
                 .map(asset)
                 .to_vec(),
             checksums: Some(Checksums { list: asset("SHA256SUMS"), signature: asset("SHA256SUMS.minisig") }),

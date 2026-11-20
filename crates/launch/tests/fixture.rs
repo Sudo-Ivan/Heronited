@@ -1,4 +1,4 @@
-//! Plans and recording against a copy of real Heronite data.
+//! Plans and recording against a copy of real Heronited data.
 //!
 //! Point `HERONITE_FIXTURE` at a copy of the data folder (default
 //! `/tmp/heronite-fixture`). Plan building only reads; the recording test

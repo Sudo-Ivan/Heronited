@@ -138,7 +138,7 @@ fn an_entry_is_read_beside_the_list_and_checked_against_it() {
     let InstallOutcome::Installed(ext) = lists::install_prepared(&svc, &prepared, false).unwrap() else { panic!() };
     assert_eq!(ext.list.as_deref(), Some(key.as_str()));
     assert_eq!(PathBuf::from(&ext.from), folder.path().join("wikipedia/source.toml"));
-    assert_eq!(own.origin(&svc, &ext), Origin::Local(key.clone()), "never \"From the Heronite list\"");
+    assert_eq!(own.origin(&svc, &ext), Origin::Local(key.clone()), "never \"From the Heronited list\"");
     // Still from this computer once the app's own list is another one.
     assert_eq!(Lists::default().origin(&svc, &ext), Origin::Local(key));
 }

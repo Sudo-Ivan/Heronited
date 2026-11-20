@@ -1,5 +1,5 @@
 //! JavaScript-compatible number: integral values serialize without `.0`,
-//! like `JSON.stringify`, so files Heronite wrote round-trip byte-for-byte.
+//! like `JSON.stringify`, so files Heronited wrote round-trip byte-for-byte.
 
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 

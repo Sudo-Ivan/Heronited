@@ -164,7 +164,7 @@ str_enum! {
     pub enum BackgroundMotion { Still = "still", Drift = "drift" } default Still
 }
 str_enum! {
-    pub enum ConsoleFont { Heronite = "heronite", Cabin = "cabin", Rubik = "rubik", System = "system", Mono = "mono" } default Heronite
+    pub enum ConsoleFont { Heronited = "heronite", Cabin = "cabin", Rubik = "rubik", System = "system", Mono = "mono" } default Heronited
 }
 str_enum! {
     pub enum Clock { H24 = "24h", H12 = "12h", Off = "off" } default H24
@@ -435,7 +435,7 @@ impl Default for InterfaceOptions {
     fn default() -> Self {
         Self {
             accent: "white".into(),
-            font: ConsoleFont::Heronite,
+            font: ConsoleFont::Heronited,
             scale: 100,
             clock: Clock::H24,
             date: false,
@@ -724,7 +724,7 @@ impl ConsoleTheme {
         }
         let format = value.get("format").and_then(Value::as_u64).unwrap_or(1);
         if format > u64::from(FORMAT) {
-            anyhow::bail!("this theme needs a newer version of Heronite (theme format {format}, this app reads {FORMAT})");
+            anyhow::bail!("this theme needs a newer version of Heronited (theme format {format}, this app reads {FORMAT})");
         }
         lenient::<ConsoleTheme>(value).map(Self::normalized).ok_or_else(|| anyhow::anyhow!("not a console theme"))
     }

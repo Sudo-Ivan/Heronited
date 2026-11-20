@@ -1809,12 +1809,12 @@ impl X11Client {
         self.0.borrow_mut().hide_cursor_until_mouse_moves();
     }
 
-    /// Heronite: the cursor back without waiting for the mouse to move.
+    /// Heronited: the cursor back without waiting for the mouse to move.
     pub(crate) fn show_cursor(&self) {
         self.0.borrow_mut().restore_cursor_after_hide();
     }
 
-    /// Heronite: X11 has no xdg-activation; the window manager decides.
+    /// Heronited: X11 has no xdg-activation; the window manager decides.
     pub(crate) fn replace_activation_token(&self, _token: Option<String>) -> Option<String> {
         None
     }

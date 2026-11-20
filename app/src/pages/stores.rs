@@ -28,7 +28,7 @@ use crate::services::xbox_library::Found;
 pub const PAGES: [Page; 9] =
     [Page::Steam, Page::Epic, Page::Gog, Page::Amazon, Page::Xbox, Page::BattleNet, Page::Ea, Page::Ubisoft, Page::Rockstar];
 
-/// The list's groups: the stores Heronite signs in to or reads, then the
+/// The list's groups: the stores Heronited signs in to or reads, then the
 /// ones whose own program runs (under Wine on Linux).
 const GROUPS: [(&str, &[Page]); 2] = [
     (n_!("Stores"), &[Page::Steam, Page::Epic, Page::Gog, Page::Amazon, Page::Xbox]),
@@ -65,7 +65,7 @@ fn counts(games: usize, installed: usize) -> String {
     format!("{} \u{b7} {}", trn!(games, "{n} game", "{n} games"), super::store::installed_count(installed))
 }
 
-/// A store Heronite signs in to (Epic Games, GOG, Amazon Games).
+/// A store Heronited signs in to (Epic Games, GOG, Amazon Games).
 fn account_glance(logged_in: bool, expired: bool, owned: usize, installed: usize) -> Glance {
     if logged_in {
         glance(Dot::On, counts(owned, installed))

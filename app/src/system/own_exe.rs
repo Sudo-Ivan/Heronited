@@ -34,13 +34,13 @@ mod tests {
         let os = |s: &str| Some(s.into());
         let inside = Path::new("/tmp/.mount_HeroAb/usr/bin/heronite-rs");
         assert_eq!(
-            appimage_of(os("/apps/Heronite.AppImage"), os("/tmp/.mount_HeroAb"), inside),
-            Some(PathBuf::from("/apps/Heronite.AppImage"))
+            appimage_of(os("/apps/Heronited.AppImage"), os("/tmp/.mount_HeroAb"), inside),
+            Some(PathBuf::from("/apps/Heronited.AppImage"))
         );
         // Inherited from another AppImage (started from its terminal).
         let other = Path::new("/home/me/heronite/target/debug/heronite-rs");
         assert_eq!(appimage_of(os("/apps/Editor.AppImage"), os("/tmp/.mount_EditXy"), other), None);
-        assert_eq!(appimage_of(os("/apps/Heronite.AppImage"), None, inside), None);
+        assert_eq!(appimage_of(os("/apps/Heronited.AppImage"), None, inside), None);
         assert_eq!(appimage_of(os(""), os("/tmp/.mount_HeroAb"), inside), None);
     }
 }

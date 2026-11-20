@@ -1,10 +1,10 @@
 //! Read-only lookup of the cached wiki info (HowLongToBeat, PCGamingWiki) that
-//! Heronite keeps in `store_cache/wikigameinfo.json`.
+//! Heronited keeps in `store_cache/wikigameinfo.json`.
 //!
-//! Heronite's `getWikiGameInfo(title)` caches under `removeSpecialcharacters(title)`
+//! Heronited's `getWikiGameInfo(title)` caches under `removeSpecialcharacters(title)`
 //! where `title` is the Collection title (`collectionGameTitle`); when that key
 //! is missing it also tries the store title. Entries older than 30 days are
-//! refetched by Heronite; here they are used as they are (no network).
+//! refetched by Heronited; here they are used as they are (no network).
 
 use heronite_i18n::tr;
 use serde::Deserialize;

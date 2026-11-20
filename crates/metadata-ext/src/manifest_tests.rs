@@ -122,7 +122,7 @@ fn the_contract_version_is_read_first() {
     assert!(error(&with("api = 1", "api = 0")).contains("not a contract version"));
     assert!(error(&with("api = 1", "api = \"1\"")).contains("whole number"));
     assert!(error(&with("api = 1\n", "")).contains("api is missing"));
-    assert!(ExtensionError::NewerApi(2).to_string().contains("newer Heronite"));
+    assert!(ExtensionError::NewerApi(2).to_string().contains("newer Heronited"));
 }
 
 #[test]

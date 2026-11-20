@@ -92,7 +92,7 @@ mod tests {
     fn add_exists_remove_in_tempdirs() {
         let dir = tempfile::tempdir().unwrap();
         let roots = Roots { desktop: Some(dir.path().join("Desktop")), applications: dir.path().join("Start Menu").join("Programs") };
-        let exe = dir.path().join(r"Program Files\Heronite\heronite-rs.exe");
+        let exe = dir.path().join(r"Program Files\Heronited\heronite-rs.exe");
         let icon = dir.path().join("icons").join("Quail.ico");
         let g = game();
         assert!(!exists(&roots, &g.title));
@@ -118,10 +118,10 @@ mod tests {
 
     #[test]
     fn without_an_icon_the_program_s_own_is_shown() {
-        let exe = Path::new(r"C:\Heronite\heronite-rs.exe");
+        let exe = Path::new(r"C:\Heronited\heronite-rs.exe");
         let l = link(&game(), exe, None);
         assert_eq!(l.icon, Some((exe.to_path_buf(), 0)));
-        assert_eq!(l.working_dir.as_deref(), Some(Path::new(r"C:\Heronite")));
+        assert_eq!(l.working_dir.as_deref(), Some(Path::new(r"C:\Heronited")));
         assert_eq!(l.arguments, r#"--launch sideload "Quail \"Deluxe\" 2""#);
     }
 

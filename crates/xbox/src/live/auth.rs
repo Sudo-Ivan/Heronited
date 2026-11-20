@@ -1,12 +1,12 @@
 //! Signing in: the user signs in to their Microsoft account on Microsoft's
-//! own page (Heronite never sees the password), which hands back an
+//! own page (Heronited never sees the password), which hands back an
 //! authorization code; the code becomes Microsoft account tokens
 //! (`login.live.com`), whose access token becomes an Xbox network user token
 //! (`user.auth.xboxlive.com`), then an XSTS token (`xsts.auth.xboxlive.com`)
 //! that the other services take.
 //!
 //! The code is bound to this sign-in by PKCE (S256): only the program that
-//! opened the page can use it. Heronite's own app registration is used
+//! opened the page can use it. Heronited's own app registration is used
 //! ([`crate::client_id`]); with none, signing in is not offered.
 
 use anyhow::{anyhow, bail, Context, Result};

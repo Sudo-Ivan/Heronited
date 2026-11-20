@@ -350,7 +350,7 @@ esac
     #[test]
     fn a_new_prefix_goes_in_the_default_prefix_folder() {
         let (_dir, paths) = paths();
-        assert_eq!(default_prefix(&paths, Client::Ea, HOME), PathBuf::from("/home/tester/Games/Heronite/Prefixes/EA app"));
+        assert_eq!(default_prefix(&paths, Client::Ea, HOME), PathBuf::from("/home/tester/Games/Heronited/Prefixes/EA app"));
         game_config::set_global_setting(&paths, HOME, "defaultWinePrefixDir", json!("~/Wine")).unwrap();
         assert_eq!(default_prefix(&paths, Client::BattleNet, HOME), PathBuf::from("/home/tester/Wine/Battle.net"));
         game_config::set_global_setting(&paths, HOME, "defaultWinePrefixDir", json!("/data/prefixes")).unwrap();

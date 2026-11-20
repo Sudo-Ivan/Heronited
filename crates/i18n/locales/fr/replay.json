@@ -103,7 +103,7 @@
   "Vulkan on NVIDIA when the card offers it (about half the video memory), else NVENC or VA-API.": "Vulkan sur NVIDIA si la carte le propose (environ la moitié de la mémoire vidéo), sinon NVENC ou VA-API.",
   "Waiting for a game": "En attente d’un jeu",
   "What is on the monitor is in the replay, notifications and the overlay's notices included.": "Tout ce qui apparaît à l’écran figure dans le replay, y compris les notifications et les messages de l’overlay.",
-  "While a game opened by Heronite runs, its last seconds stay in memory. Guide + X or the overlay's \"Save replay\" saves them in the game's screenshots folder, under replays, and marks them as a moment in its journal.": "Pendant l’exécution d’un jeu ouvert par Heronite, ses dernières secondes restent en mémoire. Guide + X ou « Enregistrer le replay » dans l’overlay les enregistre dans le sous-dossier replays des captures d’écran du jeu et les marque comme un moment dans son journal.",
+  "While a game opened by Heronited runs, its last seconds stay in memory. Guide + X or the overlay's \"Save replay\" saves them in the game's screenshots folder, under replays, and marks them as a moment in its journal.": "Pendant l’exécution d’un jeu ouvert par Heronited, ses dernières secondes restent en mémoire. Guide + X ou « Enregistrer le replay » dans l’overlay les enregistre dans le sous-dossier replays des captures d’écran du jeu et les marque comme un moment dans son journal.",
   "gpu-screen-recorder could not start: {err}": "Impossible de démarrer gpu-screen-recorder : {err}",
   "gpu-screen-recorder exited with code {code}": "gpu-screen-recorder s’est arrêté avec le code {code}",
   "gpu-screen-recorder is not installed": "gpu-screen-recorder n’est pas installé",

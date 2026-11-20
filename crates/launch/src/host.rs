@@ -21,7 +21,7 @@ pub enum Os {
 }
 
 impl Os {
-    /// The system Heronite runs on.
+    /// The system Heronited runs on.
     pub const HOST: Os = if cfg!(windows) { Os::Windows } else { Os::Linux };
 
     /// A store's name for a platform, any case: Epic's `Windows` / `Mac`,

@@ -399,7 +399,7 @@ impl CollectionView {
                         .on_click(cx.listener(|this, _, _, cx| this.link_selected_copies(cx))),
                 )
             })
-            // Only games added to Heronite can leave the Collection; the dialog asks first.
+            // Only games added to Heronited can leave the Collection; the dialog asks first.
             .when(removable, |d| {
                 d.child(crate::ui::dropdown::menu_separator()).child(
                     item("cm-b-remove")

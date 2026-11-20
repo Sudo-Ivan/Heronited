@@ -17,5 +17,5 @@
   "{host} answered with HTTP {status}": "{host} a répondu avec le code HTTP {status}",
   "{host} asks to wait: too many requests": "{host} demande de patienter : trop de requêtes",
   "{host} refused the request (HTTP {status})": "{host} a refusé la requête (HTTP {status})",
-  "{host} sent an answer Heronite does not understand: {error}": "{host} a envoyé une réponse qu’Heronite ne comprend pas : {error}"
+  "{host} sent an answer Heronited does not understand: {error}": "{host} a envoyé une réponse qu’Heronited ne comprend pas : {error}"
 }

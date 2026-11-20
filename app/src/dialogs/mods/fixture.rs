@@ -100,7 +100,7 @@ pub(super) fn load(ctx: &DialogCtx, game: &CollectionGame) -> Option<Fixture> {
         },
         jobs,
         account,
-        support_problem: has("fuse").then(|| "Heronite needs FUSE (fusermount3) to apply mods. Install the fuse3 package.".to_string()),
+        support_problem: has("fuse").then(|| "Heronited needs FUSE (fusermount3) to apply mods. Install the fuse3 package.".to_string()),
         misplaced: if has("misplaced") { enabled.iter().take(1).cloned().collect() } else { HashSet::new() },
     })
 }

@@ -11,7 +11,7 @@ use heronite_update::{Asset, Checksums, Package, Progress, Release, WindowsAsset
 use super::{Method, Phase, Updater};
 
 /// The made-up release's notes: the shape of the real ones (`release.yml`).
-const NOTES: &str = "**Download:** `Heronite-x86_64.AppImage` runs on any distribution (recommended). `SHA256SUMS` lists the SHA-256 of every file (signed in `SHA256SUMS.minisig`). The `.minisig` and `.zsync` files are for the updaters; you do not need them.
+const NOTES: &str = "**Download:** `Heronited-x86_64.AppImage` runs on any distribution (recommended). `SHA256SUMS` lists the SHA-256 of every file (signed in `SHA256SUMS.minisig`). The `.minisig` and `.zsync` files are for the updaters; you do not need them.
 
 ## ✨ Highlights
 
@@ -28,7 +28,7 @@ const NOTES: &str = "**Download:** `Heronite-x86_64.AppImage` runs on any distri
 
 - Proton's Xalia is no longer mistaken for the game ([5d6e7f8](https://x))
 
-**Enjoying Heronite?** [Star it on GitHub](https://x) and share your feedback and ideas in [Discussions](https://x).";
+**Enjoying Heronited?** [Star it on GitHub](https://x) and share your feedback and ideas in [Discussions](https://x).";
 
 /// Steps of the faked download (about 4 s).
 const STEPS: u64 = 40;
@@ -49,16 +49,16 @@ pub(super) fn public_key() -> String {
 /// Windows the setup's (`portable` for a portable copy).
 #[cfg(not(windows))]
 fn default_method() -> Method {
-    Method::AppImage(heronite_update::Target { appimage: "/tmp/Heronite-x86_64.AppImage".into() })
+    Method::AppImage(heronite_update::Target { appimage: "/tmp/Heronited-x86_64.AppImage".into() })
 }
 
 #[cfg(windows)]
 fn default_method() -> Method {
     if crate::env::value("HERONITE_DEBUG_UPDATE_PACKAGE").as_deref() == Some("portable") {
-        let root = std::path::PathBuf::from(r"C:\Heronite");
+        let root = std::path::PathBuf::from(r"C:\Heronited");
         Method::Portable(heronite_update::Portable { exe: root.join("heronite.exe"), root })
     } else {
-        Method::Installer(heronite_update::Installer { exe: r"C:\Users\you\AppData\Local\Programs\Heronite\heronite-rs.exe".into() })
+        Method::Installer(heronite_update::Installer { exe: r"C:\Users\you\AppData\Local\Programs\Heronited\heronite-rs.exe".into() })
     }
 }
 
@@ -80,19 +80,19 @@ impl Updater {
             None => default_method(),
         });
         let next = super::Version { patch: self.current.patch + 1, ..self.current.clone() };
-        let name = "Heronite-x86_64.AppImage".to_string();
+        let name = "Heronited-x86_64.AppImage".to_string();
         let release = Release {
             version: next.to_string(),
-            name: format!("Heronite v{next}"),
+            name: format!("Heronited v{next}"),
             notes: NOTES.into(),
             page_url: heronite_update::RELEASES_PAGE.into(),
             published_at: "2026-10-11T12:00:00Z".into(),
             appimage: Some(Asset { name: name.clone(), url: String::new(), size: 15_400_000 }),
             signature: Some(Asset { name: format!("{name}.minisig"), url: String::new(), size: 0 }),
             packages: [
-                format!("heronite_{next}-1_amd64.deb"),
-                format!("heronite-{next}-1.x86_64.rpm"),
-                format!("heronite-{next}-1-x86_64.pkg.tar.zst"),
+                format!("heronited_{next}-1_amd64.deb"),
+                format!("heronited-{next}-1.x86_64.rpm"),
+                format!("heronited-{next}-1-x86_64.pkg.tar.zst"),
             ]
             .into_iter()
             .flat_map(|n| [(format!("{n}.minisig"), 0), (n, 9_800_000)])
@@ -129,7 +129,7 @@ impl Updater {
             self.release = Some(release);
         }
         if let (Phase::InstallFailed(_), Some(kind)) = (&self.phase, package) {
-            let file = format!("/home/you/.cache/heronite/updates/heronite_{next}-1_amd64.deb");
+            let file = format!("/home/you/.cache/heronite/updates/heronited_{next}-1_amd64.deb");
             let _ = kind;
             self.phase = Phase::InstallFailed("Not authorized (is a polkit agent running?)".into());
             self.downloaded = Some(file.into());

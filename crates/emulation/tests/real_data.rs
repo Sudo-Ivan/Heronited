@@ -98,13 +98,13 @@ fn scan_preview_of_the_real_rom_folders() {
             assert_eq!(g.already_imported, all_known, "{}", g.title);
         }
 
-        // App names Heronite generated are reproduced exactly.
+        // App names Heronited generated are reproduced exactly.
         for g in &preview.games {
             let mut identity: Vec<String> = g.roms.iter().map(|r| normalize_key(&r.path)).collect();
             identity.sort();
             let name = emu_app_name(&s.emulator_id, &s.profile_id, &identity.join("|"));
             let found = metas.games.contains_key(&name);
-            println!("    app name {name} {}", if found { "matches Heronite" } else { "(not in fixture)" });
+            println!("    app name {name} {}", if found { "matches Heronited" } else { "(not in fixture)" });
             assert!(found, "{} should have app name {name} in the fixture", g.title);
         }
 

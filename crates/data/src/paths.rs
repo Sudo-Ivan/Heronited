@@ -2,7 +2,7 @@
 //!
 //! The data folder keeps the layout and the JSON formats of Heroic's config
 //! folder (this app grew out of a Heroic fork), but it is this app's own:
-//! nothing here is shared with Heroic or Heronite. `migrate` copies an
+//! nothing here is shared with Heroic or Heronited. `migrate` copies an
 //! existing Heroic folder in once.
 
 use std::path::{Path, PathBuf};
@@ -10,7 +10,7 @@ use std::path::{Path, PathBuf};
 /// Folder name of this app under the XDG base directories.
 pub const APP_DIR: &str = "heronite";
 /// Folder name of this app in the user's own folders (Pictures).
-pub const APP_TITLE: &str = "Heronite";
+pub const APP_TITLE: &str = "Heronited";
 
 /// File-name-safe, at most 48 characters.
 fn file_name_safe(s: &str) -> String {
@@ -454,7 +454,7 @@ impl AppPaths {
     pub fn sunshine_prefs(&self) -> PathBuf {
         self.config.join("sunshine.json")
     }
-    /// The covers Sunshine shows for Heronite's entries: Sunshine reads them
+    /// The covers Sunshine shows for Heronited's entries: Sunshine reads them
     /// from here, so they must outlive a cache clean-up (rendered again
     /// when missing).
     pub fn sunshine_covers_dir(&self) -> PathBuf {

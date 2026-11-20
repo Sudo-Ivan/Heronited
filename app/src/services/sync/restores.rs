@@ -1,6 +1,6 @@
 //! Bringing things back from the cloud account (Settings → Cloud, "Restore
 //! from the cloud"), for a new or formatted PC: what is there, listed when
-//! the user asks; a PC's Heronite backup (into the backup folder, then
+//! the user asks; a PC's Heronited backup (into the backup folder, then
 //! Settings → Backups asks to restore it); its game saves (into Ludusavi's
 //! backup folder only: a game's own save folder is never touched, restoring
 //! one is Ludusavi's); the screenshots (into the captures folder, the ones

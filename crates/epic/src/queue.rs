@@ -179,7 +179,7 @@ mod tests {
     use super::*;
     use serde_json::json;
 
-    /// Shape of an entry Heronite wrote.
+    /// Shape of an entry Heronited wrote.
     fn heronite_entry() -> Value {
         json!({
             "params": {

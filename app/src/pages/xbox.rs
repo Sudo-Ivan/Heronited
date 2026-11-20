@@ -2,7 +2,7 @@
 //! methods ([`super::methods`]):
 //!
 //! 1. Local, no login: the Microsoft Store and PC Game Pass games the Xbox
-//!    app installed on this PC (`services::xbox_library`). Heronite reads
+//!    app installed on this PC (`services::xbox_library`). Heronited reads
 //!    which of the user's packages are games and adds them to the
 //!    Collection; the Xbox app keeps installing, updating and signing in to
 //!    them.
@@ -304,7 +304,7 @@ impl XboxPage {
         }
         let notice = match (available, gamertag.is_some()) {
             (false, _) => Some((tr!("The Xbox account can be added on Windows.").to_string(), Tone::Neutral)),
-            (true, false) => Some((tr!("Opens Microsoft's sign-in page. Heronite never sees your password.").to_string(), Tone::Accent)),
+            (true, false) => Some((tr!("Opens Microsoft's sign-in page. Heronited never sees your password.").to_string(), Tone::Accent)),
             (true, true) => None,
         };
         let message = self.notice.clone().map(|n| (n, true)).or(last.map(|l| match l {
@@ -318,7 +318,7 @@ impl XboxPage {
             badge: (tr!("Sign in with Microsoft").into(), Tone::Accent),
             status: Some(status),
             facts: vec![
-                methods::brings(tr!("The play time Xbox counted, also outside Heronite and on console")),
+                methods::brings(tr!("The play time Xbox counted, also outside Heronited and on console")),
                 methods::brings(tr!("Achievements, art and when you last played")),
                 methods::brings(tr!("The PC games you played that are not installed here")),
                 methods::needs(tr!("One sign-in with your Microsoft account")),

@@ -102,17 +102,17 @@ mod tests {
     fn what_went_to_another_place_does_not_count() {
         let dir = tempfile::tempdir().unwrap();
         let app = AppPaths { config: dir.path().join("config"), cache: dir.path().join("cache") };
-        update(&app, "a:Heronite", |s| {
+        update(&app, "a:Heronited", |s| {
             s.backups.insert("heronite-1".into());
         })
         .unwrap();
-        assert!(load(&app, "a:Heronite").backups.contains("heronite-1"));
+        assert!(load(&app, "a:Heronited").backups.contains("heronite-1"));
         // Signed in again, or another account: nothing there yet.
-        assert!(load(&app, "b:Heronite").backups.is_empty());
-        update(&app, "b:Heronite", |s| {
+        assert!(load(&app, "b:Heronited").backups.is_empty());
+        update(&app, "b:Heronited", |s| {
             s.captures.insert("x.webp".into(), 1);
         })
         .unwrap();
-        assert!(load(&app, "a:Heronite").backups.is_empty(), "the old record is gone");
+        assert!(load(&app, "a:Heronited").backups.is_empty(), "the old record is gone");
     }
 }

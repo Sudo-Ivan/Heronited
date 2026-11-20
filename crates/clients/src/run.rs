@@ -1,5 +1,5 @@
 //! Opening and closing a client. It runs with its own settings (Wine,
-//! prefix, environment) and is not tied to Heronite: it stays open when the
+//! prefix, environment) and is not tied to Heronited: it stays open when the
 //! app quits, like a game. On Windows it runs as it is ([`crate::native`]).
 
 use std::io::Write;

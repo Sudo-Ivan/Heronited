@@ -26,7 +26,7 @@ look of the UI; `docs/ARCHITECTURE.md` the map of crates and modules.
 ## Comments
 Comments explain what the code cannot say by itself. Keep:
 - **Why:** reasons, constraints, trade-offs, and what breaks if this changes.
-- **Origin in Heroic/Heronite:** file formats, key names, and behaviour we
+- **Origin in Heroic/Heronited:** file formats, key names, and behaviour we
   copy on purpose. Name the Heroic function when it helps
   (`Heroic's getDefaultWinePrefix`). The data is this app's own: never write
   comments (or code) that assume Heroic shares or reads it.

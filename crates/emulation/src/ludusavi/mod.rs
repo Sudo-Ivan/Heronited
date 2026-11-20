@@ -6,7 +6,7 @@
 //!
 //! Processes only run through [`CommandRunner`]; tests inject a fake so no
 //! real `ludusavi backup` is ever executed. Results are written back to
-//! `settings.json` (`ludusavi.lastBackup*`/`lastError`) like Heronite.
+//! `settings.json` (`ludusavi.lastBackup*`/`lastError`) like Heronited.
 
 mod backup;
 mod commands;

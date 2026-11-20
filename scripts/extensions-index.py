@@ -29,7 +29,7 @@ TYPE = "metadata"
 API = 1
 ROOT = Path(__file__).resolve().parent.parent
 FOLDER = ROOT / "extensions" / "metadata"
-BASE = "https://raw.githubusercontent.com/RafaelGoulartB/Heronite/main/extensions/metadata/"
+BASE = "https://raw.githubusercontent.com/Sudo-Ivan/Heronited/main/extensions/metadata/"
 FILES = ("source.toml", "source.js")
 MAX_SIZE = {"source.toml": 64 * 1024, "source.js": 512 * 1024}
 ID = re.compile(r"^[a-z0-9]+(-[a-z0-9]+)*$")
@@ -89,7 +89,7 @@ def build(base):
     if not base.endswith("/"):
         base += "/"
     folders = sorted(p for p in FOLDER.iterdir() if p.is_dir() and (p / "source.toml").is_file())
-    return {"index": INDEX, "type": TYPE, "name": "Heronite", "extensions": [entry(f, base) for f in folders]}
+    return {"index": INDEX, "type": TYPE, "name": "Heronited", "extensions": [entry(f, base) for f in folders]}
 
 
 def text(index):

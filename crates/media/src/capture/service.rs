@@ -502,7 +502,7 @@ mod tests {
         let folder = tempfile::tempdir().unwrap();
         let (tx, events) = mpsc::channel();
         let service = CaptureService::new(tx, ServiceOptions::default());
-        // As a Heronite that crashed with another shortcut set would leave it.
+        // As a Heronited that crashed with another shortcut set would leave it.
         hyprland::register(&to_hyprland_binding("CommandOrControl+Alt+Shift+F8").unwrap(), "CommandOrControl+Alt+Shift+F8").unwrap();
         assert_eq!(our_binds(), ["CTRL + ALT + SHIFT + F8"]);
 

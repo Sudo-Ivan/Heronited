@@ -161,7 +161,7 @@ fn duplicate(d: &mut SettingsPage, t: ConsoleTheme, cx: &mut Context<SettingsPag
     let mut copy = t;
     copy.name = tr!("{name} (copy)", name = shown_name(&copy));
     copy.id.clear();
-    if presets::by_id(&copy.id).is_none() && copy.author == "Heronite" {
+    if presets::by_id(&copy.id).is_none() && copy.author == "Heronited" {
         copy.author.clear();
     }
     cx.spawn(async move |this, cx| {

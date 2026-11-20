@@ -504,7 +504,7 @@ impl SettingsPanel {
         let (text, error) = self.steam_status();
         let loading = self.steam.as_ref().is_some_and(|s| s.snapshot.is_none());
         let mut col = column().child(if error { danger_text(&text).px(px(6.)) } else { hint(&text) });
-        // Steam runs without the access Heronite needs: a restart opens it.
+        // Steam runs without the access Heronited needs: a restart opens it.
         let read_only = self.steam.as_ref().and_then(SteamState::ready).is_some_and(|s| s.access == Access::ReadOnly);
         if read_only {
             col = col.child(self.restart_buttons(cx));

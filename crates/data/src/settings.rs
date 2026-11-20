@@ -2,7 +2,7 @@
 //! (`getCollectionSettings` and the setters), plus the few Heroic settings the
 //! Collection screen reads (`theme`, `language`, `allTilesInColor`).
 //!
-//! Reading applies the same defaults/normalisation as Heronite. Writing is a
+//! Reading applies the same defaults/normalisation as Heronited. Writing is a
 //! read-modify-write of `local_library/settings.json` that touches only the
 //! key being saved, like electron-store's `set(key, value)`.
 
@@ -192,7 +192,7 @@ pub struct EffectiveSettings {
     /// by default).
     pub video_autoplay: bool,
     pub store_media_kinds: StoreMediaKinds,
-    /// Heronite reads the Steam library and adds its games and the installed
+    /// Heronited reads the Steam library and adds its games and the installed
     /// Steam games to the Collection (on by default).
     pub read_steam_library: bool,
     /// Heroic `store/config.json` `theme` (default `midnightMirage`).
@@ -642,7 +642,7 @@ pub fn save_video_autoplay(paths: &DataPaths, on: bool) -> Result<EffectiveSetti
     load(paths)
 }
 
-/// Whether Heronite reads the Steam library and adds Steam's games to the
+/// Whether Heronited reads the Steam library and adds Steam's games to the
 /// Collection ([`EffectiveSettings::read_steam_library`]). Reads only
 /// `settings.json`, so the jobs that add games can ask it cheaply.
 pub fn read_steam_library(paths: &DataPaths) -> bool {

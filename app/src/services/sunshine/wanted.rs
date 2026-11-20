@@ -1,6 +1,6 @@
-//! The entries Heronite wants in Sunshine: the picked games (installed, or
+//! The entries Heronited wants in Sunshine: the picked games (installed, or
 //! the installed favourites) and, when asked, one that opens console mode.
-//! Each starts through Heronite's protocol URL, like "Add to Steam"; covers
+//! Each starts through Heronited's protocol URL, like "Add to Steam"; covers
 //! are rendered from the art cache as 600x800 PNG (Sunshine only shows PNG,
 //! and Moonlight draws box art at 3:4).
 //!
@@ -72,10 +72,10 @@ fn url(action: &str, game: &CollectionGame) -> String {
 }
 
 /// The command that starts `game`: hidden window, as Steam shortcuts do.
-/// `--handoff`: with Heronite not running, the instance starts detached
-/// and this command exits at once, as it does when Heronite runs. Sunshine
+/// `--handoff`: with Heronited not running, the instance starts detached
+/// and this command exits at once, as it does when Heronited runs. Sunshine
 /// then treats the launch as detached (`auto-detach`) and quitting the
-/// stream ends nothing but what `undo` asks; otherwise Heronite and the game
+/// stream ends nothing but what `undo` asks; otherwise Heronited and the game
 /// would be in Sunshine's process group, ended with it whatever "Quitting
 /// in Moonlight closes the game" says.
 pub fn launch_cmd(exe: &Path, game: &CollectionGame) -> String {
@@ -98,7 +98,7 @@ fn fnv64(bytes: impl IntoIterator<Item = u8>) -> u64 {
 
 /// A file name for a cover: the game and the art it is made from, so new
 /// art gets a new file (and Sunshine sees the change). Stable across builds:
-/// an update of Heronite does not rename (and so re-render and re-send)
+/// an update of Heronited does not rename (and so re-render and re-send)
 /// every cover.
 fn cover_name(key: &str, chain: &[heronite_data::ImageRef]) -> String {
     use heronite_data::ImageRef;
@@ -128,7 +128,7 @@ fn cover(dir: &Path, key: &str, chain: &[heronite_data::ImageRef], opts: &heroni
     render(chain, COVER_W, COVER_H, &path, true, opts)
 }
 
-/// Heronite's icon in the middle of a dark 600x800 card.
+/// Heronited's icon in the middle of a dark 600x800 card.
 fn console_cover(dir: &Path) -> Option<PathBuf> {
     let path = dir.join("console.png");
     if path.is_file() {
@@ -153,7 +153,7 @@ fn console_cover(dir: &Path) -> Option<PathBuf> {
     }
 }
 
-/// Everything Heronite wants in Sunshine now.
+/// Everything Heronited wants in Sunshine now.
 pub fn entries(data_paths: &DataPaths, lib: &Library, prefs: &Prefs) -> Vec<Entry> {
     let exe = own_exe();
     let dir = AppPaths::for_data(data_paths).sunshine_covers_dir();
@@ -177,7 +177,7 @@ pub fn entries(data_paths: &DataPaths, lib: &Library, prefs: &Prefs) -> Vec<Entr
     if prefs.console_entry {
         out.push(Entry {
             id: CONSOLE_ID.into(),
-            name: tr!("Heronite console mode").into(),
+            name: tr!("Heronited console mode").into(),
             cmd: format!("{} --console --fullscreen", quoted(&exe.to_string_lossy())),
             image_path: image(console_cover(&dir)),
             undo: None,
@@ -238,7 +238,7 @@ mod tests {
         assert_ne!(cover_name("gog_1", &a), cover_name("gog_1", &b));
         assert_ne!(cover_name("gog_1", &a), cover_name("gog_2", &a));
         assert!(cover_name("gog_1", &a).ends_with(".png"));
-        // Fixed: the same name in every build of Heronite.
+        // Fixed: the same name in every build of Heronited.
         assert_eq!(cover_name("gog_1", &a), format!("{:016x}.png", fnv64("gog_1\0url:https://x/1.jpg".bytes())));
         assert_eq!(fnv64("a".bytes()), 0xaf63_dc4c_8601_ec8c);
     }

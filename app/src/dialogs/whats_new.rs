@@ -1,4 +1,4 @@
-//! "What's new in Heronite X": opens once, on the first start of a version
+//! "What's new in Heronited X": opens once, on the first start of a version
 //! this app installed (`services::update`), with the release's notes and an
 //! invitation to star the project and give feedback in its Discussions.
 
@@ -89,7 +89,7 @@ impl Render for WhatsNewDialog {
                             .text_size(px(14.))
                             .font_weight(theme::W_BOLD)
                             .text_color(theme::text_primary())
-                            .child(tr!("Enjoying Heronite?")),
+                            .child(tr!("Enjoying Heronited?")),
                     )
                     .child(
                         div()
@@ -130,7 +130,7 @@ impl Render for WhatsNewDialog {
         dialog_scrolled(
             DialogProps {
                 id: "whats-new".into(),
-                title: tr!("What's new in Heronite {version}", version = self.release.version).into(),
+                title: tr!("What's new in Heronited {version}", version = self.release.version).into(),
                 width: 600f32.min(f32::from(crate::ui::content_size(window).width) * 0.92),
                 height: Some(height),
             },

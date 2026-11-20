@@ -38,7 +38,7 @@
   "Could not download the {store} installer: {error}": "No se pudo descargar el instalador de {store}: {error}",
   "Could not fetch {kind} releases: {error}": "No se pudieron obtener las versiones de {kind}: {error}",
   "Could not fetch the checksum: {error}": "No se pudo obtener el checksum: {error}",
-  "Could not get legendary, which Heronite uses for Epic Games: {error}": "No se pudo obtener legendary, que Heronite usa para Epic Games: {error}",
+  "Could not get legendary, which Heronited uses for Epic Games: {error}": "No se pudo obtener legendary, que Heronited usa para Epic Games: {error}",
   "Could not make the update executable: {error}": "No se pudo hacer ejecutable la actualización: {error}",
   "Could not move the build into {path}: {error}": "No se pudo mover la versión a {path}: {error}",
   "Could not open the browser: {err}": "No se pudo abrir el navegador: {err}",
@@ -388,5 +388,5 @@
   "The newest release.": "La versión más reciente.",
   "{title} needs your Epic Games account, and you are signed out of it. Log in on the Epic Games page, or turn on \"Play offline\" in the game's settings.": "{title} necesita tu cuenta de Epic Games y no has iniciado sesión en ella. Inicia sesión en la página de Epic Games o activa \"Jugar sin conexión\" en los ajustes del juego.",
   "Signed out of Epic Games": "Sesión de Epic Games cerrada",
-  "{title} needs your Epic Games account to start, and Heronite is no longer signed in to it: Epic ended the saved session, or you logged out.\nLog in again to play. Play offline starts the game without the account, but some games need it and will not open.": "{title} necesita tu cuenta de Epic Games para iniciarse y Heronite ya no tiene la sesión iniciada: Epic cerró la sesión guardada o cerraste sesión tú.\nInicia sesión de nuevo para jugar. Jugar sin conexión inicia el juego sin la cuenta, pero algunos juegos la necesitan y no se abrirán."
+  "{title} needs your Epic Games account to start, and Heronited is no longer signed in to it: Epic ended the saved session, or you logged out.\nLog in again to play. Play offline starts the game without the account, but some games need it and will not open.": "{title} necesita tu cuenta de Epic Games para iniciarse y Heronited ya no tiene la sesión iniciada: Epic cerró la sesión guardada o cerraste sesión tú.\nInicia sesión de nuevo para jugar. Jugar sin conexión inicia el juego sin la cuenta, pero algunos juegos la necesitan y no se abrirán."
 }

@@ -3,7 +3,7 @@ name = "heronite-launch"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
-description = "Game launching, playtime tracking and session recording compatible with Heronite's data files"
+description = "Game launching, playtime tracking and session recording compatible with Heronited's data files"
 
 [dependencies]
 heronite-data = { path = "../data" }

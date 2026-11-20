@@ -438,7 +438,7 @@ mod tests {
         assert_eq!(tool.calls().len(), 1);
     }
 
-    /// Compares the rebuilt library with the file Heronite wrote. Read-only:
+    /// Compares the rebuilt library with the file Heronited wrote. Read-only:
     /// `HERONITE_EPIC_REAL=~/.local/share/heronite cargo test -p heronite-epic real_library -- --nocapture`
     #[test]
     fn real_library_matches_heronites_cache() {

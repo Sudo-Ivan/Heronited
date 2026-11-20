@@ -10,7 +10,7 @@
 //! hidden: they are only counted.
 //!
 //! A game with Steam Achievement Sets also lists its sets, each with its
-//! unlocked/total count and bar (Heronite's count, not Steam's "set
+//! unlocked/total count and bar (Heronited's count, not Steam's "set
 //! complete", which leaves out DLC the player doesn't own).
 
 use std::sync::Arc;

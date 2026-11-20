@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Builds the system packages of a release into dist/ with nfpm
-# (packaging/nfpm.yaml): heronite_<v>-1_amd64.deb, heronite-<v>-1.x86_64.rpm
-# and heronite-<v>-1-x86_64.pkg.tar.zst. They hold the same binaries as the
+# (packaging/nfpm.yaml): heronited_<v>-1_amd64.deb, heronited-<v>-1.x86_64.rpm
+# and heronited-<v>-1-x86_64.pkg.tar.zst. They hold the same binaries as the
 # AppImage; users install the downloaded file (apt install ./file.deb,
 # dnf install ./file.rpm, pacman -U file), and the app updates them later
 # through the same package manager.
@@ -30,8 +30,8 @@ done
 sed -e "s|\${VERSION}|$VERSION|g" -e "s|\${BIN}|$BIN|g" -e "s|\${MARKERS}|$MARKERS|g" packaging/nfpm.yaml > "$WORK/nfpm.yaml"
 
 mkdir -p dist
-rm -f dist/heronite_*.deb dist/heronite-*.rpm dist/heronite-*.pkg.tar.zst
+rm -f dist/heronited_*.deb dist/heronited-*.rpm dist/heronited-*.pkg.tar.zst
 for packager in deb rpm archlinux; do
   "$NFPM" package --config "$WORK/nfpm.yaml" --packager "$packager" --target dist/
 done
-ls dist/heronite_*.deb dist/heronite-*.rpm dist/heronite-*.pkg.tar.zst
+ls dist/heronited_*.deb dist/heronited-*.rpm dist/heronited-*.pkg.tar.zst

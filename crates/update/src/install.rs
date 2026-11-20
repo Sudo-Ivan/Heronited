@@ -50,10 +50,10 @@ impl std::fmt::Display for Unsupported {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Unsupported::NotAppImage if cfg!(windows) => {
-                write!(f, "Heronite was neither installed by its setup nor unpacked as a portable copy")
+                write!(f, "Heronited was neither installed by its setup nor unpacked as a portable copy")
             }
-            Unsupported::NotAppImage => write!(f, "Heronite was not started from an AppImage"),
-            Unsupported::Flatpak => write!(f, "Heronite runs as a Flatpak, which Flatpak updates"),
+            Unsupported::NotAppImage => write!(f, "Heronited was not started from an AppImage"),
+            Unsupported::Flatpak => write!(f, "Heronited runs as a Flatpak, which Flatpak updates"),
             Unsupported::Missing(p) => write!(f, "the AppImage {} was not found", p.display()),
             Unsupported::ReadOnly(dir) => write!(f, "{} is not writable", dir.display()),
         }
@@ -456,7 +456,7 @@ pub(crate) mod tests {
     fn release(base: &str, version: &str, size: u64) -> Release {
         Release {
             version: version.into(),
-            name: format!("Heronite v{version}"),
+            name: format!("Heronited v{version}"),
             notes: String::new(),
             page_url: String::new(),
             published_at: String::new(),
@@ -480,7 +480,7 @@ pub(crate) mod tests {
 
     /// An "installed" AppImage in a temp folder.
     fn installed(dir: &Path) -> Target {
-        let path = dir.join("Heronite-0.1.3-x86_64.AppImage");
+        let path = dir.join("Heronited-0.1.3-x86_64.AppImage");
         fs::write(&path, b"old").unwrap();
         heronite_platform::fs::set_mode(&path, 0o750).unwrap();
         Target::detect(Some(path.into_os_string())).unwrap()
@@ -624,12 +624,12 @@ pub(crate) mod tests {
     #[test]
     fn reads_sha256sum_lines() {
         let hash = "ee90ba26bf17c62d3806805a01554132522335e733b4d8f68e6e41bba4facd11";
-        let text = format!("{hash}  Heronite-x86_64.AppImage\n{hash} *heronite_1.1.0-1_amd64.deb\nnot a line\n");
+        let text = format!("{hash}  Heronited-x86_64.AppImage\n{hash} *heronited_1.1.0-1_amd64.deb\nnot a line\n");
         let bytes = parse_sha256(hash).unwrap();
         assert_eq!((bytes[0], bytes[31]), (0xee, 0x11));
-        assert_eq!(checksum_of(&text, "Heronite-x86_64.AppImage"), Some(bytes));
-        assert_eq!(checksum_of(&text, "heronite_1.1.0-1_amd64.deb"), Some(bytes), "binary mode");
-        assert_eq!(checksum_of(&text, "Heronite-x86_64.flatpak"), None);
+        assert_eq!(checksum_of(&text, "Heronited-x86_64.AppImage"), Some(bytes));
+        assert_eq!(checksum_of(&text, "heronited_1.1.0-1_amd64.deb"), Some(bytes), "binary mode");
+        assert_eq!(checksum_of(&text, "Heronited-x86_64.flatpak"), None);
         assert_eq!(parse_sha256("ee90"), None);
         assert_eq!(parse_sha256(&"zz".repeat(32)), None);
     }
@@ -677,13 +677,13 @@ pub(crate) mod tests {
         assert_eq!(Target::detect(Some(OsString::new())), Err(Unsupported::NotAppImage));
         assert!(matches!(Target::detect(Some("/nonexistent/x.AppImage".into())), Err(Unsupported::Missing(_))));
         let tmp = tempfile::tempdir().unwrap();
-        let real = tmp.path().join("Heronite.AppImage");
+        let real = tmp.path().join("Heronited.AppImage");
         fs::write(&real, b"x").unwrap();
         let link = tmp.path().join("link.AppImage");
         std::os::unix::fs::symlink(&real, &link).unwrap();
         let t = Target::detect(Some(link.into_os_string())).unwrap();
         assert_eq!(t.appimage, fs::canonicalize(&real).unwrap());
-        assert_eq!(t.staging().file_name().unwrap(), ".Heronite.AppImage.update");
+        assert_eq!(t.staging().file_name().unwrap(), ".Heronited.AppImage.update");
         fs::write(t.staging(), b"partial").unwrap();
         t.sweep_staging();
         assert!(!t.staging().exists());

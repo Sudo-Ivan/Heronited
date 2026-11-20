@@ -267,7 +267,7 @@ mod tests {
     fn set_replace_and_reset_round_trip() {
         let dir = tempfile::tempdir().unwrap();
         let paths = DataPaths::at(dir.path().join("cfg"));
-        // Heronite already wrote an entry with a field we do not model.
+        // Heronited already wrote an entry with a field we do not model.
         fs::create_dir_all(paths.local_library()).unwrap();
         fs::write(paths.art(), "{\n\t\"games\": {\n\t\t\"sideload:other\": {\n\t\t\t\"heroUrl\": \"x\"\n\t\t}\n\t},\n\t\"future\": 1\n}")
             .unwrap();
@@ -281,7 +281,7 @@ mod tests {
         assert!(file.exists());
         assert_eq!(fs::read(&file).unwrap(), png());
 
-        // art.json round-trips with Heronite's shape and keeps foreign data.
+        // art.json round-trips with Heronited's shape and keeps foreign data.
         let raw = json_store::read_value(&paths.art()).unwrap();
         assert_eq!(raw["games"]["sideload:steam_9"]["coverUrl"], url);
         assert_eq!(raw["future"], 1);

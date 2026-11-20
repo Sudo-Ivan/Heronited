@@ -1,7 +1,7 @@
 //! The game's scripts and programs alongside, for a Steam game on Windows.
 //!
 //! Steam starts the game itself (`steam://rungameid/<id>`), exactly as from
-//! its own library: nothing goes between Steam and the game. Heronite runs
+//! its own library: nothing goes between Steam and the game. Heronited runs
 //! the script before the game before it opens the URI, the programs
 //! alongside once Steam's logs show the game running (closed when it ends),
 //! and the script after the game once it is gone. A game started from Steam
@@ -21,7 +21,7 @@ use crate::scripts::{script_command, ScriptKind};
 use crate::settings::GameSettings;
 use crate::steam;
 
-/// Whether Heronite runs them around Steam games here.
+/// Whether Heronited runs them around Steam games here.
 pub fn supported() -> bool {
     cfg!(windows) && heronite_platform::supported(Feature::LaunchExtras)
 }
@@ -37,7 +37,7 @@ pub fn plan(probe: &dyn Probe, game: &GameInfo, settings: &GameSettings, app_id:
     plan
 }
 
-/// Adds the game's scripts and programs to a Steam plan, where Heronite runs them.
+/// Adds the game's scripts and programs to a Steam plan, where Heronited runs them.
 pub fn attach(plan: &mut LaunchPlan, probe: &dyn Probe, game: &GameInfo, settings: &GameSettings) {
     let LaunchPlan::SteamUri { extras, .. } = plan else { return };
     if !supported() {

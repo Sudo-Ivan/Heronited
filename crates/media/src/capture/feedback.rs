@@ -25,7 +25,7 @@ pub fn notify(title: &str, body: &str) {
     let shown = if heronite_platform::flatpak::active() {
         heronite_platform::flatpak::notify(title, body)
     } else {
-        notify_rust::Notification::new().appname("Heronite").summary(title).body(body).show().map(|_| ()).map_err(|e| e.to_string())
+        notify_rust::Notification::new().appname("Heronited").summary(title).body(body).show().map(|_| ()).map_err(|e| e.to_string())
     };
     if let Err(e) = shown {
         log::error!("Collection screenshot notification failed: {e}");

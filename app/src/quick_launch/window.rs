@@ -39,7 +39,7 @@ pub(super) fn open<V: Render>(
         window_bounds: Some(WindowBounds::Windowed(Bounds::centered(display, size, cx))),
         display_id: display,
         window_decorations: Some(WindowDecorations::Client),
-        app_id: Some("app.heronite.Heronite".into()),
+        app_id: Some("io.github.sudoivan.Heronited".into()),
         window_background: WindowBackgroundAppearance::Transparent,
         // Windows: a pop-up stays out of the taskbar and over the others.
         kind: if cfg!(windows) { WindowKind::PopUp } else { WindowKind::Normal },
@@ -50,7 +50,7 @@ pub(super) fn open<V: Render>(
     };
     let handle = activated(activation_token, || {
         cx.open_window(options, |window, cx| {
-            window.set_window_title("Heronite");
+            window.set_window_title("Heronited");
             build(window, cx)
         })
     })?;
@@ -86,7 +86,7 @@ fn activated<T>(_token: Option<String>, open: impl FnOnce() -> T) -> T {
 /// Windows: no frame around the panel (see `overlay_window::drop_frame`),
 /// and the foreground with the keyboard, which Windows refuses a window
 /// opened on a request from outside (`heronite://quick-launch` through the
-/// socket: no input came to Heronite; `cx.activate` does nothing there).
+/// socket: no input came to Heronited; `cx.activate` does nothing there).
 /// Run once the borrows unwind, as both send GPUI synchronous messages.
 #[cfg(windows)]
 fn finish(cx: &mut App, handle: AnyWindowHandle) {
@@ -140,7 +140,7 @@ fn layer_options(size: Size<Pixels>) -> WindowOptions {
     WindowOptions {
         titlebar: None,
         window_bounds: Some(WindowBounds::Windowed(Bounds { origin: point(px(0.), px(0.)), size })),
-        app_id: Some("app.heronite.Heronite".into()),
+        app_id: Some("io.github.sudoivan.Heronited".into()),
         window_background: WindowBackgroundAppearance::Transparent,
         // No anchor: centred on the screen the compositor picks (the focused one).
         kind: WindowKind::LayerShell(LayerShellOptions {

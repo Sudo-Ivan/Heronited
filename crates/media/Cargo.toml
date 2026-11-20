@@ -3,7 +3,7 @@ name = "heronite-media"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
-description = "Collection screenshots backend for Heronite: folder matching, listing, thumbnails, trash and capture"
+description = "Collection screenshots backend for Heronited: folder matching, listing, thumbnails, trash and capture"
 
 [dependencies]
 heronite-data = { path = "../data" }

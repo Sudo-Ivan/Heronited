@@ -33,7 +33,7 @@ pub struct CollectionSettingsFile {
     /// What "Store media" shows: `"both"`, `"videos"` or `"screenshots"`.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub store_media_kinds: Option<String>,
-    /// Whether Heronite reads the Steam library and adds its games (`None`
+    /// Whether Heronited reads the Steam library and adds its games (`None`
     /// = on).
     #[serde(skip_serializing_if = "Option::is_none")]
     pub read_steam_library: Option<bool>,

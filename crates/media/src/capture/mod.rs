@@ -67,7 +67,7 @@ pub use unsupported::{CaptureService, GlobalHotkey};
 pub use win::{CaptureService, GlobalHotkey};
 
 /// Description used for the Hyprland bind and the portal shortcut.
-pub const BIND_DESCRIPTION: &str = "Heronite game screenshot";
+pub const BIND_DESCRIPTION: &str = "Heronited game screenshot";
 
 /// A monitor from `hyprctl -j monitors`, in logical pixels.
 #[derive(Debug, Clone, PartialEq)]
@@ -291,7 +291,7 @@ pub struct CaptureStatus {
 #[derive(Debug, Clone, Default)]
 pub struct ServiceOptions {
     /// Reverse-DNS desktop id the portal is told for an app outside a
-    /// sandbox (Heronite uses `app.heronite.Heronite`). The portal only
+    /// sandbox (Heronited uses `io.github.sudoivan.Heronited`). The portal only
     /// takes it when a `.desktop` file of that name is installed, and
     /// refuses global shortcuts to an app it cannot name.
     pub portal_app_id: Option<String>,

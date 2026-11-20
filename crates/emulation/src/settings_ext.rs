@@ -1,7 +1,7 @@
 //! Settings writers that `heronite-data` does not have yet: the Ludusavi
 //! section of `local_library/settings.json` and its "last backup" status
 //! fields (ports of `setLudusaviSettings`, `recordLudusaviBackup`). Same
-//! read-modify-write as Heronite's `settingsFile.set('ludusavi', ...)`.
+//! read-modify-write as Heronited's `settingsFile.set('ludusavi', ...)`.
 
 use anyhow::Result;
 use heronite_data::models::{CollectionSettingsFile, LudusaviSettings};

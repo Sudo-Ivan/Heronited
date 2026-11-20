@@ -1,9 +1,9 @@
 <#
 .SYNOPSIS
   Checks the Windows packages that package.ps1 wrote to dist\:
-  - the portable zip holds exactly Heronite/heronite.exe,
-    Heronite/helpers/heronite-epic-login.exe, Heronite/portable.txt and
-    Heronite/LICENSE;
+  - the portable zip holds exactly Heronited/heronite.exe,
+    Heronited/helpers/heronite-epic-login.exe, Heronited/portable.txt and
+    Heronited/LICENSE;
   - the login window of the unpacked zip starts (--smoke: a local page)
     and keeps WebView2's files in that copy's cache folder;
   - the setup installs silently into a temporary folder (files, the
@@ -15,7 +15,7 @@
     registry entries the app writes for itself.
   Nothing is started from the installed copy (no /RELAUNCH). Registry entries
   the app wrote before the test (the Run value, heronite:// links) are saved
-  and put back. Refuses to run when Heronite is already installed with this
+  and put back. Refuses to run when Heronited is already installed with this
   setup, so a real installation is never touched.
 
 .EXAMPLE
@@ -36,13 +36,13 @@ $Language = $Language.ToLowerInvariant()
 
 $Root = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
 if (-not $Dist) { $Dist = Join-Path $Root 'dist' }
-$Zip = Join-Path $Dist 'Heronite-Portable-x86_64.zip'
-$Setup = Join-Path $Dist 'Heronite-Setup-x86_64.exe'
+$Zip = Join-Path $Dist 'Heronited-Portable-x86_64.zip'
+$Setup = Join-Path $Dist 'Heronited-Setup-x86_64.exe'
 # The AppId of packaging\windows\heronite.iss.
 $UninstallKey = 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Uninstall\{104041C7-B50B-4E70-8560-A6CFF660777E}_is1'
 $RunKey = 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Run'
 $ClassesKey = 'HKCU:\Software\Classes\heronite'
-$Shortcut = Join-Path ([Environment]::GetFolderPath('Programs')) 'Heronite.lnk'
+$Shortcut = Join-Path ([Environment]::GetFolderPath('Programs')) 'Heronited.lnk'
 
 $failures = 0
 function Check([bool]$Ok, [string]$What) {
@@ -80,7 +80,7 @@ foreach ($f in @($Zip, $Setup)) {
     if (-not (Test-Path -LiteralPath $f)) { Write-Error "smoke.ps1: $f not found (run package.ps1 first)" -ErrorAction Continue; exit 1 }
 }
 if (Test-Path $UninstallKey) {
-    Write-Error 'smoke.ps1: Heronite is installed with this setup on this computer; uninstall it first (the test would replace it)' -ErrorAction Continue
+    Write-Error 'smoke.ps1: Heronited is installed with this setup on this computer; uninstall it first (the test would replace it)' -ErrorAction Continue
     exit 1
 }
 
@@ -97,7 +97,7 @@ try {
 } finally {
     $archive.Dispose()
 }
-$expected = @('Heronite/heronite.exe', 'Heronite/helpers/heronite-epic-login.exe', 'Heronite/portable.txt', 'Heronite/LICENSE' | Sort-Object)
+$expected = @('Heronited/heronite.exe', 'Heronited/helpers/heronite-epic-login.exe', 'Heronited/portable.txt', 'Heronited/LICENSE' | Sort-Object)
 Check (($names -join '|') -eq ($expected -join '|')) "zip holds exactly $($expected -join ', ') (has: $($names -join ', '))"
 
 $work = Join-Path ([IO.Path]::GetTempPath()) ('heronite-smoke-' + [guid]::NewGuid().ToString('N').Substring(0, 8))
@@ -109,7 +109,7 @@ New-Item -ItemType Directory -Force $work | Out-Null
 # program. Without the WebView2 runtime it must say so with its status 5.
 $portable = Join-Path $work 'portable'
 [System.IO.Compression.ZipFile]::ExtractToDirectory($Zip, $portable)
-$copy = Join-Path $portable 'Heronite'
+$copy = Join-Path $portable 'Heronited'
 $login = Start-Process -FilePath (Join-Path $copy 'helpers\heronite-epic-login.exe') -ArgumentList '--smoke' -PassThru `
     -RedirectStandardOutput "$work\login.out" -RedirectStandardError "$work\login.err"
 $null = $login.Handle
@@ -125,8 +125,8 @@ if ($login.ExitCode -eq 5) {
 }
 
 # Saves what the app registered before the test, to put it back afterwards.
-$dir = Join-Path $work 'Heronite Test'
-$runBefore = (Get-ItemProperty -Path $RunKey -Name Heronite -ErrorAction SilentlyContinue)
+$dir = Join-Path $work 'Heronited Test'
+$runBefore = (Get-ItemProperty -Path $RunKey -Name Heronited -ErrorAction SilentlyContinue)
 $classesBackup = Join-Path $work 'classes.reg'
 $hadClasses = Test-Path $ClassesKey
 if ($hadClasses) {
@@ -155,7 +155,7 @@ try {
     Check (Test-Path $UninstallKey) 'uninstall entry registered'
     if (Test-Path $UninstallKey) {
         $entry = Get-ItemProperty $UninstallKey
-        Check ($entry.DisplayName -eq 'Heronite') "uninstall entry named Heronite ($($entry.DisplayName))"
+        Check ($entry.DisplayName -eq 'Heronited') "uninstall entry named Heronited ($($entry.DisplayName))"
         Write-Host "      version $($entry.DisplayVersion), $($entry.InstallLocation)"
     }
     Check ($null -eq (Get-Process heronite-rs -ErrorAction SilentlyContinue | Where-Object { $_.Path -like "$dir\*" })) 'a silent install without /RELAUNCH starts nothing'
@@ -176,7 +176,7 @@ try {
 
     # The values the app writes for itself, so uninstalling can be seen to
     # remove them.
-    New-ItemProperty -Path $RunKey -Name Heronite -Value "`"$dir\heronite-rs.exe`" --autostart" -PropertyType String -Force | Out-Null
+    New-ItemProperty -Path $RunKey -Name Heronited -Value "`"$dir\heronite-rs.exe`" --autostart" -PropertyType String -Force | Out-Null
     New-Item -Path "$ClassesKey\shell\open\command" -Force | Out-Null
 
     # Uninstall. The uninstaller hands over to a copy of itself in %TEMP%,
@@ -187,14 +187,14 @@ try {
     Check (Wait-Until { -not (Test-Path $UninstallKey) } 60) 'uninstall entry removed'
     Check (Wait-Until { -not (Test-Path $dir) } 30) 'program folder removed'
     Check (-not (Test-Path $Shortcut)) 'Start menu shortcut removed'
-    Check ($null -eq (Get-ItemProperty -Path $RunKey -Name Heronite -ErrorAction SilentlyContinue)) 'Run value Heronite removed'
+    Check ($null -eq (Get-ItemProperty -Path $RunKey -Name Heronited -ErrorAction SilentlyContinue)) 'Run value Heronited removed'
     Check (-not (Test-Path $ClassesKey)) 'HKCU\Software\Classes\heronite removed'
 } finally {
     # Put back what the app had registered before the test.
     if ($runBefore) {
-        New-ItemProperty -Path $RunKey -Name Heronite -Value $runBefore.Heronite -PropertyType String -Force | Out-Null
+        New-ItemProperty -Path $RunKey -Name Heronited -Value $runBefore.Heronited -PropertyType String -Force | Out-Null
     } else {
-        Remove-ItemProperty -Path $RunKey -Name Heronite -ErrorAction SilentlyContinue
+        Remove-ItemProperty -Path $RunKey -Name Heronited -ErrorAction SilentlyContinue
     }
     if ($hadClasses) {
         # (reg.exe reports success on stderr; it is not redirected, so

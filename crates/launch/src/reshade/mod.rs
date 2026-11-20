@@ -3,7 +3,7 @@
 //! `d3d9.dll`, `opengl32.dll`, `ddraw.dll`). It loads the real DLL and runs
 //! shaders on the image before it reaches the screen.
 //!
-//! Heronite does what ReShade's installer does: picks the executable and
+//! Heronited does what ReShade's installer does: picks the executable and
 //! its API, copies the DLL under the right name, adds shader packages and
 //! a preset, writes `ReShade.ini` ([`install`], [`manage`]). Everything is
 //! downloaded from the official sources when the user installs
@@ -107,7 +107,7 @@ impl GraphicsMod for ReShadeMod {
     }
 
     /// When the game's ReShade is on and its DLL is in place: the DLL, and
-    /// `d3dcompiler_47` when Heronite put it there.
+    /// `d3dcompiler_47` when Heronited put it there.
     fn launch(&self, paths: &DataPaths, game_id: &str, s: &GameSettings) -> Option<Launch> {
         launch(paths, game_id, &s.reshade)
     }

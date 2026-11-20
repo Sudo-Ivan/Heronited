@@ -6,7 +6,7 @@
 //! - `IStoreService/GetTagList` gives the id -> name list of a language.
 //!
 //! Apps are asked again after 30 days, tag names after 7. Requests go one
-//! at a time, a second apart, and say they come from Heronite.
+//! at a time, a second apart, and say they come from Heronited.
 
 use std::collections::HashSet;
 use std::time::Duration;
@@ -29,7 +29,7 @@ const APP_TTL_MS: i64 = 30 * DAY_MS;
 const NAMES_TTL_MS: i64 = 7 * DAY_MS;
 
 /// Sent with every request here: who is asking.
-pub const USER_AGENT: &str = concat!("Heronite/", env!("CARGO_PKG_VERSION"), " (+https://github.com/RafaelGoulartB/Heronite)");
+pub const USER_AGENT: &str = concat!("Heronited/", env!("CARGO_PKG_VERSION"), " (+https://github.com/Sudo-Ivan/Heronited)");
 
 /// The tags of each app `GetItems` returned (`success == 1`), heaviest
 /// first. Apps Steam does not list are absent.

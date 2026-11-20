@@ -80,7 +80,7 @@ impl OverlayPanel {
             Some(None) => {}
         }
         let Some(game) = &self.game else {
-            rows.push(Row::action("launcher", tr!("Open Heronite")).icon(Icon::Home));
+            rows.push(Row::action("launcher", tr!("Open Heronited")).icon(Icon::Home));
             return rows;
         };
         match self.chosen_capture() {
@@ -121,11 +121,11 @@ impl OverlayPanel {
             rows.push(Row::choice("status", tr!("Status"), options, index).icon(Icon::Flag));
         }
         rows.extend(self.achievements_home_row());
-        // Only while another window has the focus (after "Back to Heronite", say).
+        // Only while another window has the focus (after "Back to Heronited", say).
         if self.data.game_away {
             rows.push(Row::action("game", tr!("Back to game")).icon(Icon::SportsEsports).desc(tr!("Brings its window to the front")));
         }
-        rows.push(Row::action("launcher", tr!("Back to Heronite")).icon(Icon::Home).desc(tr!("The game keeps running")));
+        rows.push(Row::action("launcher", tr!("Back to Heronited")).icon(Icon::Home).desc(tr!("The game keeps running")));
         rows.push(Row::action("quit", tr!("Quit game")).icon(Icon::PowerSettingsNew).danger());
         rows
     }

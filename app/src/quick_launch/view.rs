@@ -268,7 +268,7 @@ fn load_error_notice(cx: &mut Context<QuickLauncher>) -> Stateful<Div> {
                 .text_size(px(13.))
                 .line_height(px(18.))
                 .text_color(theme::danger_text())
-                .child(tr!("Heronite could not read the library, so no games are listed.")),
+                .child(tr!("Heronited could not read the library, so no games are listed.")),
         )
         .child(kbd("Ctrl R"))
         .child(

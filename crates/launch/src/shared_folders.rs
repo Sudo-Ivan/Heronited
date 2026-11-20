@@ -1,4 +1,4 @@
-//! "Folders visible to Proton" (`heroniteSharedFolders`, a Heronite key in
+//! "Folders visible to Proton" (`heroniteSharedFolders`, a Heronited key in
 //! Heroic's global defaults): folders outside the ones the Steam Linux
 //! Runtime shares by default (home, `/mnt`, `/media`, `/run/media`, `/tmp`)
 //! that games and installers run through umu / the runtime should see.

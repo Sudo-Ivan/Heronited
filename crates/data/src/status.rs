@@ -2,7 +2,7 @@
 //! `Collection/statusColors.ts`.
 //!
 //! Reads are pure; mutations go through [`json_store::update`] on
-//! `local_library/statuses.json` / `library.json`, so what Heronite wrote
+//! `local_library/statuses.json` / `library.json`, so what Heronited wrote
 //! meanwhile (and fields this crate does not model) survives.
 
 use std::cmp::Ordering;
@@ -59,7 +59,7 @@ fn status(id: &str, name: &str, slug: &str, order: i64) -> CompletionStatus {
     }
 }
 
-/// The statuses of a fresh install. Same ids and slugs as Heronite's
+/// The statuses of a fresh install. Same ids and slugs as Heronited's
 /// `DEFAULT_STATUSES` (so its colours and Playnite mapping apply), in this
 /// app's own order.
 pub fn default_statuses() -> Vec<CompletionStatus> {
@@ -130,7 +130,7 @@ pub fn sort_statuses(statuses: &mut [CompletionStatus]) {
 }
 
 /// The statuses in display order. An empty file yields the defaults
-/// (Heronite writes them on first read; this does not touch the disk).
+/// (Heronited writes them on first read; this does not touch the disk).
 pub fn load_statuses(paths: &DataPaths) -> Result<Vec<CompletionStatus>> {
     let file: StatusesFile = json_store::read(&paths.statuses())?;
     Ok(sorted_or_default(file.statuses))
@@ -262,7 +262,7 @@ pub struct SetStatusExtras {
 
 /// `setGameCompletionStatus`: sets `completionStatusId` on the overlay entry of
 /// `app_name`. A game without an entry (an Epic game never imported, say) gets
-/// a minimal one, exactly like Heronite: `playniteId = heroic_<appName>`,
+/// a minimal one, exactly like Heronited: `playniteId = heroic_<appName>`,
 /// `source = other`, `launchKind = unavailable`. Returns the stored entry.
 pub fn set_game_status(paths: &DataPaths, app_name: &str, status_id: &str, extras: &SetStatusExtras) -> Result<LocalGameMeta> {
     let mut changed = false;
@@ -333,7 +333,7 @@ fn put_status(file: &mut LocalMetaFile, app_name: &str, status_id: &str, extras:
     meta
 }
 
-/// The entry of a game the overlay does not know yet, like Heronite makes it,
+/// The entry of a game the overlay does not know yet, like Heronited makes it,
 /// with the source its runner has (see [`source_of_runner`]).
 fn minimal_meta(app_name: &str, status_id: &str, extras: &SetStatusExtras) -> LocalGameMeta {
     let runner = match extras.runner.as_deref() {

@@ -1,5 +1,5 @@
 //! Idle maintenance (the emulation part of `scheduleIdleMaintenance` in
-//! `init.ts`): 90 seconds after start Heronite auto-scans ROM folders. The
+//! `init.ts`): 90 seconds after start Heronited auto-scans ROM folders. The
 //! scheduled backup is the app's (`heronite_backup`).
 
 use std::thread::JoinHandle;

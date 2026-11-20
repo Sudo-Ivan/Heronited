@@ -131,7 +131,7 @@ fn preview_then_apply_merges_all_providers_and_round_trips() {
     // One token for every IGDB query of both runs.
     assert_eq!(counters.tokens.load(Ordering::SeqCst), 1);
 
-    // File: Heronite's schema, foreign records untouched, tab-indented.
+    // File: Heronited's schema, foreign records untouched, tab-indented.
     let text = fs::read_to_string(paths.metadata()).unwrap();
     assert!(text.starts_with("{\n\t\"games\": {"));
     let raw: Value = serde_json::from_str(&text).unwrap();
@@ -141,7 +141,7 @@ fn preview_then_apply_merges_all_providers_and_round_trips() {
     assert_eq!(serde_json::to_value(&again).unwrap(), raw["games"]["sideload:steam_620"]);
     assert!(raw["games"]["sideload:steam_620"].get("fetchError").is_none());
 
-    // Steam details were cached in Heronite's file format as a side effect.
+    // Steam details were cached in Heronited's file format as a side effect.
     let cached = fs::read_to_string(paths.steam_details("620", "english")).unwrap();
     assert!(cached.starts_with(r#"{"steamAppId":"620","language":"english","name":"Portal""#));
     let n = server.count(|r| r.path() == "/steam/api/appdetails");
@@ -548,7 +548,7 @@ fn art_from_url_downloads_with_thumb_fallback_and_updates_art_json() {
     let raw = json_store::read_value(&paths.art()).unwrap();
     assert_eq!(raw["games"]["sideload:steam_620"], json!({"heroUrl": url}));
     assert_eq!(fs::read(paths.resolve_localart(&url, None).unwrap()).unwrap(), png());
-    // Heronite's reader accepts the file.
+    // Heronited's reader accepts the file.
     let lib = heronite_data::library::Library::load(&paths).unwrap();
     let game = lib.get("sideload_steam_620").unwrap();
     assert_eq!(game.art.as_ref().unwrap().hero_url.as_deref(), Some(url.as_str()));

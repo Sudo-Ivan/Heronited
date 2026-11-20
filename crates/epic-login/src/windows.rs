@@ -6,7 +6,7 @@
 //!   with [`NO_WEBVIEW`] and the app points the user to it or to the browser
 //!   method.
 //! * WebView2 keeps its files in a user data folder, by default next to the
-//!   exe (read-only in an installed copy). It goes under Heronite's cache
+//!   exe (read-only in an installed copy). It goes under Heronited's cache
 //!   folder instead (inside the folder of a portable copy). The view is
 //!   InPrivate like the Linux one is incognito: no cookie or session is kept
 //!   from one login to the next.
@@ -401,7 +401,7 @@ fn create_window(title: &str, size: (i32, i32), owner: Option<HWND>) -> Result<H
         let x = (around.left + (around.right - around.left - w) / 2).clamp(work.left, (work.right - w).max(work.left));
         let y = (around.top + (around.bottom - around.top - h) / 2).clamp(work.top, (work.bottom - h).max(work.top));
 
-        // Heronite's icon (resource 1, see build.rs), at the sizes of this scale.
+        // Heronited's icon (resource 1, see build.rs), at the sizes of this scale.
         let icon = |cx, cy| {
             LoadImageW(instance, 1 as PCWSTR, IMAGE_ICON, GetSystemMetricsForDpi(cx, dpi), GetSystemMetricsForDpi(cy, dpi), LR_DEFAULTCOLOR)
         };
@@ -468,7 +468,7 @@ fn apps_use_dark_theme() -> bool {
     err == 0 && value == 0
 }
 
-/// WebView2's user data folder: `login-webview` in Heronite's cache folder
+/// WebView2's user data folder: `login-webview` in Heronited's cache folder
 /// (`%LOCALAPPDATA%\heronite\cache`, or `cache` of a portable copy), else in
 /// the user's temp folder.
 fn data_folder() -> PathBuf {

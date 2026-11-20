@@ -14,7 +14,7 @@ use crate::options::WRAP_NAME;
 /// The variables match what the scripts get when this app launches a game
 /// (`HEROIC_GAME_SCRIPT_TYPE` & co.); Steam adds `SteamAppId`.
 const SCRIPT: &str = r#"#!/bin/sh
-# Written by Heronite. Runs a Steam game's scripts around it:
+# Written by Heronited. Runs a Steam game's scripts around it:
 #   heronite-steam-wrap [--before SCRIPT] [--after SCRIPT] -- COMMAND...
 before=
 after=

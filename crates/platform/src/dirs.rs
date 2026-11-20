@@ -132,8 +132,8 @@ mod tests {
 
     #[test]
     fn screenshots_go_to_the_pictures_folder() {
-        let shots = screenshots("Heronite").unwrap();
-        assert!(shots.ends_with("Heronite"), "{shots:?}");
+        let shots = screenshots("Heronited").unwrap();
+        assert!(shots.ends_with("Heronited"), "{shots:?}");
         assert!(!shots.starts_with(data("heronite").unwrap()) && !shots.starts_with(config("heronite").unwrap()));
     }
 

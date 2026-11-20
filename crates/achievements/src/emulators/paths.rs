@@ -24,7 +24,7 @@ pub struct ConfigPaths {
 
 impl ConfigPaths {
     /// Reload registered installations so adding a portable emulator does not
-    /// require restarting Heronite. Malformed registrations are not ignored.
+    /// require restarting Heronited. Malformed registrations are not ignored.
     pub fn load(home: &Path, paths: &heronite_data::DataPaths) -> Result<Self, String> {
         let registered = if cfg!(windows) {
             heronite_data::json_store::read(&paths.emulators()).map_err(|e| e.to_string())?

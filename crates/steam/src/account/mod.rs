@@ -1,5 +1,5 @@
-//! A Steam sign-in saved by an earlier Heronite (the QR code of
-//! [`auth`]), which signed in as the Steam mobile app. Heronite no longer
+//! A Steam sign-in saved by an earlier Heronited (the QR code of
+//! [`auth`]), which signed in as the Steam mobile app. Heronited no longer
 //! signs in to Steam; at start it ends a sign-in it finds
 //! ([`sign_out_on_steam`]), so its tokens stop working and it leaves the
 //! account's authorized devices, and deletes it.

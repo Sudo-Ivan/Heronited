@@ -47,7 +47,7 @@ fi
 # Each entry is "folder|file to remove from it".
 HIDE=()
 if [ "$MODE" = layer ]; then
-  # The implicit layer folders the Vulkan loader (and Heronite) look in.
+  # The implicit layer folders the Vulkan loader (and Heronited) look in.
   BASES=("${XDG_CONFIG_HOME:-$HOME/.config}" /etc/xdg /etc "${XDG_DATA_HOME:-$HOME/.local/share}")
   IFS=: read -ra XDD <<<"${XDG_DATA_DIRS:-}"
   BASES+=("${XDD[@]}" /usr/local/share /usr/share)

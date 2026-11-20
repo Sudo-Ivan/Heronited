@@ -25,7 +25,7 @@ use crate::util::{blank_metadata, clip, local_art_url, now_ms, strip_html, uniqu
 const CACHE_MS: i64 = 30 * 24 * 60 * 60 * 1000;
 const MISSING_FOR: Duration = Duration::from_secs(30 * 60);
 
-/// `CollectionSteamDetails` + `fetchedAt`, exactly the file Heronite writes
+/// `CollectionSteamDetails` + `fetchedAt`, exactly the file Heronited writes
 /// (compact JSON, same key order).
 #[derive(Debug, Clone, Default, Serialize, Deserialize, PartialEq)]
 #[serde(rename_all = "camelCase")]
@@ -334,7 +334,7 @@ pub fn metadata_from_details(app_name: &str, runner: &str, steam_app_id: &str, d
     md
 }
 
-/// Key in a game's metadata (kept in `extra`, so the file stays Heronite's
+/// Key in a game's metadata (kept in `extra`, so the file stays Heronited's
 /// format) for the Steam store header, the cover of last resort.
 pub const HEADER_URL: &str = "headerUrl";
 

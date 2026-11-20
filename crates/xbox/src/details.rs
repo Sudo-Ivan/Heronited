@@ -3,7 +3,7 @@
 //!
 //! * the minutes Xbox network counted and when the title was last played
 //!   (the game's metadata, [`MINUTES_KEY`] and [`LAST_PLAYED_KEY`]).
-//!   Heronite's own `totalPlayed` / `lastPlayed` (`store/timestamp.json`)
+//!   Heronited's own `totalPlayed` / `lastPlayed` (`store/timestamp.json`)
 //!   stay as they are: the Collection shows the larger total and the later
 //!   date, since Xbox's count already holds the sessions started here. (A
 //!   sync between PCs shares the total the Collection shows, as for any
@@ -246,7 +246,7 @@ pub fn apply(paths: &DataPaths, titles: &[Title]) -> Result<Applied> {
     Ok(applied)
 }
 
-/// The Xbox games with play time (Heronite's or Xbox's, whichever is
+/// The Xbox games with play time (Heronited's or Xbox's, whichever is
 /// larger) move from the automatic "Not played" to "Played"; a status the
 /// user chose stays.
 fn promote_played(paths: &DataPaths) -> Result<usize> {
@@ -326,7 +326,7 @@ mod tests {
 
         let lib = Library::load(&paths).unwrap();
         let sky = lib.get("sideload_xbox_fable_skywardlantern_abc123").unwrap();
-        assert_eq!(sky.playtime_minutes, 754, "Xbox counted more (its count holds Heronite's sessions)");
+        assert_eq!(sky.playtime_minutes, 754, "Xbox counted more (its count holds Heronited's sessions)");
         assert_eq!(sky.last_played.as_deref(), Some("2026-11-05T21:14:03.1200000Z"));
         let m = sky.meta.as_ref().unwrap();
         assert_eq!(m.extra[ACHIEVEMENTS_KEY], json!({"unlocked": 12, "total": 40, "gamerscore": 210, "totalGamerscore": 1000}));
@@ -338,11 +338,11 @@ mod tests {
         assert_eq!(status("sideload_xbox_fable_tidepool_abc123").as_deref(), Some("played"));
 
         let tide = lib.get("sideload_xbox_fable_tidepool_abc123").unwrap();
-        assert_eq!(tide.playtime_minutes, 45, "Heronite counted more");
+        assert_eq!(tide.playtime_minutes, 45, "Heronited counted more");
         assert_eq!(tide.last_played.as_deref(), Some("2026-11-06T10:00:00.000Z"), "played here later");
         assert!(!tide.meta.as_ref().unwrap().extra.contains_key(ACHIEVEMENTS_KEY));
 
-        // Heronite's own numbers are untouched.
+        // Heronited's own numbers are untouched.
         let ts = json_store::read_value(&paths.timestamps()).unwrap();
         assert_eq!(ts["xbox_fable_skywardlantern_abc123"]["totalPlayed"], 60);
         assert_eq!(ts["xbox_fable_skywardlantern_abc123"]["lastPlayed"], "2026-07-01T10:00:00.000Z");

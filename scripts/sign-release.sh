@@ -31,7 +31,7 @@ printf '%s\n' "$MINISIGN_SECRET_KEY" > "$KEY"
 
 shopt -s nullglob
 files=("$DIR"/*.AppImage "$DIR"/*.flatpak "$DIR"/*.deb "$DIR"/*.rpm "$DIR"/*.pkg.tar.zst
-  "$DIR"/Heronite-Setup-*.exe "$DIR"/Heronite-Portable-*.zip)
+  "$DIR"/Heronited-Setup-*.exe "$DIR"/Heronited-Portable-*.zip)
 [[ ${#files[@]} -gt 0 ]] || { echo "sign-release.sh: nothing to sign in $DIR" >&2; exit 1; }
 
 names=()

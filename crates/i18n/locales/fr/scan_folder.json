@@ -3,7 +3,7 @@
   "Add from folder": "Ajouter depuis un dossier",
   "Add games from a folder": "Ajouter des jeux depuis un dossier",
   "Add games from a folder…": "Ajouter des jeux depuis un dossier…",
-  "Choose the folder your games are in. Heronite looks for the programs that start them, and you choose the games to add.": "Choisissez le dossier contenant vos jeux. Heronite recherche les programmes qui les démarrent, puis vous choisissez les jeux à ajouter.",
+  "Choose the folder your games are in. Heronited looks for the programs that start them, and you choose the games to add.": "Choisissez le dossier contenant vos jeux. Heronited recherche les programmes qui les démarrent, puis vous choisissez les jeux à ajouter.",
   "Could not add the games: {error}": "Impossible d’ajouter les jeux : {error}",
   "Find many games at once": "Trouver plusieurs jeux à la fois",
   "Find the games in a folder and add them at once": "Trouver les jeux dans un dossier et les ajouter en une fois",

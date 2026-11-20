@@ -400,7 +400,7 @@ pub(super) fn static_entries() -> Vec<Entry> {
         Act::Onboarding,
         "onboarding",
         tr!("Getting started"),
-        tr!("What Heronite does, step by step"),
+        tr!("What Heronited does, step by step"),
         Icon::Lightbulb,
         "onboarding tour tips help checklist welcome first steps primeiros passos ajuda dicas boas-vindas",
     ));
@@ -460,7 +460,7 @@ pub(super) fn static_entries() -> Vec<Entry> {
         Icon::Tv,
         "controller gamepad tv big picture couch controle sala modo console",
     ));
-    v.push(action(Act::Quit, "quit", tr!("Quit"), tr!("Close Heronite"), Icon::Logout, "exit close sair fechar encerrar"));
+    v.push(action(Act::Quit, "quit", tr!("Quit"), tr!("Close Heronited"), Icon::Logout, "exit close sair fechar encerrar"));
     v
 }
 
@@ -841,14 +841,14 @@ pub(super) fn game_verbs(title: &str, bits: &GameBits) -> Vec<Entry> {
     v
 }
 
-/// "Show X in Heronite": the game selected in the Collection (the quick
+/// "Show X in Heronited": the game selected in the Collection (the quick
 /// launcher's Shift Enter). Without the game's bits, so it is never played.
 pub(super) fn show_in_app_entry(title: &str, bits: &GameBits) -> Entry {
     Entry::new(
         Kind::Game,
         Act::SelectGame(bits.key.clone()),
         format!("game:{}:show", bits.key),
-        &tr!("Show {title} in Heronite", title),
+        &tr!("Show {title} in Heronited", title),
         tr!("Select it in the Collection"),
         Icon::OpenInNew,
         "",

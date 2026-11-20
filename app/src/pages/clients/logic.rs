@@ -120,7 +120,7 @@ pub(super) fn account_lines(client: Client, account: &Account) -> (String, Optio
         Account::SignedIn(None) => (tr!("Signed in").to_string(), None),
         Account::SignedOut => (
             tr!("Not signed in").to_string(),
-            Some(tr!("Open {client} and sign in there: Heronite never sees your password.", client = client.name())),
+            Some(tr!("Open {client} and sign in there: Heronited never sees your password.", client = client.name())),
         ),
         Account::Unknown => (tr!("Sign-in not seen yet").to_string(), Some(tr!("Open {client} to sign in.", client = client.name()))),
     }
@@ -364,7 +364,7 @@ mod tests {
         st.status = Some(Status::default());
         assert!(!shows_shortcuts(&st), "not installed, nothing to remove");
         st.shortcuts = Shortcuts { menu: true, has_desktop: true, ..Default::default() };
-        // On Windows the clients are the PC's: Heronite makes no shortcuts.
+        // On Windows the clients are the PC's: Heronited makes no shortcuts.
         assert_eq!(shows_shortcuts(&st), !heronite_clients::native());
         assert_eq!(shortcut_switches(&st), (false, true), "the menu one goes, no Desktop one is added");
         st.shortcut_busy = true;

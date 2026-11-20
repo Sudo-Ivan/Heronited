@@ -473,8 +473,8 @@ mod tests {
 
     #[test]
     fn remote_paths_join_like_rclone_expects() {
-        assert_eq!(remote_path("heronite:", "Heronite"), "heronite:Heronite");
-        assert_eq!(remote_path("heronite:Heronite", "devices"), "heronite:Heronite/devices");
+        assert_eq!(remote_path("heronite:", "Heronited"), "heronite:Heronited");
+        assert_eq!(remote_path("heronite:Heronited", "devices"), "heronite:Heronited/devices");
         assert_eq!(remote_path("mine:games/", "/devices/"), "mine:games/devices");
     }
 

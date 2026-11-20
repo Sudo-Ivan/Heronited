@@ -556,9 +556,9 @@ mod tests {
         fs::create_dir_all(lib.join("steamapps")).unwrap();
         assert!(blocked(&lib, &[]).is_some());
 
-        let default_install = e.mkdir("Games/Heronite");
+        let default_install = e.mkdir("Games/Heronited");
         assert!(blocked(&default_install, &[]).is_some(), "default install path");
-        assert!(e.plan(Some(&e.mkdir("Games/Heronite/A")), &[]).files.unwrap().removable());
+        assert!(e.plan(Some(&e.mkdir("Games/Heronited/A")), &[]).files.unwrap().removable());
 
         let pack = e.mkdir("Games/Pack");
         let other = e.mkdir("Games/Pack/Other").join("other.exe");

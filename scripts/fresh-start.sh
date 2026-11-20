@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# Runs Heronite as a brand-new user: an empty HOME and XDG folders in a
-# temporary directory, so nothing of your own setup (Heronite data, Heroic,
+# Runs Heronited as a brand-new user: an empty HOME and XDG folders in a
+# temporary directory, so nothing of your own setup (Heronited data, Heroic,
 # Steam, settings) is read or written.
 #
 #   usage: scripts/fresh-start.sh [options] [binary or AppImage]

@@ -1,4 +1,4 @@
-//! Heronite's catalog of graphics mods per game, `data/graphics-mods.json`
+//! Heronited's catalog of graphics mods per game, `data/graphics-mods.json`
 //! in the repository. It is fetched from its raw address at most daily, like
 //! AreWeAntiCheatYet and ReShade's `Compatibility.ini`, so it changes without
 //! a release; the copy built into the app is the fallback (first start,
@@ -18,7 +18,7 @@ use serde::Deserialize;
 use super::download::{download, fresh};
 use crate::net::Net;
 
-pub const URL: &str = "https://raw.githubusercontent.com/RafaelGoulartB/Heronite/main/data/graphics-mods.json";
+pub const URL: &str = "https://raw.githubusercontent.com/Sudo-Ivan/Heronited/main/data/graphics-mods.json";
 /// The newest format this build reads; a catalog with a higher `schema` is
 /// ignored (an older app keeps its cached or built-in copy).
 pub const SCHEMA: u32 = 1;

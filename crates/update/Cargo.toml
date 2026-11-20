@@ -3,7 +3,7 @@ name = "heronite-update"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
-description = "Self-update of the Heronite AppImage: GitHub release check, signed download and in-place swap"
+description = "Self-update of the Heronited AppImage: GitHub release check, signed download and in-place swap"
 
 [dependencies]
 heronite-data = { path = "../data" }

@@ -6,7 +6,7 @@
 //!
 //! The layer is implicit: installed, it loads into every Vulkan program and
 //! only turns on for a program it identifies. The game's settings
-//! (`heroniteLsfg*`, Heronite keys) pick one of two ways:
+//! (`heroniteLsfg*`, Heronited keys) pick one of two ways:
 //!
 //! * Values set here: the environment carries them (lsfg-vk 2:
 //!   `LSFGVK_ENV=1` + `LSFGVK_*`; lsfg-vk 1: `LSFG_LEGACY=1` + `LSFG_*`).

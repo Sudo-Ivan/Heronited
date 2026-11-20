@@ -653,7 +653,7 @@ impl WindowsWindowInner {
     }
 
     fn retrieve_caret_position(&self) -> Option<POINT> {
-        // Heronite: the caret's box is in GPUI px, at the app's interface scale.
+        // Heronited: the caret's box is in GPUI px, at the app's interface scale.
         let zoom = gpui_zoom::factor(self.handle);
         self.with_input_handler_and_scale_factor(|input_handler, scale_factor| {
             let scale_factor = scale_factor * zoom;

@@ -1,6 +1,6 @@
 //! This app's own UI state, kept in `AppPaths::ui_state()`.
 //!
-//! It mirrors what Heronite kept in Chromium's localStorage (imported once by
+//! It mirrors what Heronited kept in Chromium's localStorage (imported once by
 //! `migrate`): `collection_install_filter`, `collection_facet_filter`,
 //! `collection_sort`, `collection_sidebar_hidden`, `collection_collapsed_groups`,
 //! `collection_focused_game`. Loading is as lenient as the `readX` helpers of
@@ -52,7 +52,7 @@ pub struct UiState {
     pub collapsed_groups: BTreeSet<String>,
     /// `runner_appName` of the focused game.
     pub focused_game: Option<String>,
-    /// What the list is split into sections by (Heronite only had a "Group
+    /// What the list is split into sections by (Heronited only had a "Group
     /// by status" toggle, not persisted; this app keeps it).
     pub group_by: GroupBy,
     /// "Show hidden games" (Heroic keeps it in the renderer's localStorage
@@ -617,7 +617,7 @@ pub struct ViewFilters {
 
 impl ViewFilters {
     /// Reads the keys [`UiState`] stores them under, leniently. A facet kind
-    /// may hold one value (as Heronite stored it) or a list.
+    /// may hold one value (as Heronited stored it) or a list.
     pub fn from_value(value: &Value) -> Self {
         let mut v = Self::default();
         if let Some(f) = value.get("installFilter").and_then(Value::as_str).and_then(InstallFilter::parse) {

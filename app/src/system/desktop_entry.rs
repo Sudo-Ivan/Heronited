@@ -1,4 +1,4 @@
-//! Heronite's menu entry (`app.heronite.Heronite.desktop`) where no package
+//! Heronited's menu entry (`io.github.sudoivan.Heronited.desktop`) where no package
 //! installed one: an AppImage, the portable folder, a build run from its
 //! target folder. The desktop portal names an app outside a sandbox by this
 //! file (`Registry.Register` answers "App info not found" without it) and
@@ -24,10 +24,10 @@ use heronite_data::DataPaths;
 use heronite_shortcuts::desktop::quote_exec_arg;
 
 /// The app id: the entry's name, what the window and the portal are told.
-const APP_ID: &str = "app.heronite.Heronite";
+const APP_ID: &str = "io.github.sudoivan.Heronited";
 
 /// Marks an entry [`sync`] wrote: only those are rewritten or removed.
-const GENERATED: &str = "X-Heronite-Generated=true";
+const GENERATED: &str = "X-Heronited-Generated=true";
 
 fn file_name() -> String {
     format!("{APP_ID}.desktop")
@@ -35,7 +35,7 @@ fn file_name() -> String {
 
 fn entry_text(exe: &Path) -> String {
     format!(
-        "[Desktop Entry]\nType=Application\nName=Heronite\nComment=Every game you own, on Linux, in one native launcher\nExec={} %U\nIcon={APP_ID}\nTerminal=false\nNoDisplay=true\nStartupWMClass={APP_ID}\n{GENERATED}\n",
+        "[Desktop Entry]\nType=Application\nName=Heronited\nComment=Every game you own, on Linux, in one native launcher\nExec={} %U\nIcon={APP_ID}\nTerminal=false\nNoDisplay=true\nStartupWMClass={APP_ID}\n{GENERATED}\n",
         quote_exec_arg(&exe.to_string_lossy())
     )
 }
@@ -117,16 +117,16 @@ mod tests {
     fn a_hidden_entry_is_written_where_none_is_installed() {
         let dir = tempfile::tempdir().unwrap();
         let apps = dir.path().join("applications");
-        let exe = Path::new("/home/me/My Apps/Heronite.AppImage");
+        let exe = Path::new("/home/me/My Apps/Heronited.AppImage");
         assert_eq!(apply_in(&apps, false, exe).unwrap(), Change::Written);
-        let text = std::fs::read_to_string(apps.join("app.heronite.Heronite.desktop")).unwrap();
-        assert!(text.contains("Exec=\"/home/me/My Apps/Heronite.AppImage\" %U\n"), "{text}");
-        assert!(text.contains("NoDisplay=true\n") && text.contains("X-Heronite-Generated=true\n"), "{text}");
+        let text = std::fs::read_to_string(apps.join("io.github.sudoivan.Heronited.desktop")).unwrap();
+        assert!(text.contains("Exec=\"/home/me/My Apps/Heronited.AppImage\" %U\n"), "{text}");
+        assert!(text.contains("NoDisplay=true\n") && text.contains("X-Heronited-Generated=true\n"), "{text}");
         // Nothing to do the second time.
         assert_eq!(apply_in(&apps, false, exe).unwrap(), Change::None);
         // The AppImage moved.
-        assert_eq!(apply_in(&apps, false, Path::new("/opt/Heronite.AppImage")).unwrap(), Change::Written);
-        assert!(std::fs::read_to_string(apps.join(file_name())).unwrap().contains("Exec=/opt/Heronite.AppImage %U\n"));
+        assert_eq!(apply_in(&apps, false, Path::new("/opt/Heronited.AppImage")).unwrap(), Change::Written);
+        assert!(std::fs::read_to_string(apps.join(file_name())).unwrap().contains("Exec=/opt/Heronited.AppImage %U\n"));
     }
 
     #[test]
@@ -146,7 +146,7 @@ mod tests {
     fn an_entry_somebody_else_wrote_is_left_alone() {
         let dir = tempfile::tempdir().unwrap();
         let file = dir.path().join(file_name());
-        let theirs = "[Desktop Entry]\nType=Application\nName=Heronite\nExec=/home/me/.local/bin/heronite-rs %U\n";
+        let theirs = "[Desktop Entry]\nType=Application\nName=Heronited\nExec=/home/me/.local/bin/heronite-rs %U\n";
         std::fs::write(&file, theirs).unwrap();
         for installed in [false, true] {
             assert_eq!(apply_in(dir.path(), installed, Path::new("/elsewhere/heronite-rs")).unwrap(), Change::None);

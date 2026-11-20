@@ -51,7 +51,7 @@ pub fn classic() -> ConsoleTheme {
         format: FORMAT,
         id: "classic".into(),
         name: n_!("Classic").into(),
-        author: "Heronite".into(),
+        author: "Heronited".into(),
         description: n_!("Console mode as it shipped: shelves and a cover grid.").into(),
         version: "1".into(),
         tabs: vec![TabSpec::new(n_!("Home"), Layout::Shelves, "all"), TabSpec::new(n_!("Library"), Layout::Grid, "all")],

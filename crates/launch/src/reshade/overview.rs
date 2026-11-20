@@ -47,7 +47,7 @@ pub enum State {
         path: PathBuf,
         product: Option<String>,
     },
-    /// A ReShade Heronite did not install.
+    /// A ReShade Heronited did not install.
     Manual {
         proxy: String,
         version: Option<String>,
@@ -97,7 +97,7 @@ pub struct Overview {
     pub sharing: Vec<String>,
     /// DLL names the user's `WINEDLLOVERRIDES` already sets.
     pub user_overrides: Vec<String>,
-    /// The RenoDX mod Heronite's catalog has for the game.
+    /// The RenoDX mod Heronited's catalog has for the game.
     pub renodx: Option<Found>,
     /// The RenoDX mod installed, when there is one.
     pub renodx_installed: Option<renodx::Installed>,
@@ -198,7 +198,7 @@ fn inspect(paths: &DataPaths, f: &Facts, compat_text: Option<&str>) -> Inspectio
 
 /// Whether ReShade fits the game with no known problem, from what is on
 /// disk only (fast enough for a menu, off the UI thread): installed by
-/// Heronite, or ready to install or adopt with no anti-cheat known, nothing
+/// Heronited, or ready to install or adopt with no anti-cheat known, nothing
 /// banning it and nothing in its place.
 pub fn fits(paths: &DataPaths, f: &Facts) -> bool {
     if !f.wine && !cfg!(windows) {

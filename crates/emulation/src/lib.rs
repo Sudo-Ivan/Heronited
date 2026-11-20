@@ -1,4 +1,4 @@
-//! Emulation and backups backend compatible with Heronite's data files.
+//! Emulation and backups backend compatible with Heronited's data files.
 //!
 //! * [`catalog`], [`detect`], [`store`]: emulator catalog, detection (PATH,
 //!   Flatpak, libretro cores) and user emulator / ROM scanner CRUD

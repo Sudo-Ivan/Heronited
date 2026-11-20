@@ -1,5 +1,5 @@
 //! Minimal SHA-1 (only used to derive stable `emu_<hash>` app names, exactly
-//! like Heronite's `createHash('sha1')`).
+//! like Heronited's `createHash('sha1')`).
 
 pub fn sha1_hex(data: &[u8]) -> String {
     let mut h: [u32; 5] = [0x6745_2301, 0xEFCD_AB89, 0x98BA_DCFE, 0x1032_5476, 0xC3D2_E1F0];

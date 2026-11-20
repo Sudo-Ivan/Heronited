@@ -41,11 +41,11 @@ const FIRST_DELAY: Duration = Duration::from_secs(6);
 /// process list, a request to localhost).
 const FAST: Duration = Duration::from_secs(5);
 const INTERVAL: Duration = Duration::from_secs(10 * 60);
-/// How long "Opening" shows after Heronite started Steam while Steam does
+/// How long "Opening" shows after Heronited started Steam while Steam does
 /// not run yet (its updater can take a while to show up).
 const OPENING: Duration = Duration::from_secs(90);
 
-/// After Heronite started Steam, how long an old Steam process may linger.
+/// After Heronited started Steam, how long an old Steam process may linger.
 const SETTLE: Duration = Duration::from_secs(20);
 
 /// How long Steam may run with its client not answering before the page
@@ -97,9 +97,9 @@ fn retire_steam_sign_in(paths: &DataPaths) {
         return;
     }
     match heronite_steam::account::sign_out_on_steam(paths, &Net::default()) {
-        Ok(true) => log::info!("Steam: ended the sign-in an earlier version saved; Heronite no longer signs in to Steam"),
+        Ok(true) => log::info!("Steam: ended the sign-in an earlier version saved; Heronited no longer signs in to Steam"),
         Ok(false) => log::warn!(
-            "Steam: deleted the sign-in an earlier version saved, but Steam did not end it: remove \"Heronite\" at store.steampowered.com/account/authorizeddevices"
+            "Steam: deleted the sign-in an earlier version saved, but Steam did not end it: remove \"Heronited\" at store.steampowered.com/account/authorizeddevices"
         ),
         Err(e) => log::warn!("Steam: the sign-in an earlier version saved could not be deleted: {e:#}"),
     }
@@ -145,7 +145,7 @@ pub enum SteamState {
     /// [`NOT_ANSWERING`]: still waiting for the sign-in, or something keeps
     /// it closed. Checked again all the time.
     NotAnswering,
-    /// Steam was open before Heronite could turn the access on.
+    /// Steam was open before Heronited could turn the access on.
     NeedsRestart,
     /// Steam runs without the access and another tool (Millennium) holds
     /// the place of its flag file: a restart does not open it.
@@ -176,7 +176,7 @@ pub struct SteamLibrary {
     summary_loaded: bool,
     /// "Ignore" on the Collection's Steam pill, remembered for good.
     notice_ignored: bool,
-    /// When Heronite last started Steam.
+    /// When Heronited last started Steam.
     opened_at: Option<Instant>,
     restarting: bool,
     /// Steam was restarted from here: if the access still does not come,
@@ -199,7 +199,7 @@ pub struct SteamLibrary {
     wanted: Arc<AtomicBool>,
     /// Removing the games waits for the read that is running.
     remove_after_read: bool,
-    /// How many Steam games Heronite added are in the Collection
+    /// How many Steam games Heronited added are in the Collection
     /// ([`steam_owned::added_entries`]), as of the last look.
     pub removable: usize,
     pub removing: bool,

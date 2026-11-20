@@ -227,7 +227,7 @@ impl<'a, 'b> Pic<'a, 'b> {
         // The dark focus of a light theme takes white text.
         let white_focus = light && matches!(name, "white" | "game");
         let (head_font, body_font) = match t.interface.font {
-            ConsoleFont::Heronite => ("Rubik", "Cabin"),
+            ConsoleFont::Heronited => ("Rubik", "Cabin"),
             ConsoleFont::Cabin => ("Cabin", "Cabin"),
             ConsoleFont::Rubik => ("Rubik", "Rubik"),
             ConsoleFont::System => (".SystemUIFont", ".SystemUIFont"),

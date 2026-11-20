@@ -1,5 +1,5 @@
 //! `local_library/metadata.json`: port of `metadata/store.ts`. Every write is
-//! a read-modify-write through `json_store::update`, so fields Heronite wrote
+//! a read-modify-write through `json_store::update`, so fields Heronited wrote
 //! that this crate does not model survive.
 
 use anyhow::Result;

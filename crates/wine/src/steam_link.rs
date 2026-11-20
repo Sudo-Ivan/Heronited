@@ -15,7 +15,7 @@ use crate::types::WineConfig;
 
 const PREFIX: &str = "heronite-";
 const MANIFEST: &str = "compatibilitytool.vdf";
-const MARK: &str = "// Written by Heronite";
+const MARK: &str = "// Written by Heronited";
 
 /// Brings the registrations in line with `tools/proton` and the setting.
 /// Blocking (a few small files).
@@ -25,12 +25,12 @@ pub fn sync(data_paths: &DataPaths) {
     let proton = data_paths.tools_dir().join("proton");
     let builds = if cfg.download_proton_to_steam { builds(&proton) } else { Vec::new() };
     if let Err(e) = sync_into(&steam_tools, &proton, &builds) {
-        log::warn!("Could not register Heronite's Proton builds with Steam in {}: {e}", steam_tools.display());
+        log::warn!("Could not register Heronited's Proton builds with Steam in {}: {e}", steam_tools.display());
     }
 }
 
 /// `compatibilitytools.d` of the configured Steam. Not Steam's Flatpak: its
-/// sandbox does not see Heronite's folder.
+/// sandbox does not see Heronited's folder.
 fn steam_tools_dir(cfg: &WineConfig) -> Option<PathBuf> {
     let steam = Path::new(&cfg.default_steam_path);
     let real = fs::canonicalize(steam).unwrap_or_else(|_| steam.to_path_buf());
@@ -75,11 +75,11 @@ fn sync_into(steam_tools: &Path, proton: &Path, builds: &[(String, PathBuf)]) ->
             continue;
         }
         if dir.exists() && !is_ours(&dir) {
-            log::warn!("{} is not Heronite's; leaving it alone", dir.display());
+            log::warn!("{} is not Heronited's; leaving it alone", dir.display());
             continue;
         }
         if dir.exists() && !is_here(&dir, proton) {
-            log::info!("{} belongs to another Heronite data folder; leaving it alone", dir.display());
+            log::info!("{} belongs to another Heronited data folder; leaving it alone", dir.display());
             continue;
         }
         fs::create_dir_all(&dir)?;
@@ -111,7 +111,7 @@ fn manifest(name: &str, path: &Path) -> String {
     format!(
         "{MARK} for its Wine Manager; removed with the build.\n\
          \"compatibilitytools\"\n{{\n  \"compat_tools\"\n  {{\n    \"{PREFIX}{tool}\"\n    {{\n      \
-         \"install_path\" \"{path}\"\n      \"display_name\" \"{tool} (Heronite)\"\n      \
+         \"install_path\" \"{path}\"\n      \"display_name\" \"{tool} (Heronited)\"\n      \
          \"from_oslist\" \"windows\"\n      \"to_oslist\" \"linux\"\n    }}\n  }}\n}}\n",
         tool = quote(name),
         path = quote(&path.to_string_lossy()),
@@ -148,7 +148,7 @@ mod tests {
         assert!(text.starts_with(MARK));
         assert!(text.contains("\"heronite-GE-Proton-latest\""));
         assert!(text.contains(&format!("\"install_path\" \"{}\"", ge.display())));
-        assert!(text.contains("\"display_name\" \"GE-Proton-latest (Heronite)\""));
+        assert!(text.contains("\"display_name\" \"GE-Proton-latest (Heronited)\""));
         assert!(!steam.join("heronite-half-extracted").exists());
 
         fs::remove_dir_all(&ge).unwrap();

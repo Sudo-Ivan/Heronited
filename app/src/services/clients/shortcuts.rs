@@ -1,6 +1,6 @@
 //! Shortcuts of the clients under Wine (Linux): `heronite-client-<id>.desktop`
 //! on the Desktop and in the application menu, starting this program with
-//! `--open-client <id>` (the client opens, Heronite's window does not), with
+//! `--open-client <id>` (the client opens, Heronited's window does not), with
 //! the icon of the client's own program. The file is named after the client's
 //! settings app, not its title, so a launcher of another tool named
 //! "Battle.net" is never replaced. `HERONITE_DESKTOP_DIR` /
@@ -174,10 +174,13 @@ mod tests {
 
     #[test]
     fn the_shortcut_opens_the_client_with_this_program() {
-        let text =
-            entry(Client::BattleNet, Path::new("/opt/Heronite App/heronite-rs"), Some(Path::new("/d/icons/heronite-client-battlenet.png")));
+        let text = entry(
+            Client::BattleNet,
+            Path::new("/opt/Heronited App/heronite-rs"),
+            Some(Path::new("/d/icons/heronite-client-battlenet.png")),
+        );
         assert!(text.contains("Name=Battle.net\n"), "{text}");
-        assert!(text.contains("Exec=\"/opt/Heronite App/heronite-rs\" --open-client battlenet\n"), "{text}");
+        assert!(text.contains("Exec=\"/opt/Heronited App/heronite-rs\" --open-client battlenet\n"), "{text}");
         assert!(text.contains("Icon=/d/icons/heronite-client-battlenet.png\n"), "{text}");
     }
 

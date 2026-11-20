@@ -96,7 +96,7 @@ foreach ($language in $languages.Keys) {
             Check ($value -cne $english[$key]) "$language.$key is translated"
         }
         # Names the user has to recognise (the app, the portable marker).
-        foreach ($literal in @('Heronite', 'portable.txt')) {
+        foreach ($literal in @('Heronited', 'portable.txt')) {
             $count = [regex]::Matches($english[$key], [regex]::Escape($literal)).Count
             Check ([regex]::Matches($value, [regex]::Escape($literal)).Count -eq $count) "$language.$key keeps $literal as English has it"
         }

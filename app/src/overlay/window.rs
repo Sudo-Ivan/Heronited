@@ -141,7 +141,7 @@ fn options(namespace: &str, size: Size<Pixels>, side: Side, bottom: bool, margin
         return WindowOptions {
             titlebar: None,
             window_bounds: Some(WindowBounds::Windowed(Bounds { origin: point(px(0.), px(0.)), size })),
-            app_id: Some(format!("app.heronite.{namespace}")),
+            app_id: Some(format!("io.github.sudoivan.{namespace}")),
             window_background: WindowBackgroundAppearance::Transparent,
             kind: WindowKind::PopUp,
             focus: false,
@@ -154,7 +154,7 @@ fn options(namespace: &str, size: Size<Pixels>, side: Side, bottom: bool, margin
     WindowOptions {
         titlebar: None,
         window_bounds: Some(WindowBounds::Windowed(Bounds { origin: point(px(0.), px(0.)), size })),
-        app_id: Some(if layer { "app.heronite.Heronite".into() } else { format!("app.heronite.{namespace}") }),
+        app_id: Some(if layer { "io.github.sudoivan.Heronited".into() } else { format!("io.github.sudoivan.{namespace}") }),
         window_background: WindowBackgroundAppearance::Transparent,
         kind,
         focus: !layer || keyboard,

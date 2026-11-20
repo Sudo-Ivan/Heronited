@@ -1,8 +1,8 @@
-//! What is left of the Steam sign-in Heronite once had: ending a sign-in
+//! What is left of the Steam sign-in Heronited once had: ending a sign-in
 //! saved by an earlier version on Steam (`IAuthenticationService`), so its
 //! tokens stop working and it leaves the account's authorized devices.
 //!
-//! Heronite no longer signs in to Steam: the sign-in with a QR code made a
+//! Heronited no longer signs in to Steam: the sign-in with a QR code made a
 //! session of the Steam mobile app's kind from a PC, which Steam's security
 //! took for a phishing attack and locked accounts over.
 

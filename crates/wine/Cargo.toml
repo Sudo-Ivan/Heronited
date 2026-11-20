@@ -3,7 +3,7 @@ name = "heronite-wine"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
-description = "Wine/Proton manager (download, install, remove) and compatibility layer detection compatible with Heronite's data files"
+description = "Wine/Proton manager (download, install, remove) and compatibility layer detection compatible with Heronited's data files"
 
 [dependencies]
 heronite-data = { path = "../data" }

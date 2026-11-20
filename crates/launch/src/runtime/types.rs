@@ -143,7 +143,7 @@ impl Default for LauncherConfig {
 #[derive(Debug, Clone, Copy, Default)]
 pub struct StopOptions {
     /// Steam games: also SIGTERM the game processes found in Steam's logs.
-    /// Heronite's own stop only ends tracking for Steam games.
+    /// Heronited's own stop only ends tracking for Steam games.
     pub kill_steam_processes: bool,
 }
 

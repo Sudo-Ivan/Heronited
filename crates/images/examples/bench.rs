@@ -1,4 +1,4 @@
-//! Benchmark on real Heronite covers (read-only use of the Heroic image cache).
+//! Benchmark on real Heronited covers (read-only use of the Heroic image cache).
 //!
 //! cargo run --release -p heronite-images --example bench -- [cache_dir] [N] [--tw 250 --th 375] [--keep] [--threads 3]
 //!

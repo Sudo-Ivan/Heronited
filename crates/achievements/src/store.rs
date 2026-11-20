@@ -94,10 +94,10 @@ impl Summary {
 #[derive(Debug, Clone, Default, PartialEq)]
 pub struct Index {
     pub games: BTreeMap<String, Summary>,
-    /// Lines whose source this version does not know (a newer Heronite
+    /// Lines whose source this version does not know (a newer Heronited
     /// wrote them): kept as they are.
     unknown: Map<String, Value>,
-    /// Fields a newer Heronite added.
+    /// Fields a newer Heronited added.
     fields: Map<String, Value>,
 }
 
@@ -191,7 +191,7 @@ mod tests {
         assert!(read_index(&paths).games.is_empty());
     }
 
-    /// A game's copy as a newer Heronite writes it: a set and an "empty"
+    /// A game's copy as a newer Heronited writes it: a set and an "empty"
     /// mark from a source this version does not know, and a new field.
     const FROM_A_NEWER_VERSION: &str = r#"{
         "sets": [

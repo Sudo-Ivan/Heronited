@@ -1,4 +1,4 @@
-//! The launch hook: puts a game's mods in place when it starts from Heronite
+//! The launch hook: puts a game's mods in place when it starts from Heronited
 //! and takes them away when the session ends (`heronite_launch::GameMods`).
 //! It runs on the launcher's session thread: no GPUI in here.
 

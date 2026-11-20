@@ -1,5 +1,5 @@
-//! Brings Sunshine's application list in line with the entries Heronite
-//! wants there. Only applications with Heronite's marker are changed or
+//! Brings Sunshine's application list in line with the entries Heronited
+//! wants there. Only applications with Heronited's marker are changed or
 //! removed; the user's own are never touched.
 //!
 //! Sunshine addresses applications by their place in the list and sorts the
@@ -33,7 +33,7 @@ fn find(apps: &[Value], id: &str) -> Option<usize> {
     apps.iter().position(|a| marker(a) == Some(id))
 }
 
-/// Makes Heronite's applications exactly `wanted` (an id listed twice
+/// Makes Heronited's applications exactly `wanted` (an id listed twice
 /// counts once). Stops at the first error; what was done until then stays.
 pub fn sync(client: &Client, wanted: &[Entry]) -> Result<Report, Error> {
     let mut seen = HashSet::new();
@@ -93,7 +93,7 @@ pub fn sync(client: &Client, wanted: &[Entry]) -> Result<Report, Error> {
     Ok(report)
 }
 
-/// Removes every application of Heronite's (the integration was turned off).
+/// Removes every application of Heronited's (the integration was turned off).
 pub fn remove_all(client: &Client) -> Result<usize, Error> {
     sync(client, &[]).map(|r| r.removed)
 }

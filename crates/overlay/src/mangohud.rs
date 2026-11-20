@@ -1,4 +1,4 @@
-//! MangoHud's HUD in a running game whose MangoHud config Heronite did not
+//! MangoHud's HUD in a running game whose MangoHud config Heronited did not
 //! write (a Steam game with `MANGOHUD=1` or `mangohud %command%` in its
 //! launch options, a game with a `MANGOHUD_CONFIG` of the user's own...),
 //! shown and hidden without touching how the game was started.
@@ -26,7 +26,7 @@ use std::path::{Path, PathBuf};
 use std::sync::Mutex;
 
 /// The line our block starts with; the `no_display` line follows it.
-const MARK: &str = "# Heronite: HUD shown or hidden by the in-game overlay (removed when the game ends)";
+const MARK: &str = "# Heronited: HUD shown or hidden by the in-game overlay (removed when the game ends)";
 
 /// One change at a time: a toggle and a restore (game ended, app quitting)
 /// must not interleave, or a block could outlive the list of changed files.
@@ -193,7 +193,7 @@ fn restore(file: &Path) -> Result<(), String> {
     edit(file, without_block)
 }
 
-/// Adds `files` to the list (written whole and replaced: Heronite's own file).
+/// Adds `files` to the list (written whole and replaced: Heronited's own file).
 fn remember(record: &Path, files: &[PathBuf]) -> std::io::Result<()> {
     let list = std::fs::read_to_string(record).unwrap_or_default();
     let mut lines: Vec<String> = list.lines().filter(|l| !l.trim().is_empty()).map(String::from).collect();

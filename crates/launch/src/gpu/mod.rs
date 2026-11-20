@@ -1,4 +1,4 @@
-//! A game's graphics card settings (`heroniteGpu*`, Heronite keys): which
+//! A game's graphics card settings (`heroniteGpu*`, Heronited keys): which
 //! card draws it, the NVIDIA driver's frame generation (Smooth Motion), the
 //! upscaler upgrades of GE-Proton and Proton-CachyOS, Mesa's switches and
 //! what DXVK tells DirectX games about the card. Every one of them is

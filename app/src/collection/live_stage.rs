@@ -13,7 +13,7 @@
 //! (`heronite_images::backdrop_frame_rolloff`), on ffmpeg's reading thread.
 //! The GPU stretches the frame. Frames wait in one slot and only the newest becomes a
 //! texture when the window draws, as the trailers' do. It stops while
-//! Heronite is not the active window, a game runs, a trailer plays, the
+//! Heronited is not the active window, a game runs, a trailer plays, the
 //! stage is not drawn (Solid; a console page or idle screen) or the window
 //! has not drawn for a while (minimized, another workspace), and with Motion
 //! other than Full (console mode: its theme's motion too).

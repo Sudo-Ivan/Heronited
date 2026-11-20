@@ -47,7 +47,7 @@ impl Default for Net {
         let agent = ureq::Agent::config_builder()
             .timeout_global(Some(Duration::from_secs(20)))
             .http_status_as_error(false)
-            .user_agent(concat!("Heronite/", env!("CARGO_PKG_VERSION")))
+            .user_agent(concat!("Heronited/", env!("CARGO_PKG_VERSION")))
             .build()
             .into();
         Self { agent }

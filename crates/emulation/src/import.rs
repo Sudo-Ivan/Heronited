@@ -4,7 +4,7 @@
 //! Imports write, in this order and each in one read-modify-write:
 //! `sideload_apps/library.json` (Heroic `GameInfo`, merged by `app_name`),
 //! `local_library/library.json` (overlay meta), `local_library/metadata.json`
-//! (seeds `platforms`) -- the same files and shapes Heronite writes.
+//! (seeds `platforms`) -- the same files and shapes Heronited writes.
 
 use anyhow::Result;
 use heronite_data::models::{CollectionGameMetadata, LocalGameMeta, LocalGameRom, LocalMetaFile, MetadataFile};
@@ -46,7 +46,7 @@ fn find_existing<'a>(
 
 /// Shallow merge into `sideload_apps/library.json` `games` like
 /// `{ ...current[index], ...game }` -- except that empty art strings never
-/// replace art the game already has (Heronite wipes it on re-import).
+/// replace art the game already has (Heronited wipes it on re-import).
 fn upsert_sideload_game(games: &mut Vec<Value>, game: Value) {
     let app = game["app_name"].as_str().unwrap_or_default().to_owned();
     let existing = games.iter_mut().find(|g| g.get("app_name").and_then(Value::as_str) == Some(app.as_str()));
@@ -413,7 +413,7 @@ mod tests {
         let n = emu_app_name("e", "p", "/a|/b");
         assert!(n.starts_with("emu_") && n.len() == 20);
         assert_eq!(n, emu_app_name("e", "p", "/a|/b"));
-        // sha1("c6933e76-...|custom|/data/...") reproduces Heronite's name
+        // sha1("c6933e76-...|custom|/data/...") reproduces Heronited's name
         // (checked against the real fixture in the real-data test).
         assert_ne!(n, emu_app_name("e", "p", "/a"));
     }

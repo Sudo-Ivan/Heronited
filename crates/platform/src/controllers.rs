@@ -365,7 +365,7 @@ mod tests {
             r#type: SDL_JOYSTICK_TYPE_GAMEPAD.0 as u16,
             naxes: SDL_GAMEPAD_AXIS_COUNT.0 as u16,
             nbuttons: SDL_GAMEPAD_BUTTON_COUNT.0 as u16,
-            name: c"Heronite test pad".as_ptr(),
+            name: c"Heronited test pad".as_ptr(),
             ..Default::default()
         };
         // SAFETY: `desc` is a valid description that SDL copies.

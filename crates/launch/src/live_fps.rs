@@ -33,7 +33,7 @@ const MANGOHUD_CONFIGFILE: &str = "MANGOHUD_CONFIGFILE";
 /// Read by pressure-vessel: extra paths to mount read-only (`:`-separated).
 const CONTAINER_RO: &str = "PRESSURE_VESSEL_FILESYSTEMS_RO";
 /// The line our part of MangoHud's config file starts with.
-const OURS: &str = "# Heronite: the game's FPS limit, changed by the in-game overlay";
+const OURS: &str = "# Heronited: the game's FPS limit, changed by the in-game overlay";
 
 /// How a running game's limit can change. Written to `running.json` with the
 /// session, so a game the app picks up again keeps it.

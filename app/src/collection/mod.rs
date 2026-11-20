@@ -648,7 +648,7 @@ impl CollectionView {
             } else if self.page != crate::pages::Page::Collection {
                 self.page_escape(window, cx);
             } else {
-                // Heronite clears the selected game on Esc.
+                // Heronited clears the selected game on Esc.
                 self.focus = None;
                 self.selected = None;
             }

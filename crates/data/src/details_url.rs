@@ -1,4 +1,4 @@
-//! Where the focus panel's "open details" button goes. Heronite opens
+//! Where the focus panel's "open details" button goes. Heronited opens
 //! Heroic's game page (`/gamepage/<runner>/<appName>`), which this app does
 //! not have; the closest thing is the game's store page.
 

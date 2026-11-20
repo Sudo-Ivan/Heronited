@@ -38,9 +38,9 @@ impl PaletteView {
         match (&e.act, &e.game) {
             (Act::SelectGame(_), Some(b)) if b.playing => tr!("stop"),
             (Act::SelectGame(_), Some(b)) if b.installed => tr!("play"),
-            (Act::SelectGame(_), _) => tr!("show in Heronite"),
+            (Act::SelectGame(_), _) => tr!("show in Heronited"),
             (Act::GameActions(_), _) => tr!("open"),
-            _ if !launcher::runs_alone(e) => tr!("open in Heronite"),
+            _ if !launcher::runs_alone(e) => tr!("open in Heronited"),
             _ => tr!("run"),
         }
     }
@@ -290,7 +290,7 @@ impl Render for PaletteView {
             .child(hint(vec!["\u{21b5}"], self.enter_label()))
             .when(
                 self.mode == Mode::Launcher && self.selected_entry().is_some_and(|e| e.game_key().is_some() && launcher::runs_alone(e)),
-                |f| f.child(hint(vec!["\u{21e7}", "\u{21b5}"], tr!("show in Heronite"))),
+                |f| f.child(hint(vec!["\u{21e7}", "\u{21b5}"], tr!("show in Heronited"))),
             );
         footer = if self.game.is_some() {
             footer.child(hint(vec!["Esc"], tr!("back"))).child(div().flex_1())

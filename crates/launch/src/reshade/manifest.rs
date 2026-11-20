@@ -1,4 +1,4 @@
-//! `<data>/reshade/<game id>.json`: what Heronite put in a game's folder,
+//! `<data>/reshade/<game id>.json`: what Heronited put in a game's folder,
 //! so it can switch, update and remove exactly that, and never touch a file
 //! it did not write (or one the user changed since: its hash differs).
 
@@ -54,7 +54,7 @@ pub struct Manifest {
     /// Found installed by hand and taken over.
     #[serde(default)]
     pub adopted: bool,
-    /// `fxc2` when Heronite put `d3dcompiler_47.dll` there.
+    /// `fxc2` when Heronited put `d3dcompiler_47.dll` there.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub compiler: Option<String>,
     /// The build with add-on support (`false`: the standard build).

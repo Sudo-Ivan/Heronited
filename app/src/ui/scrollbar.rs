@@ -6,7 +6,7 @@ use gpui_kit::*;
 use crate::theme;
 
 /// Width of the mouse target of a draggable scrollbar (the visible thumb is
-/// 3px wide, like Heronite's `::-webkit-scrollbar`).
+/// 3px wide, like Heronited's `::-webkit-scrollbar`).
 const SCROLLBAR_HIT_W: f32 = 10.;
 
 /// Thumb height and its distance from the track top, in px.

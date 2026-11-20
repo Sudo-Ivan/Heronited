@@ -1,5 +1,5 @@
 //! Who opens `nxm://` (Nexus Mods) and `ror2mm://` (Thunderstore) links.
-//! Linux: the desktop entry that makes Heronite do it, and `xdg-mime` to read
+//! Linux: the desktop entry that makes Heronited do it, and `xdg-mime` to read
 //! and set it. Windows: the schemes under `HKCU\Software\Classes`, for this
 //! user only. Either way they are only written when the user asks for it
 //! (Settings → Mods, the manager's first-run card), never at start.
@@ -28,7 +28,7 @@ mod xdg {
 
     pub(super) fn entry_text(exe: &Path) -> String {
         format!(
-            "[Desktop Entry]\nType=Application\nName=Heronite (mods)\nComment=Opens the mod links of Nexus Mods and Thunderstore\nExec={} %u\nIcon=com.heronite.rs\nTerminal=false\nNoDisplay=true\nMimeType=x-scheme-handler/nxm;x-scheme-handler/ror2mm;\n",
+            "[Desktop Entry]\nType=Application\nName=Heronited (mods)\nComment=Opens the mod links of Nexus Mods and Thunderstore\nExec={} %u\nIcon=com.heronite.rs\nTerminal=false\nNoDisplay=true\nMimeType=x-scheme-handler/nxm;x-scheme-handler/ror2mm;\n",
             quote_exec_arg(&exe.to_string_lossy())
         )
     }
@@ -81,8 +81,8 @@ mod xdg {
             .status();
         match set {
             Ok(s) if s.success() => {}
-            Ok(s) => return Err(tr!("xdg-mime could not set Heronite for the mod links (it exited with {status})", status = s)),
-            Err(e) => return Err(tr!("xdg-mime is needed to set Heronite for the mod links: {error}", error = e)),
+            Ok(s) => return Err(tr!("xdg-mime could not set Heronited for the mod links (it exited with {status})", status = s)),
+            Err(e) => return Err(tr!("xdg-mime is needed to set Heronited for the mod links: {error}", error = e)),
         }
         // Updates the desktop's cache of types; not every system has the tool.
         let _ = Command::new("update-desktop-database")
@@ -103,7 +103,7 @@ mod xdg {
         #[test]
         fn the_entry_opens_links_with_the_executable() {
             let text = entry_text(Path::new("/opt/My Apps/heronite-rs"));
-            assert!(text.starts_with("[Desktop Entry]\nType=Application\nName=Heronite (mods)\n"), "{text}");
+            assert!(text.starts_with("[Desktop Entry]\nType=Application\nName=Heronited (mods)\n"), "{text}");
             assert!(text.contains("Exec=\"/opt/My Apps/heronite-rs\" %u\n"), "{text}");
             assert!(text.contains("NoDisplay=true\n"));
             assert!(text.contains("MimeType=x-scheme-handler/nxm;x-scheme-handler/ror2mm;\n"));
@@ -170,7 +170,7 @@ mod classes {
     }
 
     /// The schemes' commands together: ours only when both run this
-    /// executable (another copy of Heronite counts as another program).
+    /// executable (another copy of Heronited counts as another program).
     pub(super) fn state_of(commands: &[Option<String>], exe: &Path) -> HandlerState {
         let ours_cmd = command(exe).to_lowercase();
         let ours = |c: &Option<String>| c.as_deref().is_some_and(|c| c.trim().to_lowercase() == ours_cmd);
@@ -198,7 +198,7 @@ mod classes {
         for (scheme, label) in SCHEMES {
             for (key, name, value) in values(scheme, label, exe) {
                 set_string(Hive::CurrentUser, &key, name, &value).map_err(|e| {
-                    heronite_i18n::tr!("Could not set Heronite for the {scheme} links: {error}", scheme = scheme, error = e)
+                    heronite_i18n::tr!("Could not set Heronited for the {scheme} links: {error}", scheme = scheme, error = e)
                 })?;
             }
         }
@@ -211,12 +211,12 @@ mod classes {
 
         #[test]
         fn each_scheme_opens_this_executable_with_the_link() {
-            let exe = Path::new(r"C:\Program Files\Heronite\heronite-rs.exe");
+            let exe = Path::new(r"C:\Program Files\Heronited\heronite-rs.exe");
             let v = values("nxm", "URL:Nexus Mods", exe);
             assert_eq!(v[0], (r"Software\Classes\nxm".to_string(), "", "URL:Nexus Mods".to_string()));
             assert_eq!(v[1], (r"Software\Classes\nxm".to_string(), "URL Protocol", String::new()));
             assert_eq!(v[3].0, r"Software\Classes\nxm\shell\open\command");
-            assert_eq!(v[3].2, r#""C:\Program Files\Heronite\heronite-rs.exe" "%1""#);
+            assert_eq!(v[3].2, r#""C:\Program Files\Heronited\heronite-rs.exe" "%1""#);
             assert!(v.iter().all(|(key, _, _)| key.starts_with(r"Software\Classes\")), "per user, never HKLM");
         }
 
@@ -231,7 +231,7 @@ mod classes {
             assert_eq!(state_of(&[vortex.clone(), None], exe), HandlerState::Other);
             assert_eq!(state_of(&[ours, vortex], exe), HandlerState::Other);
             let elsewhere = Some(r#""D:\Old\heronite-rs.exe" "%1""#.to_string());
-            assert_eq!(state_of(&[elsewhere.clone(), elsewhere], exe), HandlerState::Other, "another copy of Heronite");
+            assert_eq!(state_of(&[elsewhere.clone(), elsewhere], exe), HandlerState::Other, "another copy of Heronited");
         }
     }
 }
@@ -251,7 +251,7 @@ impl ModsService {
         .detach();
     }
 
-    /// Only from the user's own click: makes Heronite open the mod links.
+    /// Only from the user's own click: makes Heronited open the mod links.
     pub(super) fn write_handlers(&mut self, cx: &mut Context<Self>) {
         cx.spawn(async move |this, cx| {
             let result = cx

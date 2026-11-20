@@ -113,7 +113,7 @@ fn wikipedia_gives_the_lead_when_no_other_source_has_the_game() {
     assert_eq!((m.id.as_str(), m.matched_by), ("Portal_2", Some(MatchedBy::ExactTitle)));
     // Every request says who it is.
     let req = s.server.log.lock().iter().find(|r| r.path().starts_with("/en.wikipedia.org")).cloned().unwrap();
-    assert!(req.header("user-agent").is_some_and(|ua| ua.starts_with("Heronite/")));
+    assert!(req.header("user-agent").is_some_and(|ua| ua.starts_with("Heronited/")));
 }
 
 #[test]

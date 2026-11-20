@@ -6,7 +6,7 @@
 # rest of /usr/bin (xdg-open for "Download Ludusavi") still works.
 #
 # The data folder is a new, empty one (a fresh install, onboarding
-# included), so it never forwards to a Heronite you have open.
+# included), so it never forwards to a Heronited you have open.
 #
 #   usage: scripts/no-ludusavi.sh [--with-settings] [page] [binary]
 #     --with-settings  copy your settings.json into the throwaway data folder
@@ -40,7 +40,7 @@ if [ "$WITH_SETTINGS" = 1 ]; then
   fi
 fi
 
-# Every folder Heronite looks in (resolve_binary), plus wherever $PATH has one.
+# Every folder Heronited looks in (resolve_binary), plus wherever $PATH has one.
 DIRS=()
 add() { for d in "${DIRS[@]}"; do [ "$d" = "$1" ] && return; done; DIRS+=("$1"); }
 for d in /usr/bin /usr/local/bin "$HOME/.local/bin"; do

@@ -38,7 +38,7 @@
   "Could not download the {store} installer: {error}": "Der {store}-Installer konnte nicht heruntergeladen werden: {error}",
   "Could not fetch {kind} releases: {error}": "{kind}-Versionen konnten nicht abgerufen werden: {error}",
   "Could not fetch the checksum: {error}": "Die Prüfsumme konnte nicht abgerufen werden: {error}",
-  "Could not get legendary, which Heronite uses for Epic Games: {error}": "legendary, das Heronite für Epic Games nutzt, konnte nicht geladen werden: {error}",
+  "Could not get legendary, which Heronited uses for Epic Games: {error}": "legendary, das Heronited für Epic Games nutzt, konnte nicht geladen werden: {error}",
   "Could not make the update executable: {error}": "Das Update konnte nicht ausführbar gemacht werden: {error}",
   "Could not move the build into {path}: {error}": "Die Version konnte nicht nach {path} verschoben werden: {error}",
   "Could not open the browser: {err}": "Der Browser konnte nicht geöffnet werden: {err}",
@@ -388,5 +388,5 @@
   "The newest release.": "Die neueste Version.",
   "{title} needs your Epic Games account, and you are signed out of it. Log in on the Epic Games page, or turn on \"Play offline\" in the game's settings.": "{title} braucht dein Epic-Games-Konto, und du bist davon abgemeldet. Melde dich auf der Epic-Games-Seite an oder schalte „Offline spielen“ in den Einstellungen des Spiels ein.",
   "Signed out of Epic Games": "Von Epic Games abgemeldet",
-  "{title} needs your Epic Games account to start, and Heronite is no longer signed in to it: Epic ended the saved session, or you logged out.\nLog in again to play. Play offline starts the game without the account, but some games need it and will not open.": "{title} braucht zum Starten dein Epic-Games-Konto, und Heronite ist nicht mehr damit angemeldet: Epic hat die gespeicherte Sitzung beendet, oder du hast dich abgemeldet.\nMelde dich erneut an, um zu spielen. Offline spielen startet das Spiel ohne das Konto, aber manche Spiele brauchen es und öffnen sich nicht."
+  "{title} needs your Epic Games account to start, and Heronited is no longer signed in to it: Epic ended the saved session, or you logged out.\nLog in again to play. Play offline starts the game without the account, but some games need it and will not open.": "{title} braucht zum Starten dein Epic-Games-Konto, und Heronited ist nicht mehr damit angemeldet: Epic hat die gespeicherte Sitzung beendet, oder du hast dich abgemeldet.\nMelde dich erneut an, um zu spielen. Offline spielen startet das Spiel ohne das Konto, aber manche Spiele brauchen es und öffnen sich nicht."
 }

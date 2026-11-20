@@ -184,7 +184,7 @@ impl CollectionView {
             .flatten()
             .find(|s| !s.is_empty())
             .map(str::to_owned);
-        // Steam games are rated by ProtonDB (Heronite flags its `steam-uri`
+        // Steam games are rated by ProtonDB (Heronited flags its `steam-uri`
         // entries as native because the Steam client is); the rest are native
         // when their install is a Linux build. Emulated games get no Linux row.
         let native = known_steam.is_none()

@@ -1,4 +1,4 @@
-//! Recording what was played, exactly like Heronite does when a game exits:
+//! Recording what was played, exactly like Heronited does when a game exits:
 //! `store/timestamp.json`, `local_library/sessions.json` and
 //! `store/config.json` -> `games.recent`.
 //!
@@ -174,7 +174,7 @@ pub fn add_recent_game(paths: &DataPaths, app_name: &str, title: &str) -> Result
     })
 }
 
-/// Everything Heronite does after a game exits.
+/// Everything Heronited does after a game exits.
 pub fn record_play(paths: &DataPaths, rec: &PlayRecord, min_session_seconds: i64) -> Result<RecordOutcome> {
     Checkpointer::default().write(paths, rec, min_session_seconds)
 }

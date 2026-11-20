@@ -5,7 +5,7 @@ use heronite_data::game_config::{load_global, Settings};
 use heronite_data::DataPaths;
 use serde_json::Value;
 
-/// Heronite's: show the window again once the game that minimized it ends.
+/// Heronited's: show the window again once the game that minimized it ends.
 pub const KEY_RESTORE_AFTER_GAME: &str = "heroniteRestoreAfterGame";
 
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]

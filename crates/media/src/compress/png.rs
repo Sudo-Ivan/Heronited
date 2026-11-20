@@ -11,7 +11,7 @@ use super::webp::MAX_SIDE;
 const SIGNATURE: [u8; 8] = [137, 80, 78, 71, 13, 10, 26, 10];
 /// `tEXt` keyword and text of a PNG we tried and kept (the WebP was not
 /// smaller). Placed right after `IHDR`, where [`probe`] reads it.
-const KEPT_KEYWORD: &str = "Heronite";
+const KEPT_KEYWORD: &str = "Heronited";
 const KEPT_TEXT: &str = "compression=kept-png";
 /// sRGB's gamma (1/2.2) in `gAMA` units, and how far a writer may round it.
 const SRGB_GAMMA: i64 = 45455;

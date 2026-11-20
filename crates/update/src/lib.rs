@@ -1,8 +1,8 @@
 //! Self-update of the AppImage and of the Windows copies.
 //!
-//! The release workflow publishes, for every tag, `Heronite-<arch>.AppImage`
-//! (and the system packages, `Heronite-Setup-<arch>.exe` and
-//! `Heronite-Portable-<arch>.zip`) with `SHA256SUMS`, every file's SHA-256,
+//! The release workflow publishes, for every tag, `Heronited-<arch>.AppImage`
+//! (and the system packages, `Heronited-Setup-<arch>.exe` and
+//! `Heronited-Portable-<arch>.zip`) with `SHA256SUMS`, every file's SHA-256,
 //! and `SHA256SUMS.minisig`, its minisign signature made with the key whose
 //! public half is [`PUBLIC_KEY`]. Releases up to 1.0 signed every file
 //! instead (`<file>.minisig`); those signatures are still published for a
@@ -51,17 +51,17 @@ pub use setup::Installer;
 pub use version::Version;
 
 /// GitHub API endpoint of the latest (non-draft, non-prerelease) release.
-pub const LATEST_API: &str = "https://api.github.com/repos/RafaelGoulartB/Heronite/releases/latest";
+pub const LATEST_API: &str = "https://api.github.com/repos/Sudo-Ivan/Heronited/releases/latest";
 
 /// The project on GitHub (a star, issues, Discussions).
-pub const REPO_PAGE: &str = "https://github.com/RafaelGoulartB/Heronite";
+pub const REPO_PAGE: &str = "https://github.com/Sudo-Ivan/Heronited";
 
 /// The releases page, for people who update by hand.
-pub const RELEASES_PAGE: &str = "https://github.com/RafaelGoulartB/Heronite/releases/latest";
+pub const RELEASES_PAGE: &str = "https://github.com/Sudo-Ivan/Heronited/releases/latest";
 
 /// Public half of the release signing key (minisign, ed25519). The secret
 /// half lives only in the repository secret `MINISIGN_SECRET_KEY`.
-pub const PUBLIC_KEY: &str = "RWSE2jZR7ZDsOydCTZOZivDlm7+0a3fALyFTGewUjbVbWGb6V4A2CALD";
+pub const PUBLIC_KEY: &str = "RWTQbdEYkUQ0H841EZLV5JBXoFSgSrJxuQr36hssa+BbWkZqNTSXbcei";
 
 fn agent() -> &'static ureq::Agent {
     use std::sync::OnceLock;

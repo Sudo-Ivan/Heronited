@@ -4,7 +4,7 @@
 //!
 //! Prefixes are found in the folders new prefixes go to (the
 //! `defaultWinePrefixDir` setting, `<defaultInstallPath>/Prefixes`, the
-//! Heronite and Heroic defaults) and next to every prefix a game is set to.
+//! Heronited and Heroic defaults) and next to every prefix a game is set to.
 //! A prefix a game is set to is listed even before Wine has created it.
 
 use std::collections::BTreeMap;
@@ -52,7 +52,7 @@ fn text(settings: &serde_json::Map<String, Value>, key: &str) -> String {
     settings.get(key).and_then(Value::as_str).map(|s| s.trim().trim_end_matches('/').to_string()).unwrap_or_default()
 }
 
-/// Where new prefixes are made: `defaultWinePrefixDir`, else Heronite's default.
+/// Where new prefixes are made: `defaultWinePrefixDir`, else Heronited's default.
 pub fn new_prefix_dir(data_paths: &DataPaths, home: &str) -> PathBuf {
     let global = game_config::load_global(data_paths, home);
     let dir = text(&global, "defaultWinePrefixDir");

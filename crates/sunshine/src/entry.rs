@@ -1,24 +1,24 @@
-//! One of Heronite's applications in Sunshine, and how it is told from the
+//! One of Heronited's applications in Sunshine, and how it is told from the
 //! user's own: the `heronite-id` key, which Sunshine keeps as it is (it
 //! stores what it is sent, minus `index`) and its web UI sends back when the
 //! entry is edited there.
 //!
-//! Heronite owns the keys it writes (`name`, `cmd`, `image-path`,
+//! Heronited owns the keys it writes (`name`, `cmd`, `image-path`,
 //! `prep-cmd`, `auto-detach`, `wait-all`, the marker); keys the user adds in
 //! Sunshine's web UI (an output log, a working folder) stay.
 
 use serde_json::{json, Map, Value};
 
-/// The key that marks an application as Heronite's.
+/// The key that marks an application as Heronited's.
 pub const MARKER: &str = "heronite-id";
 
-/// What one of Heronite's applications should be.
+/// What one of Heronited's applications should be.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Entry {
     /// Stable id: `<runner>_<appName>` for a game, [`CONSOLE_ID`] for console mode.
     pub id: String,
     pub name: String,
-    /// The command Sunshine runs (Heronite's launch path).
+    /// The command Sunshine runs (Heronited's launch path).
     pub cmd: String,
     /// A PNG on this computer; `None`: Sunshine's default box.
     pub image_path: Option<String>,
@@ -29,7 +29,7 @@ pub struct Entry {
 /// The id of the entry that opens console mode.
 pub const CONSOLE_ID: &str = "console";
 
-/// The marker of an application, when it is one of Heronite's.
+/// The marker of an application, when it is one of Heronited's.
 pub fn marker(app: &Value) -> Option<&str> {
     app.get(MARKER).and_then(Value::as_str).filter(|s| !s.is_empty())
 }
@@ -39,7 +39,7 @@ impl Entry {
         self.undo.as_ref().map(|undo| json!([{ "do": "", "undo": undo, "elevated": false }]))
     }
 
-    /// Writes Heronite's keys into `app`, keeping the others.
+    /// Writes Heronited's keys into `app`, keeping the others.
     pub fn apply_to(&self, app: &mut Map<String, Value>) {
         app.insert("name".into(), json!(self.name));
         app.insert("cmd".into(), json!(self.cmd));
@@ -52,7 +52,7 @@ impl Entry {
             Some(p) => app.insert("prep-cmd".into(), p),
             None => app.remove("prep-cmd"),
         };
-        // Heronite hands the launch to its running instance and exits at once:
+        // Heronited hands the launch to its running instance and exits at once:
         // the stream must not end with it.
         app.insert("auto-detach".into(), json!(true));
         app.insert("wait-all".into(), json!(true));

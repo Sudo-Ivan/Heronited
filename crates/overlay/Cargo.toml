@@ -3,7 +3,7 @@ name = "heronite-overlay"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
-description = "In-game overlay backend for Heronite: controller input (Guide button, grabs), system audio, controller status and the replay buffer"
+description = "In-game overlay backend for Heronited: controller input (Guide button, grabs), system audio, controller status and the replay buffer"
 
 [dependencies]
 heronite-data = { path = "../data" }

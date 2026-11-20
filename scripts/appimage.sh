@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
-# Packs the release binaries into dist/Heronite-x86_64.AppImage (the name the
+# Packs the release binaries into dist/Heronited-x86_64.AppImage (the name the
 # in-app updater and AppImageUpdate look for in the latest release) and
-# dist/Heronite-x86_64.AppImage.zsync. The name carries no version, so the
+# dist/Heronited-x86_64.AppImage.zsync. The name carries no version, so the
 # README and every release link to the same file.
 # The two binaries go in with the libraries the app links that a system may
 # lack (BUNDLED_LIBS: not on the AppImage excludelist, so a clean system, like
@@ -29,16 +29,16 @@ TOOL=${APPIMAGETOOL:-appimagetool}
 [[ $TOOL == */* ]] && TOOL=$(realpath "$TOOL")
 BIN=${BIN:-target/release}
 ARCH=x86_64
-NAME=Heronite-$ARCH.AppImage
-UPDATE_INFO=${UPDATE_INFO-"gh-releases-zsync|RafaelGoulartB|Heronite|latest|$NAME.zsync"}
+NAME=Heronited-$ARCH.AppImage
+UPDATE_INFO=${UPDATE_INFO-"gh-releases-zsync|Sudo-Ivan|Heronited|latest|$NAME.zsync"}
 XKBCOMMON=${XKBCOMMON-$(scripts/xkbcommon.sh)}
 
 [[ -x $BIN/heronite-rs && -x $BIN/heronite-epic-login ]] || cargo build --release -p heronite -p heronite-epic-login
 
 WORK=$(mktemp -d)
 trap 'rm -rf "$WORK"' EXIT
-APPDIR=$WORK/Heronite.AppDir
-ID=app.heronite.Heronite
+APPDIR=$WORK/Heronited.AppDir
+ID=io.github.sudoivan.Heronited
 # Linked by heronite-rs, directly or through each other: keyboard input
 # (xkbcommon, from $XKBCOMMON) and controllers (udev).
 BUNDLED_LIBS=(libxkbcommon.so.0 libxkbcommon-x11.so.0 libxcb-xkb.so.1 libudev.so.1)
@@ -91,7 +91,7 @@ chmod 755 "$APPDIR/AppRun"
 
 mkdir -p dist
 # Only this build in dist/: sign-release.sh signs every AppImage there.
-rm -f dist/Heronite-*
+rm -f dist/Heronited-*
 # appimagetool writes the .zsync into its working folder, which its AppRun
 # takes from OWD (unset when it runs extracted, as in CI: it would be $HOME).
 (cd dist && OWD=$PWD ARCH=$ARCH "$TOOL" --no-appstream ${UPDATE_INFO:+-u "$UPDATE_INFO"} "$APPDIR" "$NAME")

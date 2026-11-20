@@ -127,7 +127,7 @@ pub fn sync(paths: &DataPaths, found: &Found, removed: &BTreeSet<String>) -> Res
 }
 
 /// An XDG base folder of `home`: the variable when `home` is this user's
-/// home, else `home/default`. In Heronite's Flatpak the variables point into
+/// home, else `home/default`. In Heronited's Flatpak the variables point into
 /// its sandbox; the host's are `HOST_<var>` there.
 pub(crate) fn xdg(home: &Path, var: &str, default: &str) -> PathBuf {
     let own = std::env::var_os("HOME").is_some_and(|h| Path::new(&h) == home);

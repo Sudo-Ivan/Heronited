@@ -129,7 +129,7 @@ pub fn register(binding: &HyprlandBinding, accelerator: &str) -> Result<(), Fail
 /// `description`, and checks that Hyprland kept it. Refuses keys another
 /// bind has.
 ///
-/// Each description is one shortcut of one running Heronite, so any bind
+/// Each description is one shortcut of one running Heronited, so any bind
 /// carrying it by now was left behind by one that crashed (on these keys or
 /// on others, if the shortcut changed since): those go first.
 pub fn register_as(binding: &HyprlandBinding, accelerator: &str, command: &str, description: &str, consume: bool) -> Result<(), Failure> {

@@ -100,7 +100,7 @@ pub(super) enum Tracked {
         /// The app itself held the computer awake (Windows).
         #[serde(default, skip_serializing_if = "std::ops::Not::not")]
         hold_awake: bool,
-        /// The program whose GPU preference Heronite wrote, put back once
+        /// The program whose GPU preference Heronited wrote, put back once
         /// the game ends (Windows, see `crate::gpu::preference`).
         #[serde(default, skip_serializing_if = "Option::is_none")]
         gpu_exe: Option<String>,

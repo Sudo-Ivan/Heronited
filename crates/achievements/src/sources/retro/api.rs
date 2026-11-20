@@ -20,7 +20,7 @@ pub const BASE: &str = "https://retroachievements.org/API/";
 pub const MEDIA: &str = "https://media.retroachievements.org";
 
 /// The site asks for an identifiable client.
-const USER_AGENT: &str = concat!("Heronite/", env!("CARGO_PKG_VERSION"));
+const USER_AGENT: &str = concat!("Heronited/", env!("CARGO_PKG_VERSION"));
 
 /// How long a console's game list is trusted: it changes slowly and is big.
 const LIST_MAX_AGE_DAYS: i64 = 7;

@@ -284,7 +284,7 @@ fn apply_grabs(grabs: Vec<Grab>, pads: &mut HashMap<usize, Pad>, core: &mut Core
             Grab::Hold(id) => {
                 let busy = grab(pads.get_mut(&id), true).is_err_and(|e| e.raw_os_error() == Some(libc::EBUSY));
                 // Another program holds the controller (another launcher, a
-                // second Heronite, an input remapper): it gets the Guide
+                // second Heronited, an input remapper): it gets the Guide
                 // release, not us. Left held, the Guide would turn every later
                 // press into a chord.
                 if busy && core.guide_held_on(id) {

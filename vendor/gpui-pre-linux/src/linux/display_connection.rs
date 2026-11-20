@@ -162,12 +162,12 @@ impl DisplayConnection {
         dispatch!(self, connection => connection.hide_cursor_until_mouse_moves(), headless => ())
     }
 
-    /// Heronite: shows the cursor a hide took away.
+    /// Heronited: shows the cursor a hide took away.
     pub(crate) fn show_cursor(&self) {
         dispatch!(self, connection => connection.show_cursor(), headless => ())
     }
 
-    /// Heronite: the activation token for the next window (Wayland).
+    /// Heronited: the activation token for the next window (Wayland).
     pub(crate) fn replace_activation_token(&self, token: Option<String>) -> Option<String> {
         dispatch!(self, connection => connection.replace_activation_token(token), headless => {
             drop(token);

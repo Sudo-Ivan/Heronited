@@ -87,7 +87,7 @@ impl Render for NoticeView {
                 }
             }
             Shown::Opening => {
-                (tr!("Console mode"), tr!("Opening console mode…").to_string(), tr!("Heronite comes to the front").to_string(), None, None)
+                (tr!("Console mode"), tr!("Opening console mode…").to_string(), tr!("Heronited comes to the front").to_string(), None, None)
             }
         };
         // The ring and the line move on their own.

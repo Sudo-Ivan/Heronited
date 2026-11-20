@@ -249,7 +249,7 @@ impl Downloads {
     /// Enabling needs the overlay: when it is missing the Collection asks
     /// whether to install it first ([`DownloadsEvent::EosNotInstalled`]).
     fn eos_enable_game(&mut self, app_name: &str, cx: &mut Context<Self>) {
-        // It may have been installed by Heronite since the page last looked.
+        // It may have been installed by Heronited since the page last looked.
         self.eos.installed = eos_overlay::status(&self.data_paths).installed;
         if !self.eos.installed {
             self.emit(cx, DownloadsEvent::EosNotInstalled { app_name: app_name.to_string() });

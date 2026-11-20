@@ -15,7 +15,7 @@ use crate::accounts::RetroAccount;
 use crate::model::{Achievement, AchievementSet, Source};
 
 /// The site asks clients to say who they are.
-const USER_AGENT: &str = concat!("Heronite/", env!("CARGO_PKG_VERSION"), " (Linux)");
+const USER_AGENT: &str = concat!("Heronited/", env!("CARGO_PKG_VERSION"), " (Linux)");
 
 /// Achievements of the core set (`Flags` 5 are unofficial ones).
 const CORE: u64 = 3;

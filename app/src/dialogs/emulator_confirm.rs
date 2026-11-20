@@ -1,5 +1,5 @@
 //! Confirmations of the Emulators page: removing an emulator (and, as
-//! Heronite's `removeUserEmulator` does, the ROM folders that use it; games
+//! Heronited's `removeUserEmulator` does, the ROM folders that use it; games
 //! stay in the Collection) or a saved ROM folder.
 
 mod console;

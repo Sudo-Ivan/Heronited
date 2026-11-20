@@ -1,5 +1,5 @@
 //! Downloads and their cache in `<data>/tools/reshade/`. Nothing of
-//! ReShade ships with Heronite: the DLLs, shaders and lists come from their
+//! ReShade ships with Heronited: the DLLs, shaders and lists come from their
 //! official sources when the user installs, over HTTPS.
 //!
 //! ```text

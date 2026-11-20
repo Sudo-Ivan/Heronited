@@ -1478,7 +1478,7 @@ impl WaylandWindowStatePtr {
 
     pub fn get_ime_area(&self) -> Option<Bounds<Pixels>> {
         let mut state = self.state.borrow_mut();
-        // Heronite: the field's box is in GPUI px, at the app's interface scale.
+        // Heronited: the field's box is in GPUI px, at the app's interface scale.
         let zoom = gpui_zoom::factor(state.handle);
         let mut bounds: Option<Bounds<Pixels>> = None;
         if let Some(mut input_handler) = state.input_handler.take() {

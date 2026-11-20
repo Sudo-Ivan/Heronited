@@ -150,13 +150,14 @@ impl SettingsPanel {
             .when(self.has_preview(), |c| c.child(self.preview_section(cx)))
     }
 
-    /// A Steam game on Windows: Steam starts it as it is, and Heronite runs
+    /// A Steam game on Windows: Steam starts it as it is, and Heronited runs
     /// its scripts and programs alongside around it.
     fn steam_direct_tab(&mut self, cx: &mut Context<Self>) -> Div {
         let mut col = column();
         if heronite_launch::steam_extras::supported() {
             col = col.child(self.scripts_section(false, cx)).child(self.companions_section(cx)).child(
-                help(tr!("Steam starts the game itself, as from its library. Heronite runs these when you play from Heronite.")).px(px(6.)),
+                help(tr!("Steam starts the game itself, as from its library. Heronited runs these when you play from Heronited."))
+                    .px(px(6.)),
             );
         }
         if self.steam_line_only() {
@@ -166,13 +167,13 @@ impl SettingsPanel {
     }
 
     /// The user's scripts before the game starts and after it exits.
-    /// `steam`: Steam runs them through Heronite's wrapper script.
+    /// `steam`: Steam runs them through Heronited's wrapper script.
     pub(super) fn scripts_section(&mut self, steam: bool, cx: &mut Context<Self>) -> Div {
         let mut r = rows()
             .field(self.path_row("beforeScript", Some(tr!("Before the game starts")), false, tr!("Select script ..."), true, cx))
             .field(self.path_row("afterScript", Some(tr!("After the game exits")), false, tr!("Select script ..."), true, cx));
         if steam {
-            r = r.child(help(tr!("Steam runs them through a small Heronite script, however the game starts.")).pb(px(12.)));
+            r = r.child(help(tr!("Steam runs them through a small Heronited script, however the game starts.")).pb(px(12.)));
         } else if cfg!(windows) {
             r = r.child(help(tr!("A program, or a .bat, .cmd or .ps1 script")).pb(px(12.)));
         }

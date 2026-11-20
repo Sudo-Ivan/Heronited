@@ -1,5 +1,5 @@
 //! The user's Xbox account (optional): with it, the Xbox games get the play
-//! time and the last play Xbox network counted (also outside Heronite, on
+//! time and the last play Xbox network counted (also outside Heronited, on
 //! any device), their achievements and gamerscore, an image, and the PC games
 //! played on the account that are not installed here
 //! ([`crate::details`]).
@@ -9,7 +9,7 @@
 //! * [`titlehub`]: the account's titles and their minutes;
 //! * [`http`]: the requests, which the tests answer from fixtures.
 //!
-//! Heronite signs in as its own app registration ([`client_id`]).
+//! Heronited signs in as its own app registration ([`client_id`]).
 
 pub mod account;
 pub mod auth;
@@ -24,7 +24,7 @@ use heronite_data::DataPaths;
 use crate::details::{self, Applied};
 use http::Http;
 
-/// The application (client) id of Heronite's own registration with
+/// The application (client) id of Heronited's own registration with
 /// Microsoft (personal accounts, public client, redirect
 /// `https://login.live.com/oauth20_desktop.srf`), registered by the
 /// maintainer (issue #173). Another program's registration is not to be
@@ -36,7 +36,7 @@ pub const DEFAULT_CLIENT_ID: &str = "c8d70a4c-7469-4f4a-8dea-f98a3d12fe0c";
 /// variable), for a fork with its own registration.
 pub const CLIENT_ID_VAR: &str = "HERONITE_XBOX_CLIENT_ID";
 
-/// Heronite's client id: the override when it looks like one (a GUID), else
+/// Heronited's client id: the override when it looks like one (a GUID), else
 /// the default.
 pub fn client_id() -> Option<String> {
     let run = std::env::var(CLIENT_ID_VAR).ok();

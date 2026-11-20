@@ -1,6 +1,6 @@
 //! Screenshot options added by this app, kept in
 //! `AppPaths::screenshot_prefs()` next to the UI state rather than in the
-//! `screenshots` object of `local_library/settings.json` (Heronite's shape).
+//! `screenshots` object of `local_library/settings.json` (Heronited's shape).
 //!
 //! - `compressLossless`: convert PNG captures to lossless WebP in the
 //!   background (see `heronite_media::compress`).

@@ -305,17 +305,17 @@ struct StartupEnvironment {
 }
 
 impl LinuxPlatform {
-    /// Heronite: see [`crate::hide_cursor_until_mouse_moves`].
+    /// Heronited: see [`crate::hide_cursor_until_mouse_moves`].
     pub(crate) fn hide_cursor_now(&self) {
         self.connection.borrow().hide_cursor_until_mouse_moves()
     }
 
-    /// Heronite: see [`crate::show_cursor`].
+    /// Heronited: see [`crate::show_cursor`].
     pub(crate) fn show_cursor_now(&self) {
         self.connection.borrow().show_cursor()
     }
 
-    /// Heronite: see [`crate::replace_activation_token`].
+    /// Heronited: see [`crate::replace_activation_token`].
     pub(crate) fn replace_activation_token_now(&self, token: Option<String>) -> Option<String> {
         self.connection.borrow().replace_activation_token(token)
     }
@@ -751,7 +751,7 @@ impl Platform for LinuxPlatform {
         handle: AnyWindowHandle,
         options: WindowParams,
     ) -> anyhow::Result<Box<dyn PlatformWindow>> {
-        // Heronite: the window at the app's interface scale (`gpui-zoom`).
+        // Heronited: the window at the app's interface scale (`gpui-zoom`).
         gpui_zoom::open(handle, options, |options| self.connection.borrow().open_window(handle, options))
     }
 

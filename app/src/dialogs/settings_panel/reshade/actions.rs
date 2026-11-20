@@ -190,7 +190,7 @@ impl SettingsPanel {
             move |ops| manage::adopt(ops.paths, &id, &t.dir, &proxy),
             |this, m, cx| {
                 this.set(reshade::KEY_ENABLED, Value::Bool(m.enabled), cx);
-                this.reshade.message = Some((tr!("Heronite now manages this ReShade. Nothing was downloaded or changed.").into(), false));
+                this.reshade.message = Some((tr!("Heronited now manages this ReShade. Nothing was downloaded or changed.").into(), false));
             },
         );
     }
@@ -407,7 +407,7 @@ impl SettingsPanel {
     }
 
     /// Drops the DLLs ReShade needs from the user's `WINEDLLOVERRIDES`
-    /// (Heronite adds them while ReShade is on).
+    /// (Heronited adds them while ReShade is on).
     pub(super) fn clean_reshade_overrides(&mut self, cx: &mut Context<Self>) {
         let Some(o) = self.reshade.overview.clone() else { return };
         let dlls: Vec<String> = o.user_overrides.iter().map(|d| format!("{d}.dll")).collect();

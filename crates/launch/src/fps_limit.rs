@@ -9,7 +9,7 @@
 //! [`KEY_LIMIT`], [`KEY_METHOD`], [`KEY_SMOOTH`], [`KEY_NO_FOCUS`]. Heroic
 //! has three separate limiters (`enableDXVKFpsLimit` + `DXVKFpsCap`, the
 //! `gamescope` object's `enableLimiter` + `fpsLimiter` + `fpsLimiterNoFocus`)
-//! and Heronite added `heroniteMangohudFpsLimit`; they are read when the new
+//! and Heronited added `heroniteMangohudFpsLimit`; they are read when the new
 //! keys hold no limit.
 
 use serde_json::{Map, Value};
@@ -106,7 +106,7 @@ impl FpsLimit {
     }
 }
 
-/// Heroic's and Heronite's earlier limiters, gamescope's first (it ran the
+/// Heroic's and Heronited's earlier limiters, gamescope's first (it ran the
 /// game in gamescope, which the user would notice losing).
 fn legacy(m: &Map<String, Value>) -> Option<(Method, u32, u32)> {
     if let Some(Value::Object(g)) = m.get("gamescope") {
@@ -203,7 +203,7 @@ impl Tools {
         }
     }
 
-    /// The tools of a launch from Heronite. On a Steam Deck the session's
+    /// The tools of a launch from Heronited. On a Steam Deck the session's
     /// gamescope and MangoHud are Steam's, as in [`crate::env::build_wrappers`].
     pub fn detect(s: &GameSettings, probe: &dyn Probe) -> Tools {
         let deck = probe.env_var("SteamDeck").as_deref() == Some("1");
@@ -220,7 +220,7 @@ impl Tools {
 }
 
 /// Whether a game run by this Wine build draws through DXVK / VKD3D-Proton:
-/// Proton always (unless told to use WineD3D), plain Wine once Heronite
+/// Proton always (unless told to use WineD3D), plain Wine once Heronited
 /// installed DXVK into the prefix.
 pub fn uses_dxvk(kind: &str, name: &str, bin: &str, auto_install_dxvk: bool, wined3d: bool) -> bool {
     if wined3d || bin.contains("toolkit") || name.ends_with("-DXMT") {

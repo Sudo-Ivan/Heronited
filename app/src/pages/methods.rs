@@ -1,4 +1,4 @@
-//! The layout of a store Heronite reads in two ways (Steam, Xbox): a strip
+//! The layout of a store Heronited reads in two ways (Steam, Xbox): a strip
 //! with what the library holds, then two cards side by side.
 //!
 //! - Method 1, **local**: what is on this PC, with no login (the Steam

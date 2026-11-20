@@ -168,7 +168,7 @@ impl FacetKind {
 }
 
 /// `CollectionFacetFilters`, with several values per kind: a game matches a
-/// kind when it has any of its values (Heronite kept one per kind).
+/// kind when it has any of its values (Heronited kept one per kind).
 #[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(default)]
 pub struct FacetFilters {

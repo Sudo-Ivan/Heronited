@@ -5,7 +5,7 @@
 //! Needs `HERONITE_LUDUSAVI_EXE` (the program of Ludusavi's `-win64.zip`);
 //! skipped otherwise. The program is copied into a temp folder as a portable
 //! copy (`ludusavi.portable` next to it), so its config, the "game" (a custom
-//! game whose save is a temp file), the backups and Heronite's data folder
+//! game whose save is a temp file), the backups and Heronited's data folder
 //! are all temporary: `%APPDATA%\ludusavi` and real saves are never touched.
 //! Run with `cargo test -p heronite-emulation --test real_windows -- --nocapture`.
 #![cfg(windows)]
@@ -22,7 +22,7 @@ use heronite_emulation::ludusavi::{
 };
 use heronite_launch::SystemProbe;
 
-const GAME: &str = "Heronite Test Game";
+const GAME: &str = "Heronited Test Game";
 
 fn slashes(p: &Path) -> String {
     p.to_string_lossy().replace('\\', "/")
@@ -69,7 +69,7 @@ fn backs_up_restores_and_undoes_with_the_real_program() {
     assert_eq!(detected.config_path.as_deref().map(|p| p.replace('\\', "/")), Some(slashes(&tmp.path().join(r"ludusavi\config.yaml"))));
     assert_eq!(detected.backup_path.as_deref(), Some(slashes(&backups).as_str()));
 
-    // Heronite's settings: Ludusavi's own config (the portable one).
+    // Heronited's settings: Ludusavi's own config (the portable one).
     let paths = DataPaths::at(tmp.path().join("data"));
     fs::create_dir_all(paths.local_library()).unwrap();
     let settings = serde_json::json!({"ludusavi": {

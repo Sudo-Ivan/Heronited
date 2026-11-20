@@ -281,7 +281,7 @@ impl HyprlandBind {
     }
 
     /// The string `hl.unbind` takes for this bind; `None` for one with
-    /// modifiers Heronite never binds (so not one of its own).
+    /// modifiers Heronited never binds (so not one of its own).
     pub fn keys(&self) -> Option<String> {
         let key = self.key.as_deref().filter(|k| !k.is_empty())?;
         let modmask = self.modmask.unwrap_or(0);
@@ -300,7 +300,7 @@ impl HyprlandBind {
 
 /// The shell command a Hyprland bind runs to send the process `pid`, named
 /// `comm` (its `/proc/<pid>/comm`), the signal `signal`. The bind outlives a
-/// Heronite that crashed and process ids are reused: the signal, whose
+/// Heronited that crashed and process ids are reused: the signal, whose
 /// default action ends the process that gets it, only goes to one still
 /// called `comm`.
 pub fn hyprland_signal_command(signal: &str, pid: u32, comm: &str) -> String {
@@ -482,13 +482,13 @@ mod tests {
         let b = to_hyprland_binding("Ctrl+F10").unwrap();
         assert_eq!(
             hyprland_bind_expression_as(&b, "kill -USR2 4242", BIND_DESCRIPTION, false),
-            r#"hl.bind("CTRL + F10", hl.dsp.exec_cmd("kill -USR2 4242"), { non_consuming = true, dont_inhibit = true, allow_input_capture = true, description = "Heronite game screenshot" })"#
+            r#"hl.bind("CTRL + F10", hl.dsp.exec_cmd("kill -USR2 4242"), { non_consuming = true, dont_inhibit = true, allow_input_capture = true, description = "Heronited game screenshot" })"#
         );
         assert_eq!(hyprland_unbind_expression("CTRL + F10"), r#"hl.unbind("CTRL + F10")"#);
         let b = to_hyprland_binding("Super+G").unwrap();
         assert_eq!(
-            hyprland_bind_expression_as(&b, "kill -USR1 7", "Heronite overlay", true),
-            r#"hl.bind("SUPER + G", hl.dsp.exec_cmd("kill -USR1 7"), { non_consuming = false, dont_inhibit = true, allow_input_capture = true, description = "Heronite overlay" })"#
+            hyprland_bind_expression_as(&b, "kill -USR1 7", "Heronited overlay", true),
+            r#"hl.bind("SUPER + G", hl.dsp.exec_cmd("kill -USR1 7"), { non_consuming = false, dont_inhibit = true, allow_input_capture = true, description = "Heronited overlay" })"#
         );
     }
 
@@ -522,7 +522,7 @@ mod tests {
     fn bind_matching() {
         let b = to_hyprland_binding("Ctrl+f10").unwrap();
         let bind: HyprlandBind =
-            serde_json::from_str(r#"{"key":"F10","modmask":4,"description":"Heronite game screenshot","dispatcher":"exec"}"#).unwrap();
+            serde_json::from_str(r#"{"key":"F10","modmask":4,"description":"Heronited game screenshot","dispatcher":"exec"}"#).unwrap();
         assert!(bind.is_same_trigger(&b) && bind.is_ours(&b));
         let other: HyprlandBind = serde_json::from_str(r#"{"key":"F10","modmask":4,"description":""}"#).unwrap();
         assert!(other.is_same_trigger(&b) && !other.is_ours(&b));

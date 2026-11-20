@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# System packages needed to build Heronite on Ubuntu (CI and release).
+# System packages needed to build Heronited on Ubuntu (CI and release).
 set -euo pipefail
 sudo=""; [[ $(id -u) -ne 0 ]] && sudo=sudo
 $sudo apt-get update

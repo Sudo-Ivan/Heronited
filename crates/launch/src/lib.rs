@@ -4,7 +4,7 @@
 //!   emulators, legendary).
 //! * [`runtime`]: the [`runtime::Launcher`] that executes plans through a
 //!   [`runtime::Spawner`], tracks the game and emits [`runtime::LaunchEvent`]s.
-//! * [`record`]: session / playtime / recent-games writes, in Heronite's
+//! * [`record`]: session / playtime / recent-games writes, in Heronited's
 //!   formats.
 //! * [`steam`]: `steam://` URIs and installed-app detection.
 

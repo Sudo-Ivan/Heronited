@@ -1,6 +1,6 @@
 //! The games of the Microsoft Store and PC Game Pass on Windows: the Xbox
 //! app (or the Store) installs them as packages, each with its folder and
-//! its applications. Heronite reads, without starting anything, which of
+//! its applications. Heronited reads, without starting anything, which of
 //! the user's packages are games ([`scan`]) and keeps them in the
 //! Collection ([`collection`]); Windows starts them by their application's
 //! id (`heronite_launch`, `launchKind` `xbox`).

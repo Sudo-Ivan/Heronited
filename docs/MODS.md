@@ -1,9 +1,9 @@
 # Mods
 
-Heronite manages mods per game, MO2-style: every mod lives in a folder of its
+Heronited manages mods per game, MO2-style: every mod lives in a folder of its
 own and, on Linux, the game's folder is never written (Windows: see
 [Windows](#windows)). When a game with mods on starts
-from Heronite, `fuse-overlayfs` is mounted **over the game's own folder**: the
+from Heronited, `fuse-overlayfs` is mounted **over the game's own folder**: the
 enabled mods are layers above the game's files (the last mod of the list wins
 a file), and whatever the game writes while it runs lands in the game's
 *overwrite* folder. When the game ends the folder is unmounted and the game is
@@ -25,7 +25,7 @@ Mods.
    facts card ("Mods: 12 on"). It opens the Mods manager (a drawer).
 2. **Add mods**, three ways, all landing in the same list:
    - *Nexus Mods*: the "Mod manager download" button on nexusmods.com opens an
-     `nxm://` link. Heronite registers itself for `nxm://` (Settings → Mods, or
+     `nxm://` link. Heronited registers itself for `nxm://` (Settings → Mods, or
      the manager's first-run card) and needs the user's personal API key
      (Settings → Mods → Nexus Mods account). The link names the game
      (`nxm://skyrimspecialedition/...`): the mod goes to the Collection game
@@ -84,7 +84,7 @@ Mods.
    launch through Steam: the manager offers to add the variable to the game's
    Steam launch options. A script extender or loader an enabled mod brings
    (SKSE, F4SE, NVSE, SFSE, OBSE, ModEngine 2, SMAPI) only works when the game
-   starts through its executable: the manager says so and, for games Heronite
+   starts through its executable: the manager says so and, for games Heronited
    starts, sets the game's alternative executable (`targetExe`) with an Undo;
    for Steam games it shows the launch-options line to paste. Plans of games
    with mods are built with a probe that also sees the mods' files
@@ -218,7 +218,7 @@ with `HERONITE_FEATURES=+mods`): mod archives still need 7-Zip, `unzip` or
 `bsdtar` on the PATH, which a stock Windows lacks, and putting the game's
 folder back has no retry when a file is still locked.
 
-Windows has no overlay file system, and Heronite does not hook a game's file
+Windows has no overlay file system, and Heronited does not hook a game's file
 calls (MO2's usvfs). So while the game runs, the enabled mods' files are **in
 its folder**, and they come out again when it ends (`journal_deploy`):
 

@@ -320,7 +320,7 @@ pub(super) fn run_process(shared: &Shared, log: &Arc<GameLog>, req: &LaunchReque
             match follow_handoff(shared, control, handoff, log) {
                 Followed::Aborted => aborted = true,
                 Followed::Ended => {}
-                // A stop while waiting is the user's doing, not a game Heronite
+                // A stop while waiting is the user's doing, not a game Heronited
                 // lost. A command that is not only a request may have run the
                 // game itself, briefly: its time is counted already.
                 Followed::Unseen(waited) if control.kill.load(Ordering::SeqCst) || !(handoff.exit_ignored || handoff.package.is_some()) => {
@@ -330,7 +330,7 @@ pub(super) fn run_process(shared: &Shared, log: &Arc<GameLog>, req: &LaunchReque
                     unseen = waited;
                     status(Notice::warn(
                         format!("The game did not show up within {} s: this session's play time is not counted", waited.as_secs()),
-                        tr!("Heronite could not find {title} running, so this session's play time was not counted", title = req.title),
+                        tr!("Heronited could not find {title} running, so this session's play time was not counted", title = req.title),
                     ));
                 }
             }
@@ -377,7 +377,7 @@ pub(super) fn hold_awake(log: &GameLog, title: &str) -> Option<Hold> {
 }
 
 /// Asks Windows for `preference`'s card for `program`, right before it
-/// starts. Returns the value's name when Heronite wrote it (it is put back
+/// starts. Returns the value's name when Heronited wrote it (it is put back
 /// after the game); problems go to the game's log and the game starts anyway.
 pub(super) fn set_gpu_preference(
     shared: &Shared,

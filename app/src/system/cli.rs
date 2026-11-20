@@ -14,7 +14,7 @@
 //!   before the rename keep it.
 //! * `heronite://screenshot` (or `--screenshot`) captures the game the
 //!   running instance has open, like the screenshot shortcut. A key bound to
-//!   it in the desktop's settings stands in for that shortcut where Heronite
+//!   it in the desktop's settings stands in for that shortcut where Heronited
 //!   cannot register one (a desktop without a global shortcuts portal).
 //!
 //! * `heronite://quick-launch` (or `--quick-launch`) opens the quick launcher,

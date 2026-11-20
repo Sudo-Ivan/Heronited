@@ -1,4 +1,4 @@
-//! The Windows store clients Heronite starts games through: Battle.net, the
+//! The Windows store clients Heronited starts games through: Battle.net, the
 //! EA app, Ubisoft Connect and the Rockstar Games Launcher
 //! (`heronite_clients`).
 //!

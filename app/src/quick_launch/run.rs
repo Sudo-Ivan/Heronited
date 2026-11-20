@@ -1,6 +1,6 @@
 //! Carrying out what was chosen in the launcher. What needs no window runs
 //! here (through the hub, like the tray's recent games); the rest opens
-//! Heronite and runs there as Ctrl K would.
+//! Heronited and runs there as Ctrl K would.
 //!
 //! Favourites and hiding go through the open window when there is one, so
 //! it reloads its library and shows the change at once.
@@ -71,7 +71,7 @@ pub(super) fn run(act: Act, id: &str, bits: Option<GameBits>, lib: Option<Arc<Li
 /// A notification, handed over before returning: the app may quit right
 /// after (a start made only for the launcher). Off the UI thread.
 fn tell(message: String) {
-    crate::system::notify::send_and_wait("Heronite", message, std::time::Duration::from_secs(2));
+    crate::system::notify::send_and_wait("Heronited", message, std::time::Duration::from_secs(2));
 }
 
 /// Runs `act` in the main window, opening it (`raise`) or leaving it where

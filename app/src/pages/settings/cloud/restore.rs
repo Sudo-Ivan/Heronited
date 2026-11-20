@@ -1,7 +1,7 @@
 //! Settings → Cloud, "Restore from the cloud" (folded at the end of the
 //! page): a new or formatted PC connects and brings everything back. What
 //! the account holds is listed when asked; one PC is picked (the one of the
-//! newest backup first); then its Heronite backup, its game saves (into
+//! newest backup first); then its Heronited backup, its game saves (into
 //! Ludusavi's backup folder only) and the screenshots come back one by one,
 //! or all at once.
 
@@ -105,11 +105,11 @@ fn listed_body(d: &mut SettingsPage, listed: &InCloud, busy: bool, cx: &mut Cont
     };
     let backup_row = match &newest {
         Some(b) => row(
-            tr!("Heronite backup"),
+            tr!("Heronited backup"),
             Some(&format!("{} \u{b7} {}", made(b), human_size(b.bytes))),
             bring("cloud-bring-backup", tr!("Restore"), true, Bring::Backup(b.clone()), cx),
         ),
-        None => row(tr!("Heronite backup"), Some(tr!("None from this PC")), div()),
+        None => row(tr!("Heronited backup"), Some(tr!("None from this PC")), div()),
     };
     let saves_row = row(
         tr!("Game saves"),
@@ -156,7 +156,7 @@ fn listed_body(d: &mut SettingsPage, listed: &InCloud, busy: bool, cx: &mut Cont
                 .gap(px(12.))
                 .pt(px(10.))
                 .child(everything)
-                .child(meta_text(tr!("The saves and screenshots first, then the backup: restoring it restarts Heronite."))),
+                .child(meta_text(tr!("The saves and screenshots first, then the backup: restoring it restarts Heronited."))),
         )
         .children(render_all_backups(listed, busy, cx))
 }

@@ -628,7 +628,7 @@ pub(super) fn picture_row(d: &SettingsPage, cx: &mut Context<SettingsPage>) -> A
         BackgroundSource::Custom => rows.push(
             row(
                 tr!("Your picture"),
-                Some(tr!("Copied into Heronite's settings, so moving the file later does not matter.")),
+                Some(tr!("Copied into Heronited's settings, so moving the file later does not matter.")),
                 button("bg-custom-pick", ButtonKind::Glass, tr!("Choose a picture…"))
                     .on_click(cx.listener(|_, _, _, cx| pick_picture(PictureFor::Background, cx))),
             )
@@ -648,7 +648,7 @@ pub(super) fn animated_row(d: &SettingsPage, cx: &mut Context<SettingsPage>) -> 
         "bg-animated",
         tr!("Animated backgrounds"),
         Some(tr!(
-            "Plays a background that is a video or an animated picture: your own picture, a game's background, or one marked Animated in Covers → Background. Off, it shows its first frame. Pauses while a game runs or Heronite is in the background."
+            "Plays a background that is a video or an animated picture: your own picture, a game's background, or one marked Animated in Covers → Background. Off, it shows its first frame. Pauses while a game runs or Heronited is in the background."
         )),
         on,
     )
@@ -719,7 +719,7 @@ pub(super) fn home_row(d: &SettingsPage, cx: &mut Context<SettingsPage>) -> AnyE
         rows.push(
             row(
                 tr!("Your picture"),
-                Some(tr!("Copied into Heronite's settings, so moving the file later does not matter.")),
+                Some(tr!("Copied into Heronited's settings, so moving the file later does not matter.")),
                 button("bg-home-pick", ButtonKind::Glass, tr!("Choose a picture…"))
                     .on_click(cx.listener(|_, _, _, cx| pick_picture(PictureFor::Home, cx))),
             )

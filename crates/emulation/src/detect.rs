@@ -55,7 +55,7 @@ impl DetectEnv for SystemEnv {
         }
         let mut info = Command::new("flatpak");
         info.args(["info", id]);
-        // Inside Heronite's own Flatpak the host knows its Flatpaks.
+        // Inside Heronited's own Flatpak the host knows its Flatpaks.
         let Ok(mut child) = heronite_platform::flatpak::host(info).stdin(Stdio::null()).stdout(Stdio::null()).stderr(Stdio::null()).spawn()
         else {
             return false;

@@ -97,13 +97,13 @@ impl QuickLaunchService {
         let (ready_tx, mut ready) = unbounded();
         let spec = HotkeySpec {
             id: "quick-launch",
-            description: "Heronite: quick launcher",
+            description: "Heronited: quick launcher",
             // SIGUSR1 is the overlay's, SIGUSR2 the screenshot's, SIGRTMIN+1 the replay's.
             #[cfg(target_os = "linux")]
             signal: libc::SIGRTMIN() + 2,
             accelerator: accelerator.clone(),
             consume: true,
-            portal_app_id: Some("app.heronite.Heronite".into()),
+            portal_app_id: Some("io.github.sudoivan.Heronited".into()),
         };
         let hotkey = GlobalHotkey::start(
             spec,

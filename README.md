@@ -1,10 +1,9 @@
-<h1 align="center"><a href="https://heronite.app"><img src="assets/icon.svg" alt="" width="44" height="51" align="absmiddle" /></a> Heronite</h1>
+<h1 align="center"><img src="assets/icon.svg" alt="" width="44" height="51" align="absmiddle" /> Heronited</h1>
 
 <p align="center">
-  <a href="https://github.com/RafaelGoulartB/Heronite"><img alt="GitHub stars" src="https://img.shields.io/github/stars/RafaelGoulartB/Heronite?style=social" /></a>
-  <a href="https://github.com/RafaelGoulartB/Heronite/releases/latest"><img alt="Latest release" src="https://img.shields.io/github/v/release/RafaelGoulartB/Heronite?color=2B8CA8&label=release" /></a>
-  <a href="https://github.com/RafaelGoulartB/Heronite/releases"><img alt="Downloads" src="https://img.shields.io/github/downloads/RafaelGoulartB/Heronite/total?color=2B8CA8&logo=github&label=downloads" /></a>
-  <a href="https://github.com/RafaelGoulartB/Heronite/actions/workflows/ci.yml"><img alt="CI on Linux and Windows" src="https://img.shields.io/github/actions/workflow/status/RafaelGoulartB/Heronite/ci.yml?branch=main&label=CI&logo=githubactions&logoColor=white" /></a>
+  <a href="https://github.com/Sudo-Ivan/Heronited/releases/latest"><img alt="Latest release" src="https://img.shields.io/github/v/release/Sudo-Ivan/Heronited?color=2B8CA8&label=release" /></a>
+  <a href="https://github.com/Sudo-Ivan/Heronited/releases"><img alt="Downloads" src="https://img.shields.io/github/downloads/Sudo-Ivan/Heronited/total?color=2B8CA8&logo=github&label=downloads" /></a>
+  <a href="https://github.com/Sudo-Ivan/Heronited/actions/workflows/ci.yml"><img alt="CI on Linux and Windows" src="https://img.shields.io/github/actions/workflow/status/Sudo-Ivan/Heronited/ci.yml?branch=main&label=CI&logo=githubactions&logoColor=white" /></a>
   <img alt="Built with Rust" src="https://img.shields.io/badge/built%20with-Rust-2B8CA8.svg?logo=rust&logoColor=white" />
   <a href="LICENSE"><img alt="License: GPL v3" src="https://img.shields.io/badge/License-GPL_v3-2B8CA8.svg" /></a>
 </p>
@@ -14,85 +13,63 @@
 </p>
 
 <p align="center">
-  <a href="https://heronite.app"><b>Website</b></a> ·
-  <a href="https://github.com/RafaelGoulartB/Heronite/releases/latest"><b>Download</b></a> ·
-  <a href="https://github.com/RafaelGoulartB/Heronite/releases"><b>Release notes</b></a> ·
-  <a href="https://github.com/RafaelGoulartB/Heronite/wiki"><b>Wiki</b></a>
+  <a href="https://github.com/Sudo-Ivan/Heronited/releases/latest"><b>Download</b></a> ·
+  <a href="https://github.com/Sudo-Ivan/Heronited/releases"><b>Release notes</b></a> ·
+  <a href="https://github.com/RafaelGoulartB/Heronite"><b>Upstream: Heronite</b></a>
 </p>
 
 <p align="center">
-  <img alt="Heronite's Collection in Focus view: picking CONTROL and back to ELDEN RING, a look at its Compatibility, Performance and GPU settings, then the Grid view and back to Focus" src="assets/screenshots/demo.webp" width="100%" />
+  <img alt="Heronited's Collection in Focus view: picking CONTROL and back to ELDEN RING, a look at its Compatibility, Performance and GPU settings, then the Grid view and back to Focus" src="assets/screenshots/demo.webp" width="100%" />
 </p>
 
-Heronite brings your games from Steam, Epic Games, GOG, Amazon Games, Xbox and PC Game Pass, Battle.net, EA app, Ubisoft Connect, and Rockstar Games, plus emulated, native Linux, and Windows games, into one Collection. It launches them natively, through Wine/Proton on Linux, or through an emulator, records every session, and [stays light on your PC](#light-on-your-pc) as a native Rust app (GPUI, GPU rendered).
+Heronited is a personal fork of [Heronite](https://github.com/RafaelGoulartB/Heronite) by Rafael Goulart. All credit for the app goes to its original author; see [upstream](https://github.com/RafaelGoulartB/Heronite) for the main project.
 
-Coming from Heroic, Lutris, Bottles, Faugus, or Playnite? Heronite imports your games from them.
+Heronited brings your games from Steam, Epic Games, GOG, Amazon Games, Xbox and PC Game Pass, Battle.net, EA app, Ubisoft Connect, and Rockstar Games, plus emulated, native Linux, and Windows games, into one Collection. It launches them natively, through Wine/Proton on Linux, or through an emulator, records every session, and [stays light on your PC](#light-on-your-pc) as a native Rust app (GPUI, GPU rendered).
 
-## 📥 Download
+Coming from Heroic, Lutris, Bottles, Faugus, or Playnite? Heronited imports your games from them.
+
+## Download
 
 <div align="center">
 
 | Platform | Package | Download |
 |:---|:---|:---|
-| 🪟 Windows | Installer | [Heronite-Setup-x86_64.exe](https://github.com/RafaelGoulartB/Heronite/releases/latest/download/Heronite-Setup-x86_64.exe) |
-| 🪟 Windows | Portable | [Heronite-Portable-x86_64.zip](https://github.com/RafaelGoulartB/Heronite/releases/latest/download/Heronite-Portable-x86_64.zip) |
-| 🐧 Linux | AppImage (any distro, updates itself) | [Heronite-x86_64.AppImage](https://github.com/RafaelGoulartB/Heronite/releases/latest/download/Heronite-x86_64.AppImage) |
-| 🐧 Arch, Debian, Fedora | .pkg.tar.zst, .deb, .rpm | [Latest release](https://github.com/RafaelGoulartB/Heronite/releases/latest) |
+| 🪟 Windows | Installer | [Heronited-Setup-x86_64.exe](https://github.com/Sudo-Ivan/Heronited/releases/latest/download/Heronited-Setup-x86_64.exe) |
+| 🪟 Windows | Portable | [Heronited-Portable-x86_64.zip](https://github.com/Sudo-Ivan/Heronited/releases/latest/download/Heronited-Portable-x86_64.zip) |
+| 🐧 Linux | AppImage (any distro, updates itself) | [Heronited-x86_64.AppImage](https://github.com/Sudo-Ivan/Heronited/releases/latest/download/Heronited-x86_64.AppImage) |
+| 🐧 Arch, Debian, Fedora | .pkg.tar.zst, .deb, .rpm | [Latest release](https://github.com/Sudo-Ivan/Heronited/releases/latest) |
 
 </div>
+
+Only 64-bit builds are made: Windows x86_64 and Linux x86_64 (AppImage, Flatpak bundle, and system packages).
 
 <details>
 <summary><b>How to install</b></summary>
 
 | System | File | Install |
 |---|---|---|
-| Any distribution (**recommended**) | `Heronite-x86_64.AppImage` | `chmod +x Heronite-x86_64.AppImage && ./Heronite-x86_64.AppImage` |
-| Debian 12+, Ubuntu 22.04+, Mint, Pop!_OS | `heronite_<version>-1_amd64.deb` | `sudo apt install ./heronite_*_amd64.deb` |
-| Fedora 36+, openSUSE | `heronite-<version>-1.x86_64.rpm` | `sudo dnf install ./heronite-*.x86_64.rpm` |
-| Arch, Manjaro, EndeavourOS, CachyOS | `heronite-<version>-1-x86_64.pkg.tar.zst` | `sudo pacman -U heronite-*-x86_64.pkg.tar.zst` |
-| Windows 10 and 11 (**recommended**) | `Heronite-Setup-x86_64.exe` | Run it: it installs for your user, no administrator rights needed |
-| Windows 10 and 11, portable | `Heronite-Portable-x86_64.zip` | Extract it anywhere and run `Heronite\heronite.exe`; the library, settings, and screenshots stay in that folder |
+| Any distribution (**recommended**) | `Heronited-x86_64.AppImage` | `chmod +x Heronited-x86_64.AppImage && ./Heronited-x86_64.AppImage` |
+| Flatpak | `Heronited-x86_64.flatpak` | `flatpak install --user ./Heronited-x86_64.flatpak` |
+| Debian 12+, Ubuntu 22.04+, Mint, Pop!_OS | `heronited_<version>-1_amd64.deb` | `sudo apt install ./heronited_*_amd64.deb` |
+| Fedora 36+, openSUSE | `heronited-<version>-1.x86_64.rpm` | `sudo dnf install ./heronited-*.x86_64.rpm` |
+| Arch, Manjaro, EndeavourOS, CachyOS | `heronited-<version>-1-x86_64.pkg.tar.zst` | `sudo pacman -U heronited-*-x86_64.pkg.tar.zst` |
+| Windows 10 and 11 (**recommended**) | `Heronited-Setup-x86_64.exe` | Run it: it installs for your user, no administrator rights needed |
+| Windows 10 and 11, portable | `Heronited-Portable-x86_64.zip` | Extract it anywhere and run `Heronited\heronite.exe`; the library, settings, and screenshots stay in that folder |
 
 </details>
-
-
-<details>
-<summary><b>Windows - Scoop</b></summary>
-
-#### 🪟 Windows
-
-With [Scoop](https://scoop.sh), from the [`scoop-heronite`](https://github.com/RafaelGoulartB/scoop-heronite) bucket:
-
-```powershell
-scoop bucket add heronite https://github.com/RafaelGoulartB/scoop-heronite
-scoop install heronite/heronite
-```
-
-`scoop update heronite` installs new versions.
-
-</details>
-
-<details>
-<summary><b>Fedora - COPR</b></summary>
-
-#### 🐧 Fedora, Nobara, Ultramarine, Bazzite
-
-From the [`rafaelgoulart/heronite`](https://copr.fedorainfracloud.org/coprs/rafaelgoulart/heronite/) COPR:
-
-```bash
-sudo dnf copr enable rafaelgoulart/heronite
-sudo dnf install heronite
-```
-
-`sudo dnf upgrade` installs new versions.
-
-On atomic desktops (Bazzite, Silverblue, Kinoite), add the [COPR repo file](https://copr.fedorainfracloud.org/coprs/rafaelgoulart/heronite/) to `/etc/yum.repos.d/`, then run `rpm-ostree install heronite`.
-
-</details>
-
-
 
 The Windows files are not code-signed yet, so SmartScreen may warn about them: choose **More info**, then **Run anyway**.
+
+### Checking a download
+
+Every release file has a SHA-256 in `SHA256SUMS` (itself signed as `SHA256SUMS.minisig` with the minisign key the in-app updater trusts) and a SLSA build provenance attestation. With the [GitHub CLI](https://cli.github.com/):
+
+```sh
+sha256sum -c SHA256SUMS --ignore-missing
+gh attestation verify Heronited-x86_64.AppImage --repo Sudo-Ivan/Heronited
+```
+
+The attestation proves the file came from this repository's release workflow, not just that someone uploaded it.
 
 ---
 
@@ -116,7 +93,7 @@ The Windows files are not code-signed yet, so SmartScreen may warn about them: c
 
 - **Epic Games, GOG, and Amazon Games:** log in and install, update, repair, or move games from one download queue. On Windows, games from their official launchers come in without downloading again.
 - **Steam:** your library comes in by itself, no login needed.
-- **Xbox and PC Game Pass (Windows):** Microsoft Store and Game Pass games show up in your Collection, launch from Heronite, and count their play time.
+- **Xbox and PC Game Pass (Windows):** Microsoft Store and Game Pass games show up in your Collection, launch from Heronited, and count their play time.
 - **Battle.net, EA app, Ubisoft Connect, and Rockstar Games:** their games join your Collection, through the store's own app on Windows and in its own Wine prefix on Linux.
 - **Other launchers:** import and sync games from Heroic, Lutris, Bottles, and Faugus on Linux, and from Heroic and Playnite on Windows (Settings → Other launchers).
 - **Games you already have:** add one by hand, or a whole folder at once.
@@ -135,7 +112,7 @@ The Windows files are not code-signed yet, so SmartScreen may warn about them: c
 <table>
   <tr>
     <td width="50%" align="center"><a href="assets/screenshots/game-settings.webp"><img src="assets/screenshots/game-settings-proton.webp" width="100%" alt="Control's Compatibility settings: GE-Proton-latest as the version, ProtonDB Platinum with the recommended build, the game's prefix, and the Winecfg, Winetricks, and Run .exe in prefix buttons" /></a><br /><sub><b>Proton and prefix, per game</b></sub></td>
-    <td width="50%" align="center"><a href="assets/screenshots/wine-manager.webp"><img src="assets/screenshots/wine-manager-builds.webp" width="100%" alt="Wine Manager with Proton-CachyOS, GE-Proton, DW-Proton, UMU-Proton, and Proton-EM, each explained, next to the list of Proton-CachyOS builds" /></a><br /><sub><b>Wine Manager</b></sub></td>
+    <td width="50%" align="center"><a href="assets/screenshots/wine-manager.webp"><img src="assets/screenshots/wine-manager.webp" width="100%" alt="Wine Manager with Proton-CachyOS, GE-Proton, DW-Proton, UMU-Proton, and Proton-EM, each explained, next to the list of Proton-CachyOS builds" /></a><br /><sub><b>Wine Manager</b></sub></td>
   </tr>
 </table>
 
@@ -191,7 +168,7 @@ A controller-first layout for the couch or a TV. Turn it on from the ☰ menu, t
 
 A single native process drawn on the GPU, with no bundled browser like Electron-based launchers carry. The idle numbers come from [`scripts/idle-cost.sh`](scripts/idle-cost.sh), so you can check them on your own PC.
 
-| | Heronite Usage |
+| | Heronited Usage |
 |---|---|
 | Memory while idle | **~190 MB** in a single process, **~95 MB** closed to the tray |
 | CPU while idle | **~0.1%** (0.05 s of CPU time over 60 s) |
@@ -206,7 +183,7 @@ A single native process drawn on the GPU, with no bundled browser like Electron-
 
 <br>
 
-You need stable Rust. On Linux, also `clang` and `lld`, a Vulkan driver, and GTK/WebKitGTK; on Windows, the Visual Studio Build Tools ("Desktop development with C++") and [CMake](https://cmake.org) on the `PATH` (it builds SDL, which reads the controllers in console mode). Heronite downloads legendary, gogdl, and nile itself; [Ludusavi](https://github.com/mtkennerly/ludusavi) is optional.
+You need stable Rust. On Linux, also `clang` and `lld`, a Vulkan driver, and GTK/WebKitGTK; on Windows, the Visual Studio Build Tools ("Desktop development with C++") and [CMake](https://cmake.org) on the `PATH` (it builds SDL, which reads the controllers in console mode). Heronited downloads legendary, gogdl, and nile itself; [Ludusavi](https://github.com/mtkennerly/ludusavi) is optional.
 
 ```bash
 # quick build (the login window is its own binary, so build it too)
@@ -221,27 +198,18 @@ powershell -ExecutionPolicy Bypass -File scripts\windows\package.ps1
 
 </details>
 
+## Security
 
-## Contributors
-
-Heronite is better because of the people who gave their time to it. Thank you! 💜
-
-<a href="https://github.com/RafaelGoulartB/Heronite/graphs/contributors">
-  <img src="https://contrib.rocks/image?repo=RafaelGoulartB/Heronite" alt="Heronite contributors" />
-</a>
-
-Feel free to contribute too: every [pull request](https://github.com/RafaelGoulartB/Heronite/pulls) and [issue](https://github.com/RafaelGoulartB/Heronite/issues) is welcome!
+The workflows are audited with [zizmor](https://github.com/zizmorcore/zizmor), actions are pinned to commits, dependencies are checked against the RustSec advisory database, and releases are signed with minisign for the in-app updater. Report problems privately, as [SECURITY.md](SECURITY.md) explains.
 
 ## License
 
-Copyright (C) 2026 [Rafael Goulart](https://www.linkedin.com/in/rafael-goulartb/)
+Heronited is a fork of [Heronite](https://github.com/RafaelGoulartB/Heronite), Copyright (C) 2026 Rafael Goulart.
 
 Licensed under the [GNU General Public License v3.0](LICENSE). Third-party components keep their own licenses; see [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md).
 
 ## Contact
 
-- **Questions and ideas:** [Discussions](https://github.com/RafaelGoulartB/Heronite/discussions)
-- **Bugs:** [Issues](https://github.com/RafaelGoulartB/Heronite/issues)
+- **Bugs and ideas:** [Issues](https://github.com/Sudo-Ivan/Heronited/issues)
 - **Contributing:** start with [CONTRIBUTING.md](CONTRIBUTING.md) and the [architecture notes](docs/ARCHITECTURE.md)
 - **Security problems:** report them privately, as [SECURITY.md](SECURITY.md) explains
-- **Anything else:** [hello@heronite.app](mailto:hello@heronite.app)

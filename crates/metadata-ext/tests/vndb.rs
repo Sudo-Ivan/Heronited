@@ -311,7 +311,7 @@ fn a_game_no_other_source_has_is_found_by_its_title() {
 
     // It says who it is, and nothing about the user.
     let req = s.server.log.lock().iter().find(|r| r.path() == API).cloned().unwrap();
-    assert!(req.header("user-agent").is_some_and(|ua| ua.starts_with("Heronite/")), "{:?}", req.header("user-agent"));
+    assert!(req.header("user-agent").is_some_and(|ua| ua.starts_with("Heronited/")), "{:?}", req.header("user-agent"));
     assert_eq!(req.method, "POST");
     assert_eq!((body(&req)["sort"].as_str(), body(&req)["results"].as_u64()), (Some("searchrank"), Some(20)));
 

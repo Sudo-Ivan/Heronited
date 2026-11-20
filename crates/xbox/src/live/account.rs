@@ -57,7 +57,7 @@ pub fn save(paths: &DataPaths, account: &Account) -> Result<()> {
     std::fs::rename(&tmp, &file).with_context(|| format!("writing {}", file.display()))
 }
 
-/// Forgets the account. (The user can also take Heronite's access away at
+/// Forgets the account. (The user can also take Heronited's access away at
 /// account.live.com/consent/Manage.)
 pub fn sign_out(paths: &DataPaths) -> Result<()> {
     match std::fs::remove_file(path(paths)) {

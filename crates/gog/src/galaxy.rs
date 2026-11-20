@@ -10,7 +10,7 @@
 //! then starts them from their folder like its own installs, and leaves
 //! updates, repairs, moves and uninstalls to Galaxy. A game Galaxy no
 //! longer lists, or whose folder is gone, is taken off the list again. A game
-//! installed by Heronite stays as it is.
+//! installed by Heronited stays as it is.
 //!
 //! It runs after every library refresh (so after logging in) and from the
 //! GOG page's button.
@@ -123,7 +123,7 @@ pub fn import_from(paths: &DataPaths, entries: &[Entry]) -> Result<Report> {
 
     for game in &games {
         let old = current.iter().find(|i| i.app_name == game.id);
-        // Heronite's own install, or a game of another account.
+        // Heronited's own install, or a game of another account.
         if old.is_some_and(|o| !o.from_galaxy()) || !library::owns(paths, &game.id) {
             continue;
         }
@@ -283,12 +283,12 @@ mod tests {
         assert!(installed::get(&paths, "1").is_none());
     }
 
-    /// A test key under `HKCU\Software\Heronite\Tests`, never Galaxy's own.
+    /// A test key under `HKCU\Software\Heronited\Tests`, never Galaxy's own.
     #[cfg(windows)]
     #[test]
     fn the_registry_layout_galaxy_writes_is_read() {
         use heronite_platform::registry::{self, Hive};
-        let key = format!(r"Software\Heronite\Tests\GogGalaxy-{}", std::process::id());
+        let key = format!(r"Software\Heronited\Tests\GogGalaxy-{}", std::process::id());
         let game = format!(r"{key}\1207658924");
         registry::set_string(Hive::CurrentUser, &game, "path", r"C:\GOG Games\Witcher").unwrap();
         registry::set_string(Hive::CurrentUser, &game, "gameName", "The Witcher").unwrap();

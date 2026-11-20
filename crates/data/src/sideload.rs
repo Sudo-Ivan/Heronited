@@ -1,6 +1,6 @@
 //! Adding, editing and removing sideloaded ("Local") games: what Heroic's
 //! `SideloadDialog` + `SideloadLibraryManager.addNewApp` write, plus the
-//! Heronite overlay hook (`applySideloadAppToLocalMeta` and
+//! Heronited overlay hook (`applySideloadAppToLocalMeta` and
 //! `syncLocalExecutablePlatform`).
 //!
 //! * `sideload_apps/library.json` (`games`): the `GameInfo` entry, tab-indented
@@ -413,7 +413,7 @@ pub fn find_game(paths: &DataPaths, app_name: &str) -> Result<Option<Value>> {
 }
 
 // Removing: the game itself goes through `heronite_metadata::remove`
-// (Heronite's "Remove from Collection"); only the Wine prefix is handled here.
+// (Heronited's "Remove from Collection"); only the Wine prefix is handled here.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum PrefixOutcome {
     Removed(PathBuf),
@@ -822,14 +822,14 @@ mod tests {
     fn prefix_removal_follows_heroics_sanity_checks() {
         let tmp = tempfile::tempdir().unwrap();
         let home = tmp.path().join("home");
-        let pfx = home.join("Games/Heronite/Prefixes/My Game");
+        let pfx = home.join("Games/Heronited/Prefixes/My Game");
         fs::create_dir_all(pfx.join("drive_c")).unwrap();
-        let shared = home.join("Games/Heronite/Prefixes/shared");
+        let shared = home.join("Games/Heronited/Prefixes/shared");
         fs::create_dir_all(shared.join("drive_c")).unwrap();
-        let junk = home.join("Games/Heronite/Prefixes/junk");
+        let junk = home.join("Games/Heronited/Prefixes/junk");
         fs::create_dir_all(&junk).unwrap();
         fs::write(junk.join("notes.txt"), "x").unwrap();
-        let protected = vec![shared.clone(), home.join("Games/Heronite")];
+        let protected = vec![shared.clone(), home.join("Games/Heronited")];
         assert!(check_prefix_removable(&pfx, &protected, &home).is_ok());
         assert!(check_prefix_removable(&shared, &protected, &home).unwrap_err().contains("shared or default"));
         assert!(check_prefix_removable(&junk, &protected, &home).unwrap_err().contains("drive_c/pfx"));
@@ -848,13 +848,13 @@ mod tests {
         let home = tmp.path().join("home");
         let paths = DataPaths::at(tmp.path().join("cfg"));
         fs::create_dir_all(paths.games_config_dir()).unwrap();
-        let pfx = home.join("Games/Heronite/Prefixes/G");
+        let pfx = home.join("Games/Heronited/Prefixes/G");
         fs::create_dir_all(pfx.join("pfx")).unwrap();
         init_game_config(&paths, home.to_str().unwrap(), "g", pfx.to_str().unwrap(), None, "").unwrap();
         assert_eq!(remove_prefix(&paths, "g", home.to_str().unwrap()), PrefixOutcome::Removed(pfx.clone()));
         assert!(!pfx.exists());
         // The shared prefix is never removed.
-        let shared = home.join("Games/Heronite/Prefixes/shared");
+        let shared = home.join("Games/Heronited/Prefixes/shared");
         fs::create_dir_all(shared.join("drive_c")).unwrap();
         init_game_config(&paths, home.to_str().unwrap(), "s", shared.to_str().unwrap(), None, "").unwrap();
         assert!(matches!(remove_prefix(&paths, "s", home.to_str().unwrap()), PrefixOutcome::Skipped(_)));

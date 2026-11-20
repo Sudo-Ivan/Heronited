@@ -1,12 +1,12 @@
 //! What Settings → Saves and a game's Saves tab show when Ludusavi is not
 //! installed: what it is, where to download it and how to install it so
-//! Heronite finds it, then "Look again".
+//! Heronited finds it, then "Look again".
 //!
-//! Heronite runs the `ludusavi` program itself (`$PATH`, `/usr/bin`,
+//! Heronited runs the `ludusavi` program itself (`$PATH`, `/usr/bin`,
 //! `/usr/local/bin`, `~/.local/bin`). The Flatpak is not found there, and
 //! its sandbox would not see the restore's temporary config, so the
 //! download page's Linux build is the one to point at. On Windows it is the
-//! `-win64.zip` (one `ludusavi.exe`), unpacked where Heronite looks, or
+//! `-win64.zip` (one `ludusavi.exe`), unpacked where Heronited looks, or
 //! winget's or Scoop's package.
 
 use gpui_kit::prelude::*;
@@ -35,7 +35,7 @@ fn title() -> &'static str {
 }
 
 fn why() -> &'static str {
-    tr!("Heronite backs up and restores game saves with Ludusavi, a free program that knows where thousands of games keep their saves. Install it once and saves are backed up every time you close a game.")
+    tr!("Heronited backs up and restores game saves with Ludusavi, a free program that knows where thousands of games keep their saves. Install it once and saves are backed up every time you close a game.")
 }
 
 fn steps() -> [&'static str; 3] {
@@ -58,7 +58,7 @@ fn flatpak_note() -> &'static str {
     if cfg!(windows) {
         return tr!("Installed somewhere else? Set the program in Backup location & format.");
     }
-    tr!("The Flatpak version is not found: Heronite runs the ludusavi program itself. Installed somewhere else? Set the program in Backup location & format.")
+    tr!("The Flatpak version is not found: Heronited runs the ludusavi program itself. Installed somewhere else? Set the program in Backup location & format.")
 }
 
 /// The desktop card. `id` keeps the buttons apart when shown twice.

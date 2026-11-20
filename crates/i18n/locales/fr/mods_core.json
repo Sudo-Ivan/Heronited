@@ -1,8 +1,8 @@
 {
   "Cannot use {path}: it is not a folder": "Impossible d’utiliser {path} : ce n’est pas un dossier",
   "Could not download fuse-overlayfs: {error}": "Impossible de télécharger fuse-overlayfs : {error}",
-  "Heronite needs FUSE (fusermount3) to apply mods. Install the fuse3 package.": "Heronite a besoin de FUSE (fusermount3) pour appliquer les mods. Installez le paquet fuse3.",
-  "Heronite needs FUSE to apply mods, but /dev/fuse is missing. Load the fuse kernel module.": "Heronite a besoin de FUSE pour appliquer les mods, mais /dev/fuse est absent. Chargez le module noyau fuse.",
+  "Heronited needs FUSE (fusermount3) to apply mods. Install the fuse3 package.": "Heronited a besoin de FUSE (fusermount3) pour appliquer les mods. Installez le paquet fuse3.",
+  "Heronited needs FUSE to apply mods, but /dev/fuse is missing. Load the fuse kernel module.": "Heronited a besoin de FUSE pour appliquer les mods, mais /dev/fuse est absent. Chargez le module noyau fuse.",
   "Mods cannot be applied over {path}": "Impossible d’appliquer les mods sur {path}",
   "Mods could not be applied: {error}": "Impossible d’appliquer les mods : {error}",
   "Not a valid game key: {key}": "Clé de jeu non valide : {key}",

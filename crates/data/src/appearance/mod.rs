@@ -1,4 +1,4 @@
-//! Appearance settings that belong to this app only (Heronite has no
+//! Appearance settings that belong to this app only (Heronited has no
 //! equivalent), kept in `AppPaths::appearance()` next to `ui-state.json`:
 //!
 //! - the opacity of the Collection background art (`collectionOpacity`, %);

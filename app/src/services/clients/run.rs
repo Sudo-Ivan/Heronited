@@ -14,7 +14,7 @@ impl Clients {
         self.open_with(client, false, cx);
     }
 
-    /// [`Self::open`] asked by the client's shortcut: Heronite's window may
+    /// [`Self::open`] asked by the client's shortcut: Heronited's window may
     /// not be on screen, so a failure is also a desktop notification.
     pub fn open_from_shortcut(&mut self, client: Client, cx: &mut Context<Self>) {
         self.open_with(client, true, cx);
@@ -27,7 +27,7 @@ impl Clients {
             // would leave the click unanswered, the window may be hidden.
             if notify && self.state(client).activity != Activity::Opening {
                 let text = tr!("{client} is busy right now. Try again in a moment.", client = client.name());
-                crate::system::notify::send("Heronite", text);
+                crate::system::notify::send("Heronited", text);
             }
             return;
         }
@@ -47,7 +47,7 @@ impl Clients {
                     Err(e) => {
                         let text = tr!("Could not open {client}: {error}", client = client.name(), error = e);
                         if notify {
-                            crate::system::notify::send("Heronite", text.clone());
+                            crate::system::notify::send("Heronited", text.clone());
                         }
                         let st = this.state_mut(client);
                         st.activity = Activity::Idle;

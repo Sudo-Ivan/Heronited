@@ -1,4 +1,4 @@
-//! Image pipeline for the Heronite Collection screen.
+//! Image pipeline for the Heronited Collection screen.
 //!
 //! * [`load_cover`]  - object-fit *cover* tile art at exact physical size.
 //! * [`load_fit`]    - whole image inside a box, aspect and transparency kept (logos).
@@ -79,7 +79,7 @@ pub const REFLECTION_PART: f32 = 0.3;
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum ImageRef {
     File(PathBuf),
-    /// Fetched through Heronite's shared `images-cache` (see [`Opts::images_cache_dir`]).
+    /// Fetched through Heronited's shared `images-cache` (see [`Opts::images_cache_dir`]).
     Url(String),
     /// The first file called `name` in `dir` or in one of its sub-folders
     /// (Steam keeps a game's art in hashed folders it names itself). Looked

@@ -489,7 +489,7 @@ mod tests {
         let all = scan_rom_directory(&e, &p, root.to_str().unwrap(), ScanOptions::default(), &HashSet::new());
         assert_eq!(titles(&all), ["Deeper", "Mario", "Zelda"]);
         assert!(all.errors.is_empty());
-        // Non recursive still looks one level into subfolders (as Heronite).
+        // Non recursive still looks one level into subfolders (as Heronited).
         let flat = scan_rom_directory(
             &e,
             &p,

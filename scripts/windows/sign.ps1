@@ -72,7 +72,7 @@ if ($env:WINDOWS_SIGN_COMMAND) {
     $signtool = Find-SignTool
     $signArgs = @('sign', '/fd', 'SHA256', '/f', $env:WINDOWS_SIGN_PFX)
     if ($env:WINDOWS_SIGN_PASSWORD) { $signArgs += @('/p', $env:WINDOWS_SIGN_PASSWORD) }
-    $signArgs += @('/tr', $timestamp, '/td', 'SHA256', '/d', 'Heronite', '/du', 'https://github.com/RafaelGoulartB/Heronite', $File)
+    $signArgs += @('/tr', $timestamp, '/td', 'SHA256', '/d', 'Heronited', '/du', 'https://github.com/Sudo-Ivan/Heronited', $File)
     & $signtool @signArgs | Out-Host
     if ($LASTEXITCODE -ne 0) { Fail "signtool sign failed ($LASTEXITCODE) for $File" }
 } else {

@@ -8,7 +8,7 @@
 //! On the first start (the data folder does not exist yet) the parts of
 //! Heroic's config folder this app uses are copied in: library, Collection,
 //! playtime, game settings, Epic login (`legendaryConfig`), Wine tools and
-//! caches, plus the game logs and the legendary binary of the Heronite
+//! caches, plus the game logs and the legendary binary of the Heronited
 //! install. Absolute paths into Heroic's folder (Wine builds in `tools/`) are
 //! rewritten to the new one: as they are, and as JSON writes a Windows path
 //! (each `\` doubled). Heroic for Windows keeps the same folder in
@@ -84,9 +84,9 @@ impl Source {
         let arch = if std::env::consts::ARCH == "aarch64" { "arm64" } else { "x64" };
         let rel = format!("resources/app.asar.unpacked/build/bin/{arch}/linux/legendary");
         if let Some(home) = dirs::home_dir() {
-            legendary.push(home.join(".local/opt/Heronite").join(&rel));
+            legendary.push(home.join(".local/opt/Heronited").join(&rel));
         }
-        for base in ["/opt/Heronite", "/opt/Heroic", "/usr/lib/heroic"] {
+        for base in ["/opt/Heronited", "/opt/Heroic", "/usr/lib/heroic"] {
             legendary.push(Path::new(base).join(&rel));
         }
         Some(Self {

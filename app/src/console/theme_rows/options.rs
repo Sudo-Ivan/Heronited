@@ -387,7 +387,7 @@ pub(super) static OPTS: &[Opt] = &[
         "startup.auto_console",
         Startup,
         n_!("When a controller connects"),
-        n_!("Ask shows a notice in the corner of the screen, even with Heronite in the tray."),
+        n_!("Ask shows a notice in the corner of the screen, even with Heronited in the tray."),
         &[],
         AutoConsole,
         auto_console_name,

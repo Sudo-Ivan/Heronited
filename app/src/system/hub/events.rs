@@ -149,14 +149,14 @@ fn notify_without_window(cx: &App, ev: &LaunchEvent) {
                     Some(r) if r.opens_by_itself() => crate::diagnosis::text::summary(&r),
                     _ => crate::runtime::failed_launch_message(&title, failed),
                 };
-                crate::system::notify::send("Heronite", text);
+                crate::system::notify::send("Heronited", text);
             });
             if let Err(e) = spawned {
                 log::warn!("launch diagnosis: {e}");
             }
         }
-        LaunchEvent::Error { message, .. } => crate::system::notify::send("Heronite", message.clone()),
-        LaunchEvent::Status { message, warning: true, .. } => crate::system::notify::send("Heronite", message.clone()),
+        LaunchEvent::Error { message, .. } => crate::system::notify::send("Heronited", message.clone()),
+        LaunchEvent::Status { message, warning: true, .. } => crate::system::notify::send("Heronited", message.clone()),
         _ => {}
     }
 }
@@ -224,7 +224,7 @@ fn take_screenshot(cx: &mut App) {
     use heronite_media::capture::{CaptureOutcome, SkipReason};
     let Some(capture) = crate::services::session::capture_of(cx) else {
         log::info!("screenshot request: no game was started");
-        crate::system::notify::send("Heronite", tr!("No game to capture"));
+        crate::system::notify::send("Heronited", tr!("No game to capture"));
         return;
     };
     log::info!("screenshot request");
@@ -233,9 +233,9 @@ fn take_screenshot(cx: &mut App) {
             // The service shows what it saved and why a capture failed.
             CaptureOutcome::Saved(_) | CaptureOutcome::Failed(_) | CaptureOutcome::Skipped(SkipReason::Busy) => {}
             CaptureOutcome::Skipped(SkipReason::FolderNotConfigured) => {
-                crate::system::notify::send("Heronite", tr!("Choose a screenshots folder in Settings → Screenshots"));
+                crate::system::notify::send("Heronited", tr!("Choose a screenshots folder in Settings → Screenshots"));
             }
-            CaptureOutcome::Skipped(_) => crate::system::notify::send("Heronite", tr!("No game to capture")),
+            CaptureOutcome::Skipped(_) => crate::system::notify::send("Heronited", tr!("No game to capture")),
         }
     })
     .detach();

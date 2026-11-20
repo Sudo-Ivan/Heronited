@@ -141,7 +141,7 @@ pub struct CompanionPlan {
     pub delay: std::time::Duration,
 }
 
-/// What Heronite runs around a Steam game it opens, on Windows (see
+/// What Heronited runs around a Steam game it opens, on Windows (see
 /// [`crate::steam_extras`]). Steam still starts the game itself, as it
 /// would from its own library: the scripts run before the URI is opened and
 /// after the game is gone, the programs while it runs.

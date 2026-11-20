@@ -49,7 +49,7 @@ impl SettingsPanel {
         self.facts().is_some_and(|f| f.run_kind == RunKind::Wine) && self.wine_version().kind == "proton" && !self.flag("disableUMU", false)
     }
 
-    /// What Heronite finds without the user's id.
+    /// What Heronited finds without the user's id.
     pub(super) fn umu_automatic(&self) -> Option<Resolved> {
         let (f, data) = (self.facts()?, self.umu.as_ref()?);
         let keys =
@@ -69,13 +69,13 @@ impl SettingsPanel {
             let title = self.umu.as_ref().and_then(|d| d.db.iter().find(|e| e.umu_id == user)).map(|e| e.title.as_str());
             let shown = named(&user, title);
             return match auto {
-                Some(a) => tr!("Using {id}, set by you. Clear the field to use {auto}, found by Heronite.", id = shown, auto = a.id),
+                Some(a) => tr!("Using {id}, set by you. Clear the field to use {auto}, found by Heronited.", id = shown, auto = a.id),
                 None => tr!("Using {id}, set by you.", id = shown),
             };
         }
         match auto {
             None if self.umu.as_ref().is_some_and(|d| d.db.is_empty()) => {
-                tr!("The umu database has not been downloaded yet. It is downloaded when Heronite starts online.").into()
+                tr!("The umu database has not been downloaded yet. It is downloaded when Heronited starts online.").into()
             }
             None => tr!("No ID found: the game runs without fixes. Set one if the game has fixes.").into(),
             Some(r) => {

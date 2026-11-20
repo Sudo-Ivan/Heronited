@@ -2,7 +2,7 @@
 //!
 //! Conventions (keep them when adding fields):
 //! - `#[serde(rename_all = "camelCase")]`, matching the TypeScript types in
-//!   Heronite's `src/common/types/local-library.ts`
+//!   Heronited's `src/common/types/local-library.ts`
 //!   (<https://github.com/RafaelGoulartB/HeroicGamesLauncher>).
 //! - Optional fields are `Option<_>` with `skip_serializing_if`, so a field
 //!   absent on disk stays absent after a write.

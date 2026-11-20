@@ -34,7 +34,7 @@ pub struct Asset {
 pub struct Release {
     /// `X.Y.Z` (the tag without its `v`).
     pub version: String,
-    /// Release title (`Heronite v0.1.4`).
+    /// Release title (`Heronited v0.1.4`).
     pub name: String,
     /// Release notes, Markdown (grouped commit list made by git-cliff).
     pub notes: String,
@@ -82,17 +82,17 @@ pub enum Proof {
 /// The Windows downloads of a release, found by their exact names.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum WindowsAsset {
-    /// `Heronite-Setup-x86_64.exe`: the per-user installer.
+    /// `Heronited-Setup-x86_64.exe`: the per-user installer.
     Setup,
-    /// `Heronite-Portable-x86_64.zip`: the portable copy (`Heronite/` inside).
+    /// `Heronited-Portable-x86_64.zip`: the portable copy (`Heronited/` inside).
     Portable,
 }
 
 impl WindowsAsset {
     pub fn file_name(self) -> String {
         match self {
-            WindowsAsset::Setup => format!("Heronite-Setup-{ARCH}.exe"),
-            WindowsAsset::Portable => format!("Heronite-Portable-{ARCH}.zip"),
+            WindowsAsset::Setup => format!("Heronited-Setup-{ARCH}.exe"),
+            WindowsAsset::Portable => format!("Heronited-Portable-{ARCH}.zip"),
         }
     }
 
@@ -148,7 +148,7 @@ impl Release {
     /// The file of `package`'s format for this architecture.
     pub fn package(&self, package: Package) -> Option<&Asset> {
         let suffix = package.file_suffix()?;
-        self.packages.iter().find(|a| a.name.starts_with("heronite") && a.name.ends_with(&suffix))
+        self.packages.iter().find(|a| a.name.starts_with("heronited") && a.name.ends_with(&suffix))
     }
 
     /// The own signature of [`Release::package`].
@@ -208,12 +208,15 @@ impl From<&GhAsset> for Asset {
     }
 }
 
-/// The AppImage to install: the fixed name first (`Heronite-x86_64.AppImage`),
-/// else a versioned one (`Heronite-0.1.4-x86_64.AppImage`).
+/// The AppImage to install: the fixed name first (`Heronited-x86_64.AppImage`),
+/// else a versioned one (`Heronited-0.1.4-x86_64.AppImage`).
 fn pick_appimage(assets: &[GhAsset]) -> Option<&GhAsset> {
-    let fixed = format!("Heronite-{ARCH}.AppImage");
+    let fixed = format!("Heronited-{ARCH}.AppImage");
     let suffix = format!("-{ARCH}.AppImage");
-    assets.iter().find(|a| a.name == fixed).or_else(|| assets.iter().find(|a| a.name.starts_with("Heronite-") && a.name.ends_with(&suffix)))
+    assets
+        .iter()
+        .find(|a| a.name == fixed)
+        .or_else(|| assets.iter().find(|a| a.name.starts_with("Heronited-") && a.name.ends_with(&suffix)))
 }
 
 /// Parses `GET /repos/{repo}/releases/latest`.
@@ -232,7 +235,7 @@ pub fn parse_latest(json: &str) -> Result<Release> {
     let checksums = named(CHECKSUMS).zip(named(CHECKSUMS_SIGNATURE)).map(|(list, signature)| Checksums { list, signature });
     Ok(Release {
         version: version.to_string(),
-        name: r.name.filter(|n| !n.trim().is_empty()).unwrap_or_else(|| format!("Heronite {}", r.tag_name)),
+        name: r.name.filter(|n| !n.trim().is_empty()).unwrap_or_else(|| format!("Heronited {}", r.tag_name)),
         notes: r.body.unwrap_or_default().replace("\r\n", "\n"),
         page_url: r.html_url,
         published_at: r.published_at.unwrap_or_default(),
@@ -293,7 +296,7 @@ mod tests {
             assets.iter().map(|n| serde_json::json!({"name": n, "browser_download_url": format!("https://dl/{n}"), "size": 42})).collect();
         serde_json::json!({
             "tag_name": tag,
-            "name": format!("Heronite {tag}"),
+            "name": format!("Heronited {tag}"),
             "body": "### Features\r\n- Something new",
             "html_url": format!("https://github.com/x/y/releases/tag/{tag}"),
             "published_at": "2026-10-11T12:00:00Z",
@@ -309,25 +312,25 @@ mod tests {
         let json = gh(
             "v0.1.4",
             &[
-                "Heronite-0.1.4-x86_64.AppImage",
-                "Heronite-0.1.4-x86_64.AppImage.minisig",
-                "Heronite-x86_64.AppImage",
-                "Heronite-x86_64.AppImage.minisig",
-                "Heronite-x86_64.AppImage.zsync",
-                "heronite_0.1.4_amd64.deb",
-                "heronite_0.1.4_amd64.deb.minisig",
-                "heronite-0.1.4-1.x86_64.rpm",
-                "heronite-0.1.4-1-x86_64.pkg.tar.zst",
+                "Heronited-0.1.4-x86_64.AppImage",
+                "Heronited-0.1.4-x86_64.AppImage.minisig",
+                "Heronited-x86_64.AppImage",
+                "Heronited-x86_64.AppImage.minisig",
+                "Heronited-x86_64.AppImage.zsync",
+                "heronited_0.1.4_amd64.deb",
+                "heronited_0.1.4_amd64.deb.minisig",
+                "heronited-0.1.4-1.x86_64.rpm",
+                "heronited-0.1.4-1-x86_64.pkg.tar.zst",
             ],
         );
         let r = parse_latest(&json).unwrap();
         assert_eq!(r.packages.len(), 4);
         if ARCH == "x86_64" {
-            assert_eq!(r.package(Package::Deb).unwrap().name, "heronite_0.1.4_amd64.deb");
-            assert_eq!(r.package_signature(Package::Deb).unwrap().name, "heronite_0.1.4_amd64.deb.minisig");
+            assert_eq!(r.package(Package::Deb).unwrap().name, "heronited_0.1.4_amd64.deb");
+            assert_eq!(r.package_signature(Package::Deb).unwrap().name, "heronited_0.1.4_amd64.deb.minisig");
             assert!(r.package_signature(Package::Rpm).is_none());
-            assert_eq!(r.package(Package::Rpm).unwrap().name, "heronite-0.1.4-1.x86_64.rpm");
-            assert_eq!(r.package(Package::Arch).unwrap().name, "heronite-0.1.4-1-x86_64.pkg.tar.zst");
+            assert_eq!(r.package(Package::Rpm).unwrap().name, "heronited-0.1.4-1.x86_64.rpm");
+            assert_eq!(r.package(Package::Arch).unwrap().name, "heronited-0.1.4-1-x86_64.pkg.tar.zst");
         }
         assert!(r.package(Package::Aur).is_none(), "the AUR's package is not a release file");
         assert!(r.package(Package::Copr).is_none(), "the COPR's package is not a release file");
@@ -335,8 +338,8 @@ mod tests {
         assert_eq!(r.date(), "2026-10-11");
         assert_eq!(r.notes, "### Features\n- Something new");
         if ARCH == "x86_64" {
-            assert_eq!(r.appimage.as_ref().unwrap().name, "Heronite-x86_64.AppImage");
-            assert_eq!(r.signature.as_ref().unwrap().url, "https://dl/Heronite-x86_64.AppImage.minisig");
+            assert_eq!(r.appimage.as_ref().unwrap().name, "Heronited-x86_64.AppImage");
+            assert_eq!(r.signature.as_ref().unwrap().url, "https://dl/Heronited-x86_64.AppImage.minisig");
             assert!(r.installable());
         }
         assert!(r.is_newer_than(&Version::parse("0.1.3").unwrap()));
@@ -345,9 +348,9 @@ mod tests {
 
     #[test]
     fn versioned_asset_without_signature_is_not_installable() {
-        let r = parse_latest(&gh("v0.2.0", &["Heronite-0.2.0-x86_64.AppImage", "Heronite-0.2.0-x86_64.AppImage.sha256"])).unwrap();
+        let r = parse_latest(&gh("v0.2.0", &["Heronited-0.2.0-x86_64.AppImage", "Heronited-0.2.0-x86_64.AppImage.sha256"])).unwrap();
         if ARCH == "x86_64" {
-            assert_eq!(r.appimage.as_ref().unwrap().name, "Heronite-0.2.0-x86_64.AppImage");
+            assert_eq!(r.appimage.as_ref().unwrap().name, "Heronited-0.2.0-x86_64.AppImage");
         }
         assert!(r.signature.is_none());
         assert!(!r.installable());
@@ -370,34 +373,34 @@ mod tests {
         let json = gh(
             "v0.3.0",
             &[
-                "Heronite-Setup-x86_64.exe",
-                "Heronite-Setup-x86_64.exe.minisig",
-                "Heronite-Portable-x86_64.zip",
-                "Heronite-Portable-0.3.0-x86_64.zip",
-                "Heronite-Portable-x86_64.zip.sha256",
-                "Heronite-x86_64.AppImage",
+                "Heronited-Setup-x86_64.exe",
+                "Heronited-Setup-x86_64.exe.minisig",
+                "Heronited-Portable-x86_64.zip",
+                "Heronited-Portable-0.3.0-x86_64.zip",
+                "Heronited-Portable-x86_64.zip.sha256",
+                "Heronited-x86_64.AppImage",
             ],
         );
         let r = parse_latest(&json).unwrap();
         if ARCH == "x86_64" {
             assert_eq!(r.windows.len(), 3);
-            assert_eq!(r.windows_asset(WindowsAsset::Setup).unwrap().url, "https://dl/Heronite-Setup-x86_64.exe");
-            assert_eq!(r.windows_signature(WindowsAsset::Setup).unwrap().name, "Heronite-Setup-x86_64.exe.minisig");
+            assert_eq!(r.windows_asset(WindowsAsset::Setup).unwrap().url, "https://dl/Heronited-Setup-x86_64.exe");
+            assert_eq!(r.windows_signature(WindowsAsset::Setup).unwrap().name, "Heronited-Setup-x86_64.exe.minisig");
             assert_eq!(r.windows_asset(WindowsAsset::Portable).unwrap().size, 42);
             // Unsigned: not installable, only announced.
             assert!(r.windows_signature(WindowsAsset::Portable).is_none());
         }
-        let none = parse_latest(&gh("v0.3.0", &["Heronite-x86_64.AppImage"])).unwrap();
+        let none = parse_latest(&gh("v0.3.0", &["Heronited-x86_64.AppImage"])).unwrap();
         assert!(none.windows.is_empty() && none.windows_asset(WindowsAsset::Setup).is_none());
     }
 
     #[test]
     fn the_signed_checksums_come_first_and_the_own_signatures_stay_a_fallback() {
         let both = [
-            "Heronite-x86_64.AppImage",
-            "Heronite-x86_64.AppImage.minisig",
-            "heronite_1.1.0-1_amd64.deb",
-            "Heronite-Setup-x86_64.exe",
+            "Heronited-x86_64.AppImage",
+            "Heronited-x86_64.AppImage.minisig",
+            "heronited_1.1.0-1_amd64.deb",
+            "Heronited-Setup-x86_64.exe",
             "SHA256SUMS",
             "SHA256SUMS.minisig",
         ];
@@ -422,21 +425,21 @@ mod tests {
         assert!(old.checksums.is_none());
         if ARCH == "x86_64" {
             let sig = Asset {
-                name: "Heronite-x86_64.AppImage.minisig".into(),
-                url: "https://dl/Heronite-x86_64.AppImage.minisig".into(),
+                name: "Heronited-x86_64.AppImage.minisig".into(),
+                url: "https://dl/Heronited-x86_64.AppImage.minisig".into(),
                 size: 42,
             };
             assert_eq!(old.appimage_proof(), Some(Proof::Signature(sig)));
             assert_eq!(old.package_proof(Package::Deb), None, "unsigned");
         }
         // A list without its signature proves nothing.
-        let unsigned = parse_latest(&gh("v1.1.0", &["Heronite-x86_64.AppImage", "SHA256SUMS"])).unwrap();
+        let unsigned = parse_latest(&gh("v1.1.0", &["Heronited-x86_64.AppImage", "SHA256SUMS"])).unwrap();
         assert!(unsigned.checksums.is_none() && !unsigned.installable());
     }
 
     #[test]
     fn stored_release_without_packages_still_reads() {
-        let r = parse_latest(&gh("v0.1.4", &["Heronite-x86_64.AppImage"])).unwrap();
+        let r = parse_latest(&gh("v0.1.4", &["Heronited-x86_64.AppImage"])).unwrap();
         let mut v = serde_json::to_value(&r).unwrap();
         v.as_object_mut().unwrap().remove("packages");
         v.as_object_mut().unwrap().remove("windows");
@@ -447,7 +450,7 @@ mod tests {
 
     #[test]
     fn stored_release_round_trips() {
-        let r = parse_latest(&gh("v0.1.4", &["Heronite-x86_64.AppImage"])).unwrap();
+        let r = parse_latest(&gh("v0.1.4", &["Heronited-x86_64.AppImage"])).unwrap();
         let back: Release = serde_json::from_str(&serde_json::to_string(&r).unwrap()).unwrap();
         assert_eq!(back, r);
     }

@@ -104,7 +104,7 @@ fn run(monitor: isize, title: &str, detail: &str, shown: mpsc::Sender<bool>) {
     unsafe {
         let instance = GetModuleHandleW(None).ok().map(Into::into);
         let style = WS_EX_TOPMOST | WS_EX_TOOLWINDOW | WS_EX_NOACTIVATE | WS_EX_LAYERED | WS_EX_TRANSPARENT;
-        let hwnd = match CreateWindowExW(style, class, w!("Heronite"), WS_POPUP, x, y, w, h, None, None, instance, None) {
+        let hwnd = match CreateWindowExW(style, class, w!("Heronited"), WS_POPUP, x, y, w, h, None, None, instance, None) {
             Ok(hwnd) => hwnd,
             Err(e) => return fail(format!("CreateWindowExW: {e}")),
         };

@@ -1,4 +1,4 @@
-//! Windows resources of `heronite-epic-login.exe`: Heronite's icon (the
+//! Windows resources of `heronite-epic-login.exe`: Heronited's icon (the
 //! title bar, the taskbar and Explorer), the version information (file
 //! properties, Task Manager's name for it) and the application manifest
 //! (per-monitor DPI awareness, Windows 10/11, no elevation). Nothing on other
@@ -67,13 +67,13 @@ BEGIN
     BEGIN
         BLOCK "040904B0"
         BEGIN
-            VALUE "CompanyName", "Heronite"
-            VALUE "FileDescription", "Heronite store login"
+            VALUE "CompanyName", "Heronited"
+            VALUE "FileDescription", "Heronited store login"
             VALUE "FileVersion", "{version}"
             VALUE "InternalName", "heronite-epic-login"
             VALUE "LegalCopyright", "GPL-3.0-only"
             VALUE "OriginalFilename", "heronite-epic-login.exe"
-            VALUE "ProductName", "Heronite"
+            VALUE "ProductName", "Heronited"
             VALUE "ProductVersion", "{version}"
         END
     END

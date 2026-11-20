@@ -370,7 +370,7 @@ impl CollectionView {
             "epic-signed-out",
             tr!("Signed out of Epic Games"),
             tr!(
-                "{title} needs your Epic Games account to start, and Heronite is no longer signed in to it: Epic ended the saved session, or you logged out.\nLog in again to play. Play offline starts the game without the account, but some games need it and will not open.",
+                "{title} needs your Epic Games account to start, and Heronited is no longer signed in to it: Epic ended the saved session, or you logged out.\nLog in again to play. Play offline starts the game without the account, but some games need it and will not open.",
                 title = game.title
             ),
         );

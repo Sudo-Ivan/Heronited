@@ -258,7 +258,7 @@ impl PaletteView {
                         .text_size(px(12.))
                         .text_color(theme::text_dim())
                         .child(icon(Icon::OpenInNew, px(13.), theme::text_dim()))
-                        .child(tr!("Opens Heronite")),
+                        .child(tr!("Opens Heronited")),
                 )
             })
             .children(

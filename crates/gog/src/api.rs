@@ -18,7 +18,7 @@ pub struct Response {
 fn agent() -> &'static ureq::Agent {
     static AGENT: OnceLock<ureq::Agent> = OnceLock::new();
     AGENT.get_or_init(|| {
-        ureq::Agent::config_builder().timeout_connect(Some(Duration::from_secs(15))).max_redirects(8).user_agent("Heronite").build().into()
+        ureq::Agent::config_builder().timeout_connect(Some(Duration::from_secs(15))).max_redirects(8).user_agent("Heronited").build().into()
     })
 }
 

@@ -1350,12 +1350,12 @@ impl WaylandConnection {
         self.0.borrow_mut().hide_cursor_until_mouse_moves();
     }
 
-    /// Heronite: the cursor back without waiting for the mouse to move.
+    /// Heronited: the cursor back without waiting for the mouse to move.
     pub(crate) fn show_cursor(&self) {
         self.0.borrow_mut().restore_cursor_after_hide();
     }
 
-    /// Heronite: the next toplevel activates itself with `token`, as the
+    /// Heronited: the next toplevel activates itself with `token`, as the
     /// first one does with the startup token (`open_window`). Returns the
     /// token it replaces.
     pub(crate) fn replace_activation_token(&self, token: Option<String>) -> Option<String> {

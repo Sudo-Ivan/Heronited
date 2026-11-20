@@ -35,12 +35,12 @@ pub fn format_session_duration(seconds: f64) -> String {
 
 /// Subtitle source: Playnite imports say "Playnite", sessions added by hand
 /// "Added by hand", everything else (stored as `heroic`, the launcher's own
-/// sessions) "Heronite".
+/// sessions) "Heronited".
 pub fn session_source_label(source: &str) -> &'static str {
     match source {
         "playnite" => "Playnite",
         MANUAL_SOURCE => tr!("Added by hand"),
-        _ => "Heronite",
+        _ => "Heronited",
     }
 }
 
@@ -262,8 +262,8 @@ mod tests {
     #[test]
     fn source_labels() {
         assert_eq!(session_source_label("playnite"), "Playnite");
-        assert_eq!(session_source_label("heroic"), "Heronite");
-        assert_eq!(session_source_label("other"), "Heronite");
+        assert_eq!(session_source_label("heroic"), "Heronited");
+        assert_eq!(session_source_label("other"), "Heronited");
     }
 
     #[test]

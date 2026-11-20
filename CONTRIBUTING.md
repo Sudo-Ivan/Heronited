@@ -1,14 +1,14 @@
-# Contributing to Heronite
+# Contributing to Heronited
 
 Thanks for helping! Bug reports, ideas, and pull requests are all welcome.
 
-- **Questions and ideas:** start a thread in [Discussions](https://github.com/RafaelGoulartB/Heronite/discussions).
-- **Bugs and feature requests:** open an [issue](https://github.com/RafaelGoulartB/Heronite/issues/new/choose) with one of the templates.
+- **Questions and ideas:** start a thread in [Discussions](https://github.com/Sudo-Ivan/Heronited/discussions).
+- **Bugs and feature requests:** open an [issue](https://github.com/Sudo-Ivan/Heronited/issues/new/choose) with one of the templates.
 - **Security problems:** report them privately, as described in [SECURITY.md](SECURITY.md).
 
 ## Build
 
-Heronite runs on Linux, and on Windows in part (the port is tracked in [WINDOWS-MIGRATION.md](docs/WINDOWS-MIGRATION.md)). The same commands build and test it on both:
+Heronited runs on Linux, and on Windows in part (the port is tracked in [WINDOWS-MIGRATION.md](docs/WINDOWS-MIGRATION.md)). The same commands build and test it on both:
 
 ```bash
 # fast optimised build for trying the app
@@ -55,10 +55,10 @@ The release workflow bumps the version in `Cargo.toml`, tags it, builds the AppI
 
 ### Flatpak
 
-The Flatpak ([`packaging/flatpak/app.heronite.Heronite.yml`](packaging/flatpak/app.heronite.Heronite.yml)) is built by [`scripts/flatpak.sh`](scripts/flatpak.sh) into `dist/Heronite-x86_64.flatpak` (`--install` also installs it for your user). It needs `flatpak`, `python3` and `flatpak-builder` (or the `org.flatpak.Builder` Flatpak); the SDK comes from Flathub. It is not a download yet: a bundle gets no updates, so it waits for Flathub. Pull requests that touch it and every release run get the bundle as a workflow artifact, for trying it out. [`packaging/flatpak/README.md`](packaging/flatpak/README.md) lists what the app does differently in its sandbox.
+The Flatpak ([`packaging/flatpak/io.github.sudoivan.Heronited.yml`](packaging/flatpak/io.github.sudoivan.Heronited.yml)) is built by [`scripts/flatpak.sh`](scripts/flatpak.sh) into `dist/Heronited-x86_64.flatpak` (`--install` also installs it for your user). It needs `flatpak`, `python3` and `flatpak-builder` (or the `org.flatpak.Builder` Flatpak); the SDK comes from Flathub. It is not a download yet: a bundle gets no updates, so it waits for Flathub. Pull requests that touch it and every release run get the bundle as a workflow artifact, for trying it out. [`packaging/flatpak/README.md`](packaging/flatpak/README.md) lists what the app does differently in its sandbox.
 
 ### Windows packages
 
-The Windows installer (Inno Setup 6, [`packaging/windows/heronite.iss`](packaging/windows/heronite.iss)) and portable zip are built by [`scripts/windows/package.ps1`](scripts/windows/package.ps1) into `dist\`, and [`scripts/windows/smoke.ps1`](scripts/windows/smoke.ps1) checks them (it installs and uninstalls into a temporary folder). Locally you need Inno Setup 6.3 or later (`winget install JRSoftware.InnoSetup`); the script is UTF-8 without a BOM, which older versions misread. The installer supports English, Brazilian Portuguese, Spanish, German and French using Inno's bundled translations; updates retain the chosen language. Run `powershell -NoProfile -File scripts\windows\test-installer-languages.ps1` to check the translations (every custom message in every language, with the same format tokens) without installing anything (packaging also runs this check). On a disposable Windows machine without an existing Heronite installation, `scripts\windows\smoke.ps1 -Language german` checks language selection, localized shortcuts and retention through a silent update; the packaging CI checks all five languages. Pull requests that touch the Windows packaging get both files as workflow artifacts (unsigned). The app's icon is drawn in `packaging/icons/`; [`scripts/make-app-icons.sh`](scripts/make-app-icons.sh) renders it into `app/assets/app-icon/`, the Linux PNG and, through [`scripts/windows/make-icon.py`](scripts/windows/make-icon.py), the program's icon `packaging/windows/heronite.ico`.
+The Windows installer (Inno Setup 6, [`packaging/windows/heronite.iss`](packaging/windows/heronite.iss)) and portable zip are built by [`scripts/windows/package.ps1`](scripts/windows/package.ps1) into `dist\`, and [`scripts/windows/smoke.ps1`](scripts/windows/smoke.ps1) checks them (it installs and uninstalls into a temporary folder). Locally you need Inno Setup 6.3 or later (`winget install JRSoftware.InnoSetup`); the script is UTF-8 without a BOM, which older versions misread. The installer supports English, Brazilian Portuguese, Spanish, German and French using Inno's bundled translations; updates retain the chosen language. Run `powershell -NoProfile -File scripts\windows\test-installer-languages.ps1` to check the translations (every custom message in every language, with the same format tokens) without installing anything (packaging also runs this check). On a disposable Windows machine without an existing Heronited installation, `scripts\windows\smoke.ps1 -Language german` checks language selection, localized shortcuts and retention through a silent update; the packaging CI checks all five languages. Pull requests that touch the Windows packaging get both files as workflow artifacts (unsigned). The app's icon is drawn in `packaging/icons/`; [`scripts/make-app-icons.sh`](scripts/make-app-icons.sh) renders it into `app/assets/app-icon/`, the Linux PNG and, through [`scripts/windows/make-icon.py`](scripts/windows/make-icon.py), the program's icon `packaging/windows/heronite.ico`.
 
 By contributing, you agree that your work is licensed under the [GPL-3.0](LICENSE).

@@ -24,7 +24,7 @@ pub fn command(probe: &dyn Probe, title: &str, launcher_pid: u32) -> Option<Comm
     let program = ["systemd-inhibit", "elogind-inhibit"].into_iter().find_map(|t| probe.which(t))?;
     let args = [
         "--what=idle:sleep".to_string(),
-        "--who=Heronite".into(),
+        "--who=Heronited".into(),
         format!("--why={title} is running"),
         "--mode=block".into(),
         "tail".into(),

@@ -256,7 +256,7 @@ mod tests {
         assert!(requests[0].contains("s=7") && !requests[0].contains("SECRET"));
         let progress = requests.iter().find(|r| r.contains("API_GetGameInfoAndUserProgress.php")).unwrap();
         assert!(progress.contains("g=6") && progress.contains("u=me") && progress.contains("a=1"));
-        assert!(requests.iter().all(|r| r.to_ascii_lowercase().contains("user-agent: heronite/")), "{requests:?}");
+        assert!(requests.iter().all(|r| r.to_ascii_lowercase().contains("user-agent: heronited/")), "{requests:?}");
     }
 
     #[test]

@@ -96,7 +96,7 @@ pub fn steam_sideload_entry(game: &SteamInstalledGame, steam_bin: Option<&str>, 
         art_cover: Some(art_cover),
         art_square: Some(art_square),
         is_installed: true,
-        // Steam runs it: native to the system Heronite runs on.
+        // Steam runs it: native to the system Heronited runs on.
         is_linux_native: Some(cfg!(not(windows))),
         install: InstallInfo {
             executable: Some(steam_bin.unwrap_or("steam").to_string()),

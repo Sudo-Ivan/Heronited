@@ -170,7 +170,7 @@ fn a_list_is_read_kept_and_shown_offline_with_its_age() {
     let ids: Vec<&str> = copy.index.as_ref().unwrap().entries.iter().map(|e| e.id.as_str()).collect();
     assert_eq!(ids, ["vndb", "wikipedia"]);
     let read = s.server.log.lock().iter().find(|r| r.path() == "/lists.example.org/index.json").cloned().unwrap();
-    assert!(read.header("user-agent").is_some_and(|ua| ua.starts_with("Heronite/")));
+    assert!(read.header("user-agent").is_some_and(|ua| ua.starts_with("Heronited/")));
 
     // Offline: the copy kept, how old it is, and why it was not read now.
     let cache = std::fs::read_dir(s.paths.extension_lists_cache_dir()).unwrap().flatten().find(|e| e.path().is_file()).unwrap().path();
@@ -235,7 +235,7 @@ fn an_entry_installs_as_a_file_would_and_answers_through_the_gather() {
     let InstallOutcome::Installed(ext) = out else { panic!("{out:?}") };
     assert_eq!(ext.list.as_deref(), Some(LIST));
     assert!(ext.from.ends_with("/wikipedia/source.toml"));
-    // The app's own list here is not at the Heronite list's address.
+    // The app's own list here is not at the Heronited list's address.
     assert_eq!(s.lists.origin(&s.svc, &ext), Origin::List(LIST.into()));
     drop(prepared);
     let downloads = s.paths.extension_lists_cache_dir().join("downloads");
@@ -363,10 +363,10 @@ fn only_the_heronite_lists_address_is_the_heronite_list() {
     let in_use = [(LIST.to_owned(), true), (OTHER.to_owned(), false)];
     assert_eq!(lists::origin_among(&own, &in_use, Some(LIST)), Origin::List(LIST.into()));
     assert_eq!(lists::origin_among(&own, &[], Some(LIST)), Origin::List(LIST.into()), "the app's own, listed or not");
-    assert_eq!(lists::origin_among(&own, &in_use, Some(lists::HERONITE_LIST)), Origin::Heronite);
+    assert_eq!(lists::origin_among(&own, &in_use, Some(lists::HERONITE_LIST)), Origin::Heronited);
     assert_eq!(
         lists::origin_among(&Lists::default(), &[(lists::HERONITE_LIST.into(), true)], Some(lists::HERONITE_LIST)),
-        Origin::Heronite
+        Origin::Heronited
     );
     assert_eq!(lists::origin_among(&own, &in_use, Some(OTHER)), Origin::List(OTHER.into()));
     assert_eq!(lists::origin_among(&own, &in_use, None), Origin::File);

@@ -1,4 +1,4 @@
-//! `Date#toISOString` timestamps (UTC, milliseconds), as Heronite writes them.
+//! `Date#toISOString` timestamps (UTC, milliseconds), as Heronited writes them.
 
 use chrono::{DateTime, SecondsFormat, Utc};
 

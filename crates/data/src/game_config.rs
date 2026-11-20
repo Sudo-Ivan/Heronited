@@ -20,8 +20,8 @@ use crate::paths::DataPaths;
 
 pub type Settings = Map<String, Value>;
 
-/// Default install folder of a new setup (`~/Games/Heronite`). On Windows
-/// `<home>\Games\Heronite`, and the user's folder when `home` is empty
+/// Default install folder of a new setup (`~/Games/Heronited`). On Windows
+/// `<home>\Games\Heronited`, and the user's folder when `home` is empty
 /// (Windows sets no `HOME` of its own).
 pub fn default_install_dir(home: &str) -> String {
     #[cfg(windows)]
@@ -31,17 +31,17 @@ pub fn default_install_dir(home: &str) -> String {
             .map(std::path::PathBuf::from)
             .or_else(heronite_platform::dirs::home)
             .unwrap_or_default();
-        home.join("Games").join("Heronite").to_string_lossy().into_owned()
+        home.join("Games").join("Heronited").to_string_lossy().into_owned()
     }
     #[cfg(not(windows))]
     unix_install_dir(home)
 }
 
 fn unix_install_dir(home: &str) -> String {
-    format!("{}/Games/Heronite", home.trim_end_matches('/'))
+    format!("{}/Games/Heronited", home.trim_end_matches('/'))
 }
 
-/// `defaultWinePrefixDir` of a new setup (`~/Games/Heronite/Prefixes`).
+/// `defaultWinePrefixDir` of a new setup (`~/Games/Heronited/Prefixes`).
 /// Wine prefixes are Linux's: the folder keeps Linux's form everywhere.
 pub fn default_wine_prefix_dir(home: &str) -> String {
     format!("{}/Prefixes", unix_install_dir(home))
@@ -201,7 +201,7 @@ const INHERITED_KEYS_2: [&str; 5] = ["useGameMode", "battlEyeRuntime", "eacRunti
 // `heroniteMangohudHidden` (MangoHud starts hidden),
 // `heroniteLsfg*` (frame generation), `heroniteGpu*` (the graphics card
 // settings, `heronite_launch::gpu`), `heronitePreferSdl` and
-// `heroniteKeepAwake` are Heronite's. A game's `heroniteUmuId` is its own and
+// `heroniteKeepAwake` are Heronited's. A game's `heroniteUmuId` is its own and
 // never inherited.
 const INHERITED_KEYS_3: [&str; 34] = [
     "gamescope",
@@ -432,9 +432,9 @@ mod tests {
     #[cfg(windows)]
     #[test]
     fn the_windows_install_folder_is_in_the_users_folder() {
-        assert_eq!(default_install_dir(r"C:\Users\ana\"), r"C:\Users\ana\Games\Heronite");
+        assert_eq!(default_install_dir(r"C:\Users\ana\"), r"C:\Users\ana\Games\Heronited");
         let home = heronite_platform::dirs::home().unwrap();
-        assert_eq!(default_install_dir(""), home.join("Games").join("Heronite").to_string_lossy());
+        assert_eq!(default_install_dir(""), home.join("Games").join("Heronited").to_string_lossy());
     }
 
     #[test]
@@ -447,12 +447,12 @@ mod tests {
         assert_eq!(g["enableFsync"], true); // factory default
         assert_eq!(g["defaultInstallPath"], default_install_dir("/home/u"));
         #[cfg(not(windows))]
-        assert_eq!(g["defaultInstallPath"], "/home/u/Games/Heronite");
+        assert_eq!(g["defaultInstallPath"], "/home/u/Games/Heronited");
         assert_eq!(g["wineVersion"]["name"], "W");
         // Missing file: factory defaults only.
         let (_d2, empty) = setup();
         let g = load_global(&empty, "/home/u");
-        assert_eq!(g["winePrefix"], "/home/u/Games/Heronite/Prefixes/shared");
+        assert_eq!(g["winePrefix"], "/home/u/Games/Heronited/Prefixes/shared");
         assert!(g.get("wineVersion").is_none());
     }
 

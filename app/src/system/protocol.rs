@@ -42,7 +42,7 @@ mod windows {
         let exe = exe.display();
         let open = format!(r"{key}\shell\open\command");
         let values = [
-            (key.to_string(), "", "URL:Heronite".to_string()),
+            (key.to_string(), "", "URL:Heronited".to_string()),
             (key.to_string(), "URL Protocol", String::new()),
             (format!(r"{key}\DefaultIcon"), "", format!("\"{exe}\",0")),
             (open, "", format!("\"{exe}\" \"%1\"")),
@@ -61,16 +61,16 @@ mod windows {
 
         #[test]
         fn the_scheme_opens_this_executable_with_the_link() {
-            let key = format!(r"Software\Heronite\Tests\protocol-{}", std::process::id());
-            let exe = Path::new(r"C:\Program Files\Heronite\heronite-rs.exe");
+            let key = format!(r"Software\Heronited\Tests\protocol-{}", std::process::id());
+            let exe = Path::new(r"C:\Program Files\Heronited\heronite-rs.exe");
             register(&key, exe).unwrap();
             // Again: nothing changes.
             register(&key, exe).unwrap();
             let read = |sub: &str, name: &str| string(Hive::CurrentUser, &format!("{key}{sub}"), name);
-            assert_eq!(read("", "").as_deref(), Some("URL:Heronite"));
+            assert_eq!(read("", "").as_deref(), Some("URL:Heronited"));
             assert_eq!(read("", "URL Protocol").as_deref(), Some(""));
-            assert_eq!(read(r"\shell\open\command", "").as_deref(), Some(r#""C:\Program Files\Heronite\heronite-rs.exe" "%1""#));
-            assert_eq!(read(r"\DefaultIcon", "").as_deref(), Some(r#""C:\Program Files\Heronite\heronite-rs.exe",0"#));
+            assert_eq!(read(r"\shell\open\command", "").as_deref(), Some(r#""C:\Program Files\Heronited\heronite-rs.exe" "%1""#));
+            assert_eq!(read(r"\DefaultIcon", "").as_deref(), Some(r#""C:\Program Files\Heronited\heronite-rs.exe",0"#));
             let _ = std::process::Command::new("reg").args(["delete", &format!(r"HKCU\{key}"), "/f"]).output();
         }
     }

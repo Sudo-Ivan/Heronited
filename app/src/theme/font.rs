@@ -26,7 +26,7 @@ pub fn font_heading() -> &'static str {
 /// Segoe UI, which is not monospaced and sits the glyphs low in their line.
 pub const FONT_MONO: &str = "Noto Sans Mono";
 
-/// Heronite only ships the 400 weights of Rubik/Cabin; Chromium fakes bold for
+/// Heronited only ships the 400 weights of Rubik/Cabin; Chromium fakes bold for
 /// CSS weights >= 600 and renders 500 as regular. The real 600 cut is the
 /// closest match to that synthetic bold.
 pub const W_REGULAR: gpui_kit::FontWeight = gpui_kit::FontWeight::NORMAL;

@@ -205,7 +205,7 @@ fn args(spec: &StreamSpec) -> Vec<String> {
             "-f".into(),
             "pulse".into(),
             "-name".into(),
-            "Heronite".into(),
+            "Heronited".into(),
             "Trailer".into(),
         ]);
     }

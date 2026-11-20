@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Builds data/graphics-mods.json, the catalog of graphics mods per game
-that Heronite fetches at runtime (heronite_launch::gfxmods::catalog).
+that Heronited fetches at runtime (heronite_launch::gfxmods::catalog).
 
 Run by a maintainer, never by the app or CI. Its output lands only through a
 reviewed pull request:

@@ -296,7 +296,7 @@ mod tests {
             ("two words", "\"two words\""),
             ("tab\there", "\"tab\there\""),
             ("say \"hi\"", r#""say \"hi\"""#),
-            (r"C:\Program Files\Heronite\", r#""C:\Program Files\Heronite\\""#),
+            (r"C:\Program Files\Heronited\", r#""C:\Program Files\Heronited\\""#),
             (r"C:\no\spaces\", r"C:\no\spaces\"),
             (r#"a\"b"#, r#""a\\\"b""#),
             (r#"a\\"b"#, r#""a\\\\\"b""#),

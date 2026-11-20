@@ -26,7 +26,7 @@ pub(crate) enum Mode {
     /// Over the main window (Ctrl K).
     InApp,
     /// The quick launcher's own window (`crate::quick_launch`): it fills the
-    /// window, Enter plays a game, and what opens Heronite is marked ↗.
+    /// window, Enter plays a game, and what opens Heronited is marked ↗.
     Launcher,
 }
 
@@ -247,7 +247,7 @@ impl PaletteView {
     }
 
     /// Shift Enter in the quick launcher: the selected game (or the game the
-    /// selected action is about) shown in Heronite.
+    /// selected action is about) shown in Heronited.
     fn show_in_app(&mut self, cx: &mut Context<Self>) {
         let Some(key) = self.selected_entry().and_then(|e| e.game_key()).map(str::to_string) else { return };
         cx.emit(PaletteEvent::Run { act: Act::SelectGame(key.clone()), id: format!("game:{key}").into() });

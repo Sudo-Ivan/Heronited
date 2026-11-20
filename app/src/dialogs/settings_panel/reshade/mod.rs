@@ -156,7 +156,7 @@ impl Place {
 }
 
 impl SettingsPanel {
-    /// Whether this game gets the section: a Windows game Heronite starts
+    /// Whether this game gets the section: a Windows game Heronited starts
     /// (through Wine/Proton, or as it is on Windows) or Steam starts.
     pub(super) fn reshade_applies(&self) -> bool {
         self.reshade_wine().is_some()

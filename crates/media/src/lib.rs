@@ -3,7 +3,7 @@
 //!
 //! * [`matching`] - game title -> captures sub-folder (exact port of `match.ts`).
 //! * [`list`]     - [`list_screenshots`] (port of `index.ts`).
-//! * [`thumbnails`] - 320x180 preview cache, compatible with Heronite's
+//! * [`thumbnails`] - 320x180 preview cache, compatible with Heronited's
 //!   `local_library/screenshot-thumbnails` (port of `thumbnails.ts`).
 //! * [`posters`] - a frame of each replay (ffmpeg) in that same cache.
 //! * [`trash_screenshot`] - move an original to the freedesktop trash.

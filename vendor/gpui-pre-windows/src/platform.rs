@@ -53,12 +53,12 @@ impl TrackedWindow {
 type CursorTarget = (Arc<AtomicBool>, std::sync::Weak<RwLock<SmallVec<[TrackedWindow; 4]>>>);
 
 thread_local! {
-    /// Heronite: what [`hide_cursor_until_mouse_moves`] and [`show_cursor`]
+    /// Heronited: what [`hide_cursor_until_mouse_moves`] and [`show_cursor`]
     /// need of the platform made last (GPUI has no API for them).
     static CURSOR: RefCell<Option<CursorTarget>> = const { RefCell::new(None) };
 }
 
-/// Heronite: hides the mouse cursor over the app's windows until the mouse
+/// Heronited: hides the mouse cursor over the app's windows until the mouse
 /// moves, as typing does (a game controller is in use). The same as
 /// `Platform::hide_cursor_until_mouse_moves`.
 pub fn hide_cursor_until_mouse_moves() {
@@ -81,7 +81,7 @@ pub fn hide_cursor_until_mouse_moves() {
     });
 }
 
-/// Heronite: shows the cursor a hide took away, without waiting for the
+/// Heronited: shows the cursor a hide took away, without waiting for the
 /// mouse to move (a key was pressed), as the windows do when it moves.
 pub fn show_cursor() {
     CURSOR.with(|c| {
@@ -813,7 +813,7 @@ impl Platform for WindowsPlatform {
         if !self.is_windowed() {
             return Err(anyhow!("cannot open windows while headless"));
         }
-        // Heronite: the window at the app's interface scale (`gpui-zoom`).
+        // Heronited: the window at the app's interface scale (`gpui-zoom`).
         gpui_zoom::open(handle, options, |options| {
             let window = WindowsWindow::new(handle, options, self.generate_creation_info())?;
             let handle = window.get_raw_handle();

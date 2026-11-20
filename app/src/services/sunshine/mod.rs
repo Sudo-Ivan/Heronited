@@ -4,10 +4,10 @@
 //! A sync runs when the Collection loads a library whose picked games
 //! differ from the last synced ones ([`library_loaded`], a few seconds after
 //! the change settles), when an option changes and on "Sync now". Turning
-//! the integration off removes Heronite's entries. A failure is shown on the
+//! the integration off removes Heronited's entries. A failure is shown on the
 //! Settings card and logged once until it changes: no toasts, no repeats.
 //! While Sunshine does not answer, a quiet retry runs every few minutes (it
-//! often starts after Heronite at login).
+//! often starts after Heronited at login).
 
 mod secret;
 pub mod wanted;
@@ -80,7 +80,7 @@ pub enum Status {
     /// Nothing happened yet (or the integration is off).
     Idle,
     Syncing,
-    /// `entries`: Heronite's applications in Sunshine now.
+    /// `entries`: Heronited's applications in Sunshine now.
     Synced {
         report: Report,
         entries: usize,
@@ -93,7 +93,7 @@ pub enum Status {
 #[derive(Clone, Copy, PartialEq, Eq)]
 enum Job {
     Sync,
-    /// Remove every entry of Heronite's (turned off).
+    /// Remove every entry of Heronited's (turned off).
     Clear,
 }
 
@@ -189,7 +189,7 @@ impl Sunshine {
     }
 
     /// Changes options that shape the entries and syncs again. Turning
-    /// the integration off removes Heronite's entries.
+    /// the integration off removes Heronited's entries.
     pub fn set_prefs(&mut self, change: impl FnOnce(&mut Prefs), cx: &mut Context<Self>) {
         let was_on = self.prefs.enabled;
         change(&mut self.prefs);
@@ -332,7 +332,7 @@ impl Sunshine {
 
 /// The blocking part of a job: read the library, build the entries and
 /// bring Sunshine in line. Returns what changed and how many entries
-/// Heronite has there now.
+/// Heronited has there now.
 fn run(data_paths: &DataPaths, prefs: &Prefs, password: &str, job: Job) -> Result<(Report, usize), Problem> {
     let client = Client::new(&prefs.address, &prefs.username, password).map_err(Problem::from_api)?;
     if job == Job::Clear {

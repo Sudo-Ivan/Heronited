@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
-# Builds the Flatpak (packaging/flatpak/app.heronite.Heronite.yml) into
-# dist/Heronite-x86_64.flatpak, a single-file bundle users install with
-# `flatpak install --user ./Heronite-x86_64.flatpak` (the GNOME runtime
+# Builds the Flatpak (packaging/flatpak/io.github.sudoivan.Heronited.yml) into
+# dist/Heronited-x86_64.flatpak, a single-file bundle users install with
+# `flatpak install --user ./Heronited-x86_64.flatpak` (the GNOME runtime
 # comes from Flathub). The build is offline: packaging/flatpak/
 # cargo-sources.json, made here from Cargo.lock by flatpak-cargo-generator
 # (pinned below), lists every crate for flatpak-builder to download first.
@@ -18,9 +18,9 @@ set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT"
-ID=app.heronite.Heronite
+ID=io.github.sudoivan.Heronited
 MANIFEST=packaging/flatpak/$ID.yml
-NAME=Heronite-x86_64.flatpak
+NAME=Heronited-x86_64.flatpak
 INSTALL=false
 [[ ${1:-} == --install ]] && INSTALL=true
 

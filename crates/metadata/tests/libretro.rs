@@ -191,7 +191,7 @@ fn the_dumps_own_name_is_one_request_and_a_sure_match() {
     let req = s.mock.server.log.lock()[0].clone();
     assert_eq!(req.method, "GET");
     assert_eq!(req.header("Range"), Some("bytes=0-31"), "the head of the picture only");
-    assert_eq!(req.header("User-Agent").unwrap_or_default(), format!("Heronite/{}", env!("CARGO_PKG_VERSION")));
+    assert_eq!(req.header("User-Agent").unwrap_or_default(), format!("Heronited/{}", env!("CARGO_PKG_VERSION")));
     // 512 x 357: a landscape box is the wide cover, and only that.
     let md = &c.metadata;
     assert_eq!(md.cover_wide_url.as_deref(), Some(url(&s, SNES, "Super Metroid (Japan, USA) (En,Ja)").as_str()));

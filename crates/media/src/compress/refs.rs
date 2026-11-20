@@ -50,7 +50,7 @@ fn renamed_ref(s: &str, root: &Path, map: &HashMap<&Path, &Path>) -> Option<Stri
         let to = map.get(from.as_path())?;
         // Only the end of the name changes (`.png` -> `.webp` or `-2.webp`),
         // and those characters are never percent-encoded: keep the rest of
-        // the URL as Heronite wrote it.
+        // the URL as Heronited wrote it.
         let stem = from.file_stem()?.to_str()?;
         let new_suffix = to.file_name()?.to_str()?.strip_prefix(stem)?;
         let old_suffix = from.extension()?.to_str()?;

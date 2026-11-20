@@ -4,7 +4,7 @@
 //!
 //! - `list` (or nothing else): the app's list, read now, with the two
 //!   examples of `extensions/metadata/` and made-up sources (one adult, one made
-//!   for a newer Heronite).
+//!   for a newer Heronited).
 //! - `update`: the installed extensions count as installed from the app's
 //!   list, which offers Wikipedia 1.1.0.
 //! - `old`: the list could not be read now; the copy kept is 3 days old.
@@ -24,7 +24,7 @@ use heronite_metadata_ext::InstalledExtension;
 /// The made-up list: the repository's two examples and made-up sources.
 pub(super) const MADE_UP: &str = r#"{
   "index": 1,
-  "name": "Heronite",
+  "name": "Heronited",
   "extensions": [
     {
       "id": "indie-shelf", "name": "Indie Shelf", "version": "1.4.2", "api": 1, "author": "okabe",
@@ -76,7 +76,7 @@ pub(super) const MADE_UP: &str = r#"{
       }
     },
     {
-      "id": "wikipedia", "name": "Wikipedia", "version": "1.1.0", "api": 1, "author": "Heronite",
+      "id": "wikipedia", "name": "Wikipedia", "version": "1.1.0", "api": 1, "author": "Heronited",
       "homepage": "https://www.wikipedia.org", "kind": "details",
       "description": "The first paragraphs of the game's Wikipedia article, in your language when there is one. Asked only when the other sources lack the game.",
       "fields": ["description", "releaseDate"],
@@ -88,7 +88,7 @@ pub(super) const MADE_UP: &str = r#"{
       }
     },
     {
-      "id": "vndb", "name": "VNDB", "version": "1.0.0", "api": 1, "author": "Heronite",
+      "id": "vndb", "name": "VNDB", "version": "1.0.0", "api": 1, "author": "Heronited",
       "homepage": "https://vndb.org", "kind": "details",
       "description": "The Visual Novel Database (vndb.org), for visual novels and Japanese titles: found by the Japanese, romaji or English name, or by a VNDB id such as v17. Not affiliated with VNDB.",
       "fields": ["description", "releaseDate", "developers", "genres", "themes", "criticScore", "cover", "hero"],
@@ -186,7 +186,7 @@ impl Fake {
             let why = IndexError::Invalid("wikipedia: files.source.js.url \"http://example.org/source.js\" is not an https address".into());
             own = ListCopy { index: None, read_at: None, error: Some(ListError::Invalid(why)), ..own };
         } else if self.has("empty") {
-            own.index = Some(read(r#"{"index": 1, "name": "Heronite", "extensions": []}"#));
+            own.index = Some(read(r#"{"index": 1, "name": "Heronited", "extensions": []}"#));
         }
         let mut out = vec![own];
         if self.has("other") {

@@ -1,4 +1,4 @@
-//! Source bytes: local files, and HTTP images through Heronite's shared disk
+//! Source bytes: local files, and HTTP images through Heronited's shared disk
 //! cache (`<images-cache>/<hex sha256 of the exact URL string>`, raw bytes).
 
 use crate::decode::sniff;

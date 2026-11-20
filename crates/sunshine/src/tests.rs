@@ -211,7 +211,7 @@ fn renames_update_in_place_and_keep_keys_the_user_added() {
 #[test]
 fn games_that_leave_are_removed_but_the_users_apps_stay() {
     let mut apps = users_apps();
-    // An app of the user's that looks like one of Heronite's but has no marker.
+    // An app of the user's that looks like one of Heronited's but has no marker.
     apps.push(json!({ "name": "Hand-made", "cmd": "heronite --launch gog_9" }));
     let mock = Mock::start(apps);
     let client = mock.client();

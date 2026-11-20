@@ -76,10 +76,10 @@ fn cache_key_agrees_with_the_real_heronite_cache() {
         }
     }
     println!("cache keys checked: {checked}, mismatching: {bad}");
-    assert!(checked == 0 || bad == 0, "{bad}/{checked} keys differ from Heronite's");
+    assert!(checked == 0 || bad == 0, "{bad}/{checked} keys differ from Heronited's");
 }
 
-/// Our previews of real screenshots (written to a tempdir) look like Heronite's.
+/// Our previews of real screenshots (written to a tempdir) look like Heronited's.
 #[test]
 fn previews_resemble_the_real_electron_ones() {
     let real_cache = DataPaths::detect().screenshot_thumbnails_dir();

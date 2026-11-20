@@ -42,7 +42,7 @@ pub(super) fn source_label(source: &ModSource) -> &'static str {
     }
 }
 
-/// "12 mods · 10 on · applied when you play from Heronite".
+/// "12 mods · 10 on · applied when you play from Heronited".
 pub(super) fn status_line(g: &GameMods) -> String {
     let total = g.list.mods.len();
     if total == 0 {
@@ -53,7 +53,7 @@ pub(super) fn status_line(g: &GameMods) -> String {
     if !g.list.active {
         tr!("{count} · off · the game starts without them", count)
     } else {
-        tr!("{count} · {on} on · applied when you play from Heronite", count, on)
+        tr!("{count} · {on} on · applied when you play from Heronited", count, on)
     }
 }
 

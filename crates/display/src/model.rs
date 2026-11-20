@@ -1,5 +1,5 @@
 //! What a probe finds: the monitors, their modes, and what the desktop lets
-//! Heronite change. Plain data, the same on every platform.
+//! Heronited change. Plain data, the same on every platform.
 
 use std::fmt;
 
@@ -266,7 +266,7 @@ fn separate_keys(monitors: &mut [Monitor]) {
     }
 }
 
-/// Why there is nothing to show (and, later, nothing Heronite will change).
+/// Why there is nothing to show (and, later, nothing Heronited will change).
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
 #[serde(tag = "reason", content = "detail", rename_all = "kebab-case")]
 pub enum Unsupported {

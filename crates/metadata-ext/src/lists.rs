@@ -42,7 +42,7 @@ use crate::ExtensionError;
 
 /// The app's own list: `extensions/metadata/index.json` on the repository's
 /// main branch (`scripts/extensions-index.py` writes it).
-pub const HERONITE_LIST: &str = "https://raw.githubusercontent.com/RafaelGoulartB/Heronite/main/extensions/metadata/index.json";
+pub const HERONITE_LIST: &str = "https://raw.githubusercontent.com/Sudo-Ivan/Heronited/main/extensions/metadata/index.json";
 
 /// The longest a list or one of an entry's files may take to come.
 const TIMEOUT: Duration = Duration::from_secs(20);
@@ -325,15 +325,15 @@ fn local_copy(url: &str, builtin: bool, path: &Path) -> ListCopy {
 }
 
 /// [`Lists::origin`] knowing the lists in use. Only [`HERONITE_LIST`] is
-/// the Heronite list: the app's own list set to another address
+/// the Heronited list: the app's own list set to another address
 /// (`HERONITE_EXTENSIONS_INDEX`) is a list like one the user added.
 pub fn origin_among(lists: &Lists, in_use: &[(String, bool)], list: Option<&str>) -> Origin {
     match list {
         None => Origin::File,
         // Before the app's own: a debug build's own list is a file, and
-        // what came from it is not from the Heronite list.
+        // what came from it is not from the Heronited list.
         Some(u) if is_local(u) => Origin::Local(u.to_owned()),
-        Some(HERONITE_LIST) => Origin::Heronite,
+        Some(HERONITE_LIST) => Origin::Heronited,
         Some(u) if u == lists.builtin || in_use.iter().any(|(x, _)| x == u) => Origin::List(u.to_owned()),
         Some(u) => Origin::GoneList(u.to_owned()),
     }
@@ -346,7 +346,7 @@ pub enum Origin {
     /// A file or a folder the user chose: nobody checked it.
     File,
     /// The app's own list: its files are the ones that list names.
-    Heronite,
+    Heronited,
     /// A list the user added (its address).
     List(String),
     /// A list the user removed since.

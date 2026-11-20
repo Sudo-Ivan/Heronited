@@ -54,13 +54,13 @@ pub fn linux_platform(allowed_modes: WindowingModes) -> Rc<dyn gpui::Platform> {
 }
 
 thread_local! {
-    /// Heronite: the platform made last, for [`show_cursor`],
+    /// Heronited: the platform made last, for [`show_cursor`],
     /// [`hide_cursor_until_mouse_moves`] and [`replace_activation_token`] (GPUI
     /// has no API for them).
     static PLATFORM: std::cell::RefCell<std::rc::Weak<LinuxPlatform>> = std::cell::RefCell::new(std::rc::Weak::new());
 }
 
-/// Heronite: hides the mouse cursor over the app's windows until the mouse
+/// Heronited: hides the mouse cursor over the app's windows until the mouse
 /// moves, as typing does (a game controller is in use).
 pub fn hide_cursor_until_mouse_moves() {
     if let Some(platform) = PLATFORM.with(|p| p.borrow().upgrade()) {
@@ -68,7 +68,7 @@ pub fn hide_cursor_until_mouse_moves() {
     }
 }
 
-/// Heronite: shows the cursor a hide took away, without waiting for the
+/// Heronited: shows the cursor a hide took away, without waiting for the
 /// mouse to move (a key was pressed).
 pub fn show_cursor() {
     if let Some(platform) = PLATFORM.with(|p| p.borrow().upgrade()) {
@@ -76,7 +76,7 @@ pub fn show_cursor() {
     }
 }
 
-/// Heronite: the xdg-activation token the next window opened activates
+/// Heronited: the xdg-activation token the next window opened activates
 /// itself with, as the first one does with `XDG_ACTIVATION_TOKEN`
 /// (Wayland). Returns the one it replaces (the start's, while no window took
 /// it), to put back once that window is open. For a window opened on a

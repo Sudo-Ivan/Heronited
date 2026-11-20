@@ -1,6 +1,6 @@
 # Wikipedia
 
-A metadata source for Heronite that takes a game's description from its
+A metadata source for Heronited that takes a game's description from its
 Wikipedia article: the lead (the first paragraphs), in the interface's
 language when Wikipedia has the article in it, else in English. The release
 year comes from the article's short description ("2011 video game").

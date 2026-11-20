@@ -1,4 +1,4 @@
-//! "Programs alongside the game" (`heroniteCompanions`, a Heronite key of
+//! "Programs alongside the game" (`heroniteCompanions`, a Heronited key of
 //! the game's settings): programs started a while after the game and closed
 //! with it, such as trainers and mod tools.
 //!

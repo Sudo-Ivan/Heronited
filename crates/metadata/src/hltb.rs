@@ -2,7 +2,7 @@
 //! `backend/wiki_game_info/howlongtobeat/utils.ts` (fork-modified protocol:
 //! `/api/search/site/init` token, `x-auth-token`, optional honeypot pair) and
 //! the HLTB part of `getWikiGameInfo`, writing `store_cache/wikigameinfo.json`
-//! in the format Heronite's `CacheStore` uses (`<key>` entry plus
+//! in the format Heronited's `CacheStore` uses (`<key>` entry plus
 //! `__timestamp.<key>`) that `heronite_data::hltb::WikiCache` reads.
 
 use std::collections::HashSet;

@@ -54,7 +54,7 @@ pub enum RunKind {
     /// Installed Steam game: the settings are Steam's own (`heronite_steam`).
     Steam,
     /// Installed Steam game that Steam starts as it is (Windows): what
-    /// Heronite runs around it, the scripts and the programs alongside
+    /// Heronited runs around it, the scripts and the programs alongside
     /// (`heronite_launch::steam_extras`), and Steam's launch options as text
     /// ([`steam_line`]).
     SteamDirect,
@@ -208,7 +208,7 @@ pub fn extras() -> bool {
 
 /// How an installed Steam game runs. With Proton (Linux) the game's settings
 /// are Steam's: its launch options and compatibility tool. Without (Windows)
-/// Steam starts the game as it is: Heronite runs the `extras` around it, and
+/// Steam starts the game as it is: Heronited runs the `extras` around it, and
 /// Steam's own line (`settings`) is edited as text.
 fn steam_run_kind(proton: bool, settings: bool, extras: bool) -> RunKind {
     match (proton, settings) {
@@ -235,7 +235,7 @@ pub fn wrappers() -> bool {
 
 /// Whether the GPU tab picks Windows' per-program GPU preference instead of
 /// Linux's variables (`heronite_launch::gpu::preference`): Windows, where
-/// Heronite starts the game's program itself.
+/// Heronited starts the game's program itself.
 pub fn windows_gpu() -> bool {
     cfg!(windows)
 }
@@ -262,7 +262,7 @@ pub fn sections_for(run_kind: RunKind, runner: &str, cloud_saves_tab: bool) -> V
         // Their Performance tab only has ReShade (`reshade_only`).
         RunKind::SteamDirect | RunKind::Native if reshade_only(run_kind) => {
             out.extend(run_kind.reshade().map(|_| Section::Performance));
-            // Steam starts its games itself: Heronite cannot set the
+            // Steam starts its games itself: Heronited cannot set the
             // preference for the program it runs.
             if run_kind == RunKind::Native && windows_gpu() {
                 out.push(Section::Gpu);

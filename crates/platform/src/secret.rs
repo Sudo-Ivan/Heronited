@@ -7,7 +7,7 @@ use std::io;
 /// Purpose text mixed into the protection, so a blob made for something
 /// else does not open here.
 #[cfg(windows)]
-const ENTROPY: &[u8] = b"Heronite secret v1";
+const ENTROPY: &[u8] = b"Heronited secret v1";
 
 #[cfg(windows)]
 mod imp {

@@ -61,7 +61,7 @@ impl Swap {
         };
         match original {
             Some(_) => fs::rename(file, &swap.backup).map_err(|e| write_error(&swap.backup, e))?,
-            None => fs::write(&swap.marker, b"Heronite wrote this file; this marks it as not the user's.\n")
+            None => fs::write(&swap.marker, b"Heronited wrote this file; this marks it as not the user's.\n")
                 .map_err(|e| write_error(&swap.marker, e))?,
         }
         swap.armed = true;

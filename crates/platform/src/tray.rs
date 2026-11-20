@@ -695,8 +695,8 @@ mod tests {
 
     #[test]
     fn tooltips_are_cut_between_characters() {
-        let tip = tooltip("Heronite");
-        assert_eq!(&tip[..9], &"Heronite\0".encode_utf16().collect::<Vec<_>>()[..]);
+        let tip = tooltip("Heronited");
+        assert_eq!(&tip[..9], &"Heronited\0".encode_utf16().collect::<Vec<_>>()[..]);
         // 126 units, then a pair that does not fit in the 127th.
         let tip = tooltip(&format!("{}😀", "a".repeat(126)));
         assert_eq!(tip[125], u16::from(b'a'));
@@ -774,7 +774,7 @@ mod tests {
         let dark = Arc::new(AtomicBool::new(true));
         let current = dark.clone();
         let tray = Tray::spawn(Options {
-            tooltip: "Heronite menu preview".into(),
+            tooltip: "Heronited menu preview".into(),
             icons: vec![square(16)],
             on_click: Box::new(|| {}),
             menu: Box::new(|| {

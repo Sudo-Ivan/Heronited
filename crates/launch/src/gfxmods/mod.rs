@@ -1,7 +1,7 @@
 //! Graphics mods per game: DLLs and files a Windows game loads by itself
 //! from its folder. ReShade ([`crate::reshade`]) is the first one.
 //!
-//! Heronite only places files on disk and sets launch variables; it never
+//! Heronited only places files on disk and sets launch variables; it never
 //! injects into, hooks or patches a game. Each mod implements
 //! [`GraphicsMod`], and [`MODS`] lists them in the order they apply at
 //! launch. What they share lives here: [`journal`] undoes a failed
@@ -106,7 +106,7 @@ mod tests {
             }
         };
         same(&s);
-        // With Heronite's d3dcompiler_47 beside it, that DLL is overridden too.
+        // With Heronited's d3dcompiler_47 beside it, that DLL is overridden too.
         let mut m = crate::reshade::manifest::load(&g.paths, "sp").unwrap();
         m.compiler = Some("fxc2".into());
         crate::reshade::manifest::save(&g.paths, "sp", &m).unwrap();

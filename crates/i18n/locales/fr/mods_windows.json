@@ -1,9 +1,9 @@
 {
   "An optional Windows feature. Not used yet.": "Une fonctionnalité Windows facultative. Pas encore utilisée.",
   "Could not put {file} into the game folder: {error}": "Impossible de placer {file} dans le dossier du jeu : {error}",
-  "Could not set Heronite for the {scheme} links: {error}": "Impossible de définir Heronite pour les liens {scheme} : {error}",
+  "Could not set Heronited for the {scheme} links: {error}": "Impossible de définir Heronited pour les liens {scheme} : {error}",
   "Hard links and copies": "Liens physiques et copies",
-  "Mods apply only when the game is started from Heronite. Their files are put into the game's folder while it runs and taken out when it ends; what the game writes there goes to the mods' overwrite folder.": "Les mods s’appliquent uniquement lorsque le jeu est lancé depuis Heronite. Leurs fichiers sont placés dans le dossier du jeu pendant son exécution, puis retirés à sa fermeture ; les fichiers que le jeu y écrit vont dans le dossier d’écrasement des mods.",
+  "Mods apply only when the game is started from Heronited. Their files are put into the game's folder while it runs and taken out when it ends; what the game writes there goes to the mods' overwrite folder.": "Les mods s’appliquent uniquement lorsque le jeu est lancé depuis Heronited. Leurs fichiers sont placés dans le dossier du jeu pendant son exécution, puis retirés à sa fermeture ; les fichiers que le jeu y écrit vont dans le dossier d’écrasement des mods.",
   "Need Developer Mode or an administrator. Not used.": "Nécessitent le mode développeur ou des droits administrateur. Non utilisés.",
   "Projected File System": "Projected File System",
   "Symbolic links": "Liens symboliques",

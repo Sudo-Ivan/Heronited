@@ -202,7 +202,7 @@ impl CollectionView {
     /// from Steam), scans the saved ROM folders (`autoScanOnRefresh` ones)
     /// off the UI thread, then reloads the library; the spinner runs
     /// for both. The Steam library and the other launchers turned on are
-    /// read again too. Like Heronite's `handleRefreshAll`: new games are added, none
+    /// read again too. Like Heronited's `handleRefreshAll`: new games are added, none
     /// are ever removed.
     pub(super) fn refresh_all(&mut self, cx: &mut Context<Self>) {
         if self.refreshing {
