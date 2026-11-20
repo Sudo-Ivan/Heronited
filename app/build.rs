@@ -5,7 +5,7 @@
 //! GPUI's Windows platform loads the window class icon from resource id 1 of
 //! the program (`LoadImageW(module, 1, IMAGE_ICON)`), so the icon is `1`.
 //! GPUI already embeds the application manifest (DPI awareness, common
-//! controls), so this file has none. `packaging/windows/heronite.ico` is made
+//! controls), so this file has none. `packaging/windows/heronited.ico` is made
 //! by `scripts/windows/make-icon.py`.
 
 use std::path::Path;
@@ -17,7 +17,7 @@ fn main() {
     }
 
     let manifest_dir = std::env::var("CARGO_MANIFEST_DIR").expect("CARGO_MANIFEST_DIR");
-    let icon = Path::new(&manifest_dir).join("../packaging/windows/heronite.ico");
+    let icon = Path::new(&manifest_dir).join("../packaging/windows/heronited.ico");
     let icon = icon.canonicalize().unwrap_or_else(|e| panic!("{}: {e}", icon.display()));
     println!("cargo:rerun-if-changed={}", icon.display());
 

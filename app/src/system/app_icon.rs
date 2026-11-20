@@ -4,7 +4,7 @@
 //! - The tray keeps its own plain H (`assets/tray/`), sharper at its sizes.
 //! - The main window on X11 gets it when it opens (`WindowOptions::icon`).
 //! - Everywhere else the system shows the packaged icon: the executable's on
-//!   Windows (`packaging/windows/heronite.ico`), and on Linux the one the
+//!   Windows (`packaging/windows/heronited.ico`), and on Linux the one the
 //!   `.desktop` entry names, `io.github.sudoivan.Heronited`, which the launcher, the
 //!   dock and Wayland's windows show.
 //!

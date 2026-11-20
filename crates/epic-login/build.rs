@@ -15,7 +15,7 @@ fn main() {
     }
 
     let manifest_dir = std::env::var("CARGO_MANIFEST_DIR").expect("CARGO_MANIFEST_DIR");
-    let icon = rc_path(&Path::new(&manifest_dir).join("../../packaging/windows/heronite.ico"));
+    let icon = rc_path(&Path::new(&manifest_dir).join("../../packaging/windows/heronited.ico"));
     let manifest = rc_path(&Path::new(&manifest_dir).join("windows/login.manifest"));
 
     let version = std::env::var("CARGO_PKG_VERSION").expect("CARGO_PKG_VERSION");
