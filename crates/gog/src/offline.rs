@@ -149,7 +149,7 @@ fn text(v: Option<&Value>) -> String {
 fn pick_installer<'a>(doc: &'a Value, os: &str, language: &str) -> Option<&'a Value> {
     let list = doc.pointer("/downloads/installers")?.as_array()?;
     let for_os: Vec<&Value> = list.iter().filter(|i| text(i.get("os")).eq_ignore_ascii_case(os)).collect();
-    let pick = |f: &dyn Fn(&Value) -> bool| for_os.iter().copied().find(|i| f(*i));
+    let pick = |f: &dyn Fn(&Value) -> bool| for_os.iter().copied().find(|i| f(i));
     pick(&|i| text(i.get("language_code")).eq_ignore_ascii_case(language))
         .or_else(|| {
             pick(&|i| {
