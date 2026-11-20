@@ -530,5 +530,11 @@
   "Restart Heronited": "Reiniciar Heronited",
   "The tray changes apply once Heronited starts again.": "Los cambios de la bandeja se aplican cuando Heronited vuelva a abrirse.",
   "Copy path": "Copiar ruta",
-  "Copied": "Copiado"
+  "Copied": "Copiado",
+  "Keep GOG's offline installers and install from them": "Conservar los instaladores sin conexión de GOG e instalar desde ellos",
+  "Windows games GOG has backup installers for are downloaded into the folder below and set up on their first start; the files stay there as the backup and a reinstall needs no download.": "Los juegos de Windows para los que GOG tiene instaladores de respaldo se descargan en la carpeta de abajo y se configuran en su primer inicio; los archivos permanecen ahí como respaldo y una reinstalación no necesita descarga.",
+  "Choose where GOG's offline installers are kept": "Elige dónde se guardan los instaladores sin conexión de GOG",
+  "One folder per game, with its installers.json. Empty keeps ~/Games/GOG Offline Installers.": "Una carpeta por juego, con su installers.json. Vacío mantiene ~/Games/GOG Offline Installers.",
+  "Keep GOG offline installers": "Conservar los instaladores sin conexión de GOG",
+  "GOG offline installers folder": "Carpeta de instaladores sin conexión de GOG"
 }

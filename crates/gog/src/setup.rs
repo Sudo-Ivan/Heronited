@@ -691,7 +691,7 @@ mod tests {
             "/buildId=900".to_string(),
             "/versionName=1.5".to_string(),
         ] {
-            assert!(step.parts.iter().any(|p| *p == flag), "{flag}");
+            assert!(step.parts.contains(&flag), "{flag}");
         }
         assert_eq!(step.cwd.as_deref(), Some(backup.display().to_string().as_str()));
 
