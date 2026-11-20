@@ -49,14 +49,14 @@ for format in "${formats[@]}"; do
     deb)
       for image in ubuntu:22.04 debian:12 ubuntu:24.04; do
         run "$image" deb with-recommends \
-          'export DEBIAN_FRONTEND=noninteractive; apt-get update -qq && apt-get install -y -qq /dist/heronite_*_amd64.deb >/dev/null'
+          'export DEBIAN_FRONTEND=noninteractive; apt-get update -qq && apt-get install -y -qq /dist/heronited_*_amd64.deb >/dev/null'
       done
       ;;
     rpm)
-      run fedora:41 rpm with-recommends 'dnf install -y -q /dist/heronite-*.x86_64.rpm >/dev/null'
+      run fedora:41 rpm with-recommends 'dnf install -y -q /dist/heronited-*.x86_64.rpm >/dev/null'
       ;;
     arch)
-      run archlinux:latest arch no-recommends 'pacman -Syu --noconfirm --needed >/dev/null && pacman -U --noconfirm /dist/heronite-*-x86_64.pkg.tar.zst >/dev/null'
+      run archlinux:latest arch no-recommends 'pacman -Syu --noconfirm --needed >/dev/null && pacman -U --noconfirm /dist/heronited-*-x86_64.pkg.tar.zst >/dev/null'
       ;;
     appimage)
       for spec in 'ubuntu:22.04|apt-get update -qq && apt-get install -y -qq libxcb1 >/dev/null' \
