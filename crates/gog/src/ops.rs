@@ -19,6 +19,7 @@ use crate::disk::{dir_size, remove_tree, safe_to_remove};
 use crate::gamesdb::id_text;
 use crate::info::{self, os_name};
 use crate::installed::{self, Installed};
+use crate::offline;
 use crate::{library, updates};
 
 pub use crate::moves::{move_install, relocate};
@@ -29,6 +30,8 @@ const DEFAULT_LANGUAGE: &str = "en-US";
 pub struct GogJob {
     pub paths: DataPaths,
     pub gogdl: Gogdl,
+    /// Network access for the offline-installer path.
+    pub net: std::sync::Arc<dyn heronite_launch::net::Net>,
 }
 
 /// `--with-dlcs --dlcs a,b` or `--skip-dlcs`.
@@ -121,6 +124,11 @@ impl GogJob {
 
         // A manifest left by an earlier install would turn this download into an update.
         let _ = std::fs::remove_file(self.gogdl.manifest_file(&p.app_name));
+        if platform == "windows" && offline::enabled(&self.paths) {
+            if let Some(done) = self.offline_install(el, &details, &folder, platform, language, cancel, on_progress)? {
+                return Ok(done);
+            }
+        }
         let support = self.gogdl.support_dir(&p.app_name);
         let args = Transfer {
             verb: "download",
@@ -152,6 +160,59 @@ impl GogJob {
         updates::forget(&self.paths, &p.app_name);
         library::sync_install_state(&self.paths, &p.app_name, Some(folder));
         Ok(true)
+    }
+
+    /// The game from its offline backup installers, kept in the backup
+    /// folder: `Ok(Some(done))` handled the install, `Ok(None)` means the
+    /// game has no offline installers and the depot path continues. The
+    /// `setup` program runs at the game's first start
+    /// ([`crate::setup`]) and writes the folder it goes in itself.
+    fn offline_install(
+        &self,
+        el: &DmElement,
+        details: &info::InstallInfo,
+        folder: &str,
+        platform: &str,
+        language: &str,
+        cancel: &Cancel,
+        on_progress: &mut dyn FnMut(Progress),
+    ) -> Result<Option<bool>> {
+        let p = &el.params;
+        let outcome = offline::download(
+            &self.paths,
+            &self.gogdl,
+            self.net.as_ref(),
+            &p.app_name,
+            folder,
+            platform,
+            language,
+            &p.install_dlcs,
+            cancel,
+            on_progress,
+        )?;
+        let bundle = match outcome {
+            offline::Outcome::NoInstallers => return Ok(None),
+            offline::Outcome::Cancelled => return Ok(Some(false)),
+            offline::Outcome::Done(bundle) => bundle,
+        };
+
+        let install_path = Path::new(&p.path).join(folder);
+        let mut entry = Installed::new(&p.app_name);
+        entry.platform = platform.to_string();
+        entry.install_path = install_path.display().to_string();
+        // The folder is empty until the first start; the depot sizes are
+        // the honest estimate.
+        entry.install_size = file_size(details.size_for(language, &p.install_dlcs).1 as f64);
+        entry.version = details.version_name.clone();
+        entry.language = language.to_string();
+        entry.installed_dlcs = p.install_dlcs.clone();
+        entry.version_etag = details.version_etag.clone();
+        entry.build_id = details.build_id.clone();
+        entry.extra.insert(installed::OFFLINE_DIR_KEY.into(), bundle.dir.display().to_string().into());
+        installed::upsert(&self.paths, &entry)?;
+        updates::forget(&self.paths, &p.app_name);
+        library::sync_install_state(&self.paths, &p.app_name, Some(folder));
+        Ok(Some(true))
     }
 
     fn update(&self, el: &DmElement, cancel: &Cancel, on_progress: &mut dyn FnMut(Progress)) -> Result<bool> {
@@ -350,13 +411,18 @@ mod tests {
         )
     }
 
-    /// A gogdl that answers `info`, and the rest with `rest`.
+    /// A gogdl that answers `info` and `auth`, and the rest with `rest`.
     fn fake_gog(dir: &Path, rest: Reply) -> FakeTool {
-        fake_tool(dir).on(&["info"], Reply::new().out(INFO)).otherwise(rest)
+        fake_tool(dir)
+            .on(&["info"], Reply::new().out(INFO))
+            .on(&["auth"], Reply::new().out(r#"{"access_token":"tok","user_id":"7"}"#))
+            .otherwise(rest)
     }
 
+    /// The depot path: the fake network lists no offline installers.
     fn job(tool: &FakeTool, paths: &DataPaths) -> GogJob {
-        GogJob { paths: paths.clone(), gogdl: gogdl(tool, paths) }
+        let net = heronite_launch::net::FakeNet::online();
+        GogJob { paths: paths.clone(), gogdl: gogdl(tool, paths), net: std::sync::Arc::new(net) }
     }
 
     fn library_with_game(paths: &DataPaths) {
@@ -383,8 +449,9 @@ mod tests {
 
         let calls = calls_of(&tool);
         assert_eq!(calls[0], "info 42 --os windows");
+        assert_eq!(calls[1], "auth");
         assert_eq!(
-            calls[1],
+            calls[2],
             format!(
                 "download 42 --platform windows --path {} --support {} --lang de-DE --with-dlcs --dlcs 77",
                 base.display(),
@@ -422,8 +489,94 @@ mod tests {
         let mut el = element(ElementKind::Install, &base, &[]);
         el.params.install_language = String::new();
         assert_eq!(job(&tool, &paths).run(&el, &Cancel::new(), &mut |_| {}).status, DmStatus::Done);
-        let download = calls_of(&tool).remove(1);
+        let calls = calls_of(&tool);
+        let download = calls.iter().find(|c| c.starts_with("download ")).unwrap();
         assert!(download.ends_with("--lang en-US --skip-dlcs --max-workers 6"), "{download}");
+    }
+
+    /// The fake GOG API's documents of a game with an offline installer.
+    fn offline_net() -> heronite_launch::net::FakeNet {
+        let installer = |files: Value| {
+            json!({"downloads": {"installers": [{
+                "id": "en1installer0", "os": "windows", "language": "en", "language_code": "de-DE",
+                "version": "1.5", "files": files
+            }]}})
+        };
+        heronite_launch::net::FakeNet::online()
+            .with_json(
+                "https://api.gog.com/products/42?expand=downloads",
+                installer(json!([
+                    {"name": "setup_the_game_(1).exe", "size": 4, "downlink": "https://api.gog.com/products/42/downlink/installer/f0"},
+                    {"name": "setup_the_game_(1)-1.bin", "size": 6, "downlink": "https://api.gog.com/products/42/downlink/installer/f1"},
+                ])),
+            )
+            .with_json(
+                "https://api.gog.com/products/77?expand=downloads",
+                installer(
+                    json!([{"name": "setup_dlc_(1).exe", "size": 2, "downlink": "https://api.gog.com/products/77/downlink/installer/g0"}]),
+                ),
+            )
+            .with_json("https://api.gog.com/products/42/downlink/installer/f0", json!({"downlink": "https://cdn.gog.com/f0"}))
+            .with_json("https://api.gog.com/products/42/downlink/installer/f1", json!({"downlink": "https://cdn.gog.com/f1"}))
+            .with_json("https://api.gog.com/products/77/downlink/installer/g0", json!({"downlink": "https://cdn.gog.com/g0"}))
+            .with_file("https://cdn.gog.com/f0", vec![0u8; 4])
+            .with_file("https://cdn.gog.com/f1", vec![0u8; 6])
+            .with_file("https://cdn.gog.com/g0", vec![0u8; 2])
+    }
+
+    /// `GogJob` on `net` instead of the offline-installer-less default.
+    fn net_job(tool: &FakeTool, paths: &DataPaths, net: heronite_launch::net::FakeNet) -> GogJob {
+        GogJob { paths: paths.clone(), gogdl: gogdl(tool, paths), net: std::sync::Arc::new(net) }
+    }
+
+    #[test]
+    fn install_with_offline_installers_downloads_them_without_gogdl_download() {
+        let (dir, paths) = setup();
+        let base = dir.path().join("Games");
+        library_with_game(&paths);
+        // gogdl only ever answers `info` and `auth`: a `download` call exits 9.
+        let tool = fake_gog(dir.path(), Reply::new().exit(9));
+        std::fs::create_dir_all(paths.global_config().parent().unwrap()).unwrap();
+        std::fs::write(
+            paths.global_config(),
+            json!({"defaultSettings": {"gogOfflineInstallerDir": dir.path().join("backups").display().to_string()}}).to_string(),
+        )
+        .unwrap();
+
+        let job = net_job(&tool, &paths, offline_net());
+        let result = job.run(&element(ElementKind::Install, &base, &["77"]), &Cancel::new(), &mut |_| {});
+        assert_eq!(result.status, DmStatus::Done, "{:?}", result.error);
+
+        // gogdl ran `info` and `auth` only: the depot download never went.
+        let calls = calls_of(&tool);
+        assert!(calls.iter().all(|c| !c.starts_with("download ")), "{calls:?}");
+
+        let game = dir.path().join("backups/The Game");
+        for f in ["setup_the_game_(1).exe", "setup_the_game_(1)-1.bin", "setup_dlc_(1).exe", "installers.json"] {
+            assert!(game.join(f).exists(), "{f}");
+        }
+        let entry = installed::get(&paths, "42").unwrap();
+        assert_eq!(entry.offline_installer_dir(), Some(game.clone()));
+        assert_eq!((entry.platform.as_str(), entry.language.as_str(), entry.version.as_str()), ("windows", "de-DE", "1.5"));
+        assert_eq!(entry.installed_dlcs, ["77"]);
+        assert_eq!(entry.install_path, base.join("The Game").display().to_string());
+        // The game folder itself is written by the installer on first launch.
+        assert!(!base.join("The Game").exists());
+    }
+
+    #[test]
+    fn an_install_with_no_offline_installer_uses_the_depot() {
+        let (dir, paths) = setup();
+        let base = dir.path().join("Games");
+        library_with_game(&paths);
+        let tool = fake_gog(dir.path(), progress(Reply::new()));
+        // `products` has no installers entry at all.
+        let net = heronite_launch::net::FakeNet::online()
+            .with_json("https://api.gog.com/products/42?expand=downloads", json!({"downloads": {"installers": []}}));
+        let result = net_job(&tool, &paths, net).run(&element(ElementKind::Install, &base, &[]), &Cancel::new(), &mut |_| {});
+        assert_eq!(result.status, DmStatus::Done);
+        assert!(calls_of(&tool).iter().any(|c| c.starts_with("download ")));
+        assert!(installed::get(&paths, "42").unwrap().offline_installer_dir().is_none());
     }
 
     #[test]

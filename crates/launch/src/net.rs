@@ -19,9 +19,21 @@ pub trait Net: Send + Sync {
     fn is_online(&self) -> bool;
     /// GET `url` and parse the body as JSON.
     fn get_json(&self, url: &str) -> Result<Value, String>;
+    /// [`get_json`](Self::get_json) with an `Authorization: Bearer` header.
+    /// The default drops the token: test doubles answer without one.
+    fn get_json_bearer(&self, url: &str, token: &str) -> Result<Value, String> {
+        let _ = token;
+        self.get_json(url)
+    }
     /// Streams `url` into `dest` (created, replaced). `Err("cancelled")` when
     /// `cancel` fires.
     fn download(&self, url: &str, dest: &Path, cancel: Cancel) -> Result<(), String>;
+    /// [`download`](Self::download) that calls `on_bytes` with the bytes
+    /// written so far. The default reports nothing.
+    fn download_progress(&self, url: &str, dest: &Path, cancel: Cancel, on_bytes: &mut dyn FnMut(u64)) -> Result<(), String> {
+        let _ = on_bytes;
+        self.download(url, dest, cancel)
+    }
     /// [`download`](Net::download) that gives up once it took `limit`: a
     /// connection that stalls never hangs it for longer.
     fn download_within(&self, url: &str, dest: &Path, cancel: Cancel, limit: Duration) -> Result<(), String> {
@@ -76,29 +88,40 @@ impl Net for SystemNet {
     }
 
     fn get_json(&self, url: &str) -> Result<Value, String> {
-        let mut resp = agent()
-            .get(url)
-            .header("Accept", "application/vnd.github+json, application/json, */*")
-            .config()
-            .timeout_global(Some(Duration::from_secs(30)))
-            .build()
-            .call()
-            .map_err(http_error)?;
-        let text = resp.body_mut().with_config().limit(32 * 1024 * 1024).read_to_string().map_err(|e| e.to_string())?;
-        serde_json::from_str(&text).map_err(|e| format!("invalid JSON from {url}: {e}"))
+        get_json(url, None)
+    }
+
+    fn get_json_bearer(&self, url: &str, token: &str) -> Result<Value, String> {
+        get_json(url, Some(token))
     }
 
     fn download(&self, url: &str, dest: &Path, cancel: Cancel) -> Result<(), String> {
-        download(url, dest, cancel, None)
+        download(url, dest, cancel, None, None)
+    }
+
+    fn download_progress(&self, url: &str, dest: &Path, cancel: Cancel, on_bytes: &mut dyn FnMut(u64)) -> Result<(), String> {
+        download(url, dest, cancel, None, Some(on_bytes))
     }
 
     fn download_within(&self, url: &str, dest: &Path, cancel: Cancel, limit: Duration) -> Result<(), String> {
-        download(url, dest, cancel, Some(limit))
+        download(url, dest, cancel, Some(limit), None)
     }
 }
 
-/// [`SystemNet`]'s downloads, within `limit` when there is one.
-fn download(url: &str, dest: &Path, cancel: Cancel, limit: Option<Duration>) -> Result<(), String> {
+/// [`SystemNet`]'s JSON GETs, with a bearer token when there is one.
+fn get_json(url: &str, token: Option<&str>) -> Result<Value, String> {
+    let mut req = agent().get(url).header("Accept", "application/vnd.github+json, application/json, */*");
+    if let Some(token) = token {
+        req = req.header("Authorization", format!("Bearer {token}"));
+    }
+    let mut resp = req.config().timeout_global(Some(Duration::from_secs(30))).build().call().map_err(http_error)?;
+    let text = resp.body_mut().with_config().limit(32 * 1024 * 1024).read_to_string().map_err(|e| e.to_string())?;
+    serde_json::from_str(&text).map_err(|e| format!("invalid JSON from {url}: {e}"))
+}
+
+/// [`SystemNet`]'s downloads, within `limit` when there is one, reporting
+/// bytes written through `progress` when there is one.
+fn download(url: &str, dest: &Path, cancel: Cancel, limit: Option<Duration>, progress: Option<&mut dyn FnMut(u64)>) -> Result<(), String> {
     let mut resp = agent().get(url).config().timeout_global(limit).build().call().map_err(http_error)?;
     let total = resp.headers().get("content-length").and_then(|v| v.to_str().ok()).and_then(|v| v.parse::<u64>().ok()).unwrap_or(0);
     let mut body = resp.body_mut().with_config().limit(u64::MAX).reader();
@@ -118,6 +141,9 @@ fn download(url: &str, dest: &Path, cancel: Cancel, limit: Option<Duration>) -> 
         }
         file.write_all(&buf[..n]).map_err(|e| format!("writing {}: {e}", dest.display()))?;
         got += n as u64;
+        if let Some(progress) = &mut progress {
+            progress(got);
+        }
     }
     file.flush().map_err(|e| e.to_string())?;
     if total > 0 && got < total {
@@ -203,6 +229,12 @@ impl Net for FakeNet {
             fs::create_dir_all(dir).map_err(|e| e.to_string())?;
         }
         fs::write(dest, bytes).map_err(|e| e.to_string())
+    }
+
+    fn download_progress(&self, url: &str, dest: &Path, cancel: Cancel, on_bytes: &mut dyn FnMut(u64)) -> Result<(), String> {
+        self.download(url, dest, cancel)?;
+        on_bytes(fs::metadata(dest).map(|m| m.len()).unwrap_or(0));
+        Ok(())
     }
 }
 

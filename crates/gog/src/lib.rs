@@ -12,6 +12,7 @@
 //! * [`playtime`]: GOG's play time for the games never played here.
 //! * [`setup`]: the Windows programs to run at the first launch (in the Wine
 //!   prefix on Linux, as they are on Windows).
+//! * [`offline`]: downloading and keeping GOG's offline backup installers.
 //! * [`galaxy`]: games GOG Galaxy installed on this PC (Windows).
 
 pub mod cmd;
@@ -19,6 +20,7 @@ pub mod galaxy;
 pub mod info;
 pub mod installed;
 pub mod library;
+pub mod offline;
 pub mod ops;
 pub mod playtime;
 pub mod saves;

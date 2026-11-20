@@ -7,7 +7,7 @@
 
 use std::path::{Path, PathBuf};
 
-use anyhow::{anyhow, Result};
+use anyhow::{anyhow, bail, Result};
 use heronite_data::json_store;
 use heronite_data::DataPaths;
 use heronite_i18n::tr;
@@ -15,8 +15,9 @@ use heronite_launch::plan::SetupStep;
 use serde_json::Value;
 
 use crate::cmd::Gogdl;
-use crate::installed;
+use crate::installed::{self, Installed};
 use crate::lang;
+use crate::offline;
 
 /// The script interpreter every GOG installer script needs.
 const INTERPRETER: &str = "ISI";
@@ -24,8 +25,14 @@ const INTERPRETER_EXE: &str = "__redist/ISI/scriptinterpreter.exe";
 const REDIST_MANIFEST: &str = ".gogdl-redist-manifest";
 
 /// Programs to run in the prefix before the game's first launch, in order.
-/// A game without a manifest (an imported one) has none.
+/// A game without a manifest (an imported one) has none; a game installed
+/// from its offline backup installers has its `setup` programs instead.
 pub fn first_launch_steps(paths: &DataPaths, gogdl: &Gogdl, app_name: &str, install_path: &str) -> Result<Vec<SetupStep>> {
+    let saved = installed::get(paths, app_name);
+    if let Some(dir) = saved.as_ref().and_then(|s| s.offline_installer_dir()) {
+        return offline_steps(app_name, install_path, &dir, saved.as_ref());
+    }
+
     let manifest = json_store::read_value(&gogdl.manifest_file(app_name))?;
     if !manifest.is_object() {
         return Ok(Vec::new());
@@ -34,7 +41,6 @@ pub fn first_launch_steps(paths: &DataPaths, gogdl: &Gogdl, app_name: &str, inst
     let deps = manifest_dependencies(&manifest);
     let redist = ensure_redist(gogdl, &redist_dir, &deps)?;
 
-    let saved = installed::get(paths, app_name);
     let language = manifest
         .get("HGLInstallLanguage")
         .and_then(Value::as_str)
@@ -54,6 +60,60 @@ pub fn first_launch_steps(paths: &DataPaths, gogdl: &Gogdl, app_name: &str, inst
         saved_build_id: saved.map(|s| s.build_id).filter(|b| !b.is_empty()),
     };
     Ok(ctx.steps(&deps))
+}
+
+/// Steps of a game installed from its offline backup installers
+/// ([`crate::offline`]): every product's `setup` program with the flags
+/// the installer scripts take, the base game's first. The installers
+/// write the game's own files (`goggame-<id>.info` included), so launch
+/// needs nothing else afterwards.
+fn offline_steps(app_name: &str, install_path: &str, dir: &Path, saved: Option<&Installed>) -> Result<Vec<SetupStep>> {
+    let Some(bundle) = offline::Bundle::load(dir) else {
+        bail!(tr!("The offline installers of {app_name} are no longer in {dir}", app_name = app_name, dir = dir.display()));
+    };
+    let language = saved.map(|s| s.language.clone()).filter(|l| !l.is_empty()).unwrap_or_else(|| "en-US".to_string());
+    let name = lang::english_name(&language);
+    let build_id = saved.map(|s| s.build_id.clone()).filter(|b| !b.is_empty());
+
+    let mut steps = Vec::new();
+    for product in &bundle.products {
+        let Some(exe) = product.setup_exe() else {
+            log::warn!("the offline installer of {} has no setup program", product.product_id);
+            continue;
+        };
+        let exe = dir.join(exe);
+        if !exe.exists() {
+            log::warn!("{} is missing, skipping it", exe.display());
+            continue;
+        }
+        let mut parts = vec![
+            exe.display().to_string(),
+            "/VERYSILENT".into(),
+            "/NORESTART".into(),
+            "/SUPPRESSMSGBOXES".into(),
+            "/NOCANCEL".into(),
+            format!("/DIR={install_path}"),
+            format!("/Language={name}"),
+            format!("/LANG={name}"),
+            format!("/ProductId={}", product.product_id),
+            "/galaxyclient".into(),
+            format!("/lang-code={language}"),
+            "/nodesktopshorctut".into(),
+            "/nodesktopshortcut".into(),
+        ];
+        if let Some(id) = &build_id {
+            parts.push(format!("/buildId={id}"));
+        }
+        if !product.version.is_empty() {
+            parts.push(format!("/versionName={}", product.version));
+        }
+        // Next to the parts the installer reads (`setup_*-1.bin` ...).
+        steps.push(SetupStep { parts, cwd: Some(dir.display().to_string()), ..Default::default() });
+    }
+    if steps.is_empty() {
+        bail!(tr!("The offline installers of {app_name} are no longer in {dir}", app_name = app_name, dir = dir.display()));
+    }
+    Ok(steps)
 }
 
 /// Redistributable ids the game needs: v2 manifests list them, v1 ones mark
@@ -582,5 +642,62 @@ mod tests {
         assert!(resolve(dir.path(), "Dir/missing.exe").is_none());
         assert!(resolve(dir.path(), "Dir/../Dir/File.EXE").is_none());
         assert!(resolve(dir.path(), "Dir").is_none());
+    }
+
+    /// A backup folder with `installers.json` and its setup program.
+    fn backup(dir: &Path) -> PathBuf {
+        let dir = dir.join("backups").join("The Game");
+        touch(&dir.join("setup_the_game_1.5_(1).exe"));
+        touch(&dir.join("setup_the_game_1.5_(1)-1.bin"));
+        let bundle = offline::Bundle {
+            dir: dir.clone(),
+            products: vec![offline::Product {
+                product_id: "42".into(),
+                version: "1.5".into(),
+                parts: vec![
+                    offline::Part { name: "setup_the_game_1.5_(1).exe".into(), size: 1, downlink: String::new() },
+                    offline::Part { name: "setup_the_game_1.5_(1)-1.bin".into(), size: 1, downlink: String::new() },
+                ],
+            }],
+        };
+        bundle.save().unwrap();
+        dir
+    }
+
+    #[test]
+    fn an_offline_install_runs_its_setup_program() {
+        let w = world();
+        let backup = backup(w._dir.path());
+        let mut entry = Installed::new("42");
+        entry.language = "de-DE".into();
+        entry.build_id = "900".into();
+        entry.extra.insert(installed::OFFLINE_DIR_KEY.into(), backup.display().to_string().into());
+        installed::upsert(&w.paths, &entry).unwrap();
+
+        // No gogdl manifest is needed.
+        let steps = first_launch_steps(&w.paths, &w.gogdl, "42", &w.game).unwrap();
+        assert_eq!(steps.len(), 1);
+        let step = &steps[0];
+        assert_eq!(step.parts[0], backup.join("setup_the_game_1.5_(1).exe").display().to_string());
+        for flag in ["/VERYSILENT", "/NORESTART", "/NOCANCEL", "/galaxyclient"] {
+            assert!(step.parts.iter().any(|p| p == flag), "{flag}");
+        }
+        for flag in [
+            format!("/DIR={}", w.game),
+            "/Language=German".to_string(),
+            "/LANG=German".to_string(),
+            "/ProductId=42".to_string(),
+            "/lang-code=de-DE".to_string(),
+            "/buildId=900".to_string(),
+            "/versionName=1.5".to_string(),
+        ] {
+            assert!(step.parts.iter().any(|p| *p == flag), "{flag}");
+        }
+        assert_eq!(step.cwd.as_deref(), Some(backup.display().to_string().as_str()));
+
+        // The installers gone again: setup reports it instead of marking
+        // the game as prepared.
+        std::fs::remove_file(backup.join("setup_the_game_1.5_(1).exe")).unwrap();
+        assert!(first_launch_steps(&w.paths, &w.gogdl, "42", &w.game).is_err());
     }
 }

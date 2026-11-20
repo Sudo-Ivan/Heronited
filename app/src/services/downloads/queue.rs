@@ -489,7 +489,7 @@ impl Job for LazyJob {
         let failed = |err: anyhow::Error| JobResult { status: DmStatus::Error, error: Some(format!("{err:#}")) };
         match element.params.runner.as_str() {
             "gog" => match Gogdl::locate_or_install(&paths) {
-                Ok(gogdl) => GogJob { paths, gogdl }.run(element, cancel, on_progress),
+                Ok(gogdl) => GogJob { paths, gogdl, net: Arc::new(SystemNet) }.run(element, cancel, on_progress),
                 Err(err) => failed(err),
             },
             "nile" => match Nile::locate_or_install(&paths) {

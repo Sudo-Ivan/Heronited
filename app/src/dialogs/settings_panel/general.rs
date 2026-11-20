@@ -84,6 +84,20 @@ impl SettingsPanel {
                 self.path_row("altGogdlBin", Some(tr!("gogdl binary")), false, tr!("Choose the gogdl binary"), true, cx),
                 vec![help(&tool_help("gogdl", tr!("Leave it empty to use the one in the data folder (tools/bin/gogdl).")))],
             );
+            fields = fields
+                .child(self.toggle_row(
+                    "gog-offline-installers",
+                    "gogOfflineInstallers",
+                    true,
+                    tr!("Keep GOG's offline installers and install from them"),
+                    Some(tr!("Windows games GOG has backup installers for are downloaded into the folder below and set up on their first start; the files stay there as the backup and a reinstall needs no download.")),
+                    false,
+                    cx,
+                ))
+                .field_help(
+                    self.path_row("gogOfflineInstallerDir", Some(tr!("GOG offline installers folder")), true, tr!("Choose where GOG's offline installers are kept"), true, cx),
+                    vec![help(tr!("One folder per game, with its installers.json. Empty keeps ~/Games/GOG Offline Installers."))],
+                );
         }
         if supported(Feature::AmazonStore) {
             fields = fields.field_help(

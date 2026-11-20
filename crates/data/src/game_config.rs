@@ -41,6 +41,23 @@ fn unix_install_dir(home: &str) -> String {
     format!("{}/Games/Heronited", home.trim_end_matches('/'))
 }
 
+/// `gogOfflineInstallerDir` of a new setup (`~/Games/GOG Offline Installers`):
+/// next to the games, not among them, so no store scan picks the installers
+/// up as games.
+pub fn default_gog_offline_dir(home: &str) -> String {
+    #[cfg(windows)]
+    {
+        let home = Some(home.trim_end_matches(['/', '\\']))
+            .filter(|h| !h.is_empty())
+            .map(std::path::PathBuf::from)
+            .or_else(heronite_platform::dirs::home)
+            .unwrap_or_default();
+        home.join("Games").join("GOG Offline Installers").to_string_lossy().into_owned()
+    }
+    #[cfg(not(windows))]
+    format!("{}/Games/GOG Offline Installers", home.trim_end_matches('/'))
+}
+
 /// `defaultWinePrefixDir` of a new setup (`~/Games/Heronited/Prefixes`).
 /// Wine prefixes are Linux's: the folder keeps Linux's form everywhere.
 pub fn default_wine_prefix_dir(home: &str) -> String {
@@ -68,6 +85,10 @@ pub fn factory_defaults(home: &str) -> Settings {
     set(&mut out, "defaultWinePrefix", prefixes.clone());
     set(&mut out, "defaultWinePrefixDir", prefixes);
     set(&mut out, "winePrefix", shared_wine_prefix(home));
+    set(&mut out, "gogOfflineInstallerDir", default_gog_offline_dir(home));
+    // Fork default (not Heroic's): GOG games are installed from their
+    // archived offline installer.
+    out.insert("gogOfflineInstallers".into(), Value::Bool(true));
     out
 }
 

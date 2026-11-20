@@ -114,6 +114,7 @@ const INPUTS: &[(&str, Bind, &str)] = &[
     ("defaultSteamPath", s("defaultSteamPath"), ""),
     ("altLegendaryBin", s("altLegendaryBin"), n_!("Using built-in Legendary binary...")),
     ("altGogdlBin", s("altGogdlBin"), n_!("Using built-in gogdl binary...")),
+    ("gogOfflineInstallerDir", s("gogOfflineInstallerDir"), n_("~/Games/GOG Offline Installers")),
     ("altNileBin", s("altNileBin"), n_!("Using built-in nile binary...")),
     ("env.key", Bind::Scratch, n_!("NAME")),
     ("env.value", Bind::Scratch, n_!("VALUE")),
