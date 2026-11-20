@@ -422,7 +422,7 @@ mod tests {
         assert_eq!(manifest.products[0].product_id, "42");
         assert_eq!(manifest.products[0].setup_exe(), Some("setup_the_game_1.5_(64bit)_(1).exe"));
         assert_eq!(reports.last().map(|p| p.percent), Some(100.));
-        assert_eq!(reports.first().map(|p| p.percent), Some(33.33333333333333));
+        assert_eq!(reports.first().map(|p| p.percent), Some(20. / 60. * 100.));
     }
 
     #[test]

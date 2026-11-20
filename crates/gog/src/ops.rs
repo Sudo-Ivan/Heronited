@@ -125,7 +125,7 @@ impl GogJob {
         // A manifest left by an earlier install would turn this download into an update.
         let _ = std::fs::remove_file(self.gogdl.manifest_file(&p.app_name));
         if platform == "windows" && offline::enabled(&self.paths) {
-            if let Some(done) = self.offline_install(el, &details, &folder, platform, language, cancel, on_progress)? {
+            if let Some(done) = self.offline_install(el, &details, folder, platform, language, cancel, on_progress)? {
                 return Ok(done);
             }
         }
