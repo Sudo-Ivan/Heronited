@@ -53,7 +53,7 @@ jobs:
       tag: ${{ steps.bump.outputs.tag || steps.pushed.outputs.tag }}
     steps:
       # Always main (or the pushed tag), never a pull request's own code.
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ github.event_name == 'push' && github.ref || 'main' }}
           fetch-depth: 0
@@ -96,7 +96,7 @@ jobs:
       id-token: write # OIDC token for the SLSA provenance attestation
       attestations: write # pushes the attestation to this repository
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ needs.version.outputs.tag }}
           persist-credentials: false
@@ -162,7 +162,7 @@ jobs:
       id-token: write # OIDC token for the SLSA provenance attestation
       attestations: write
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ needs.version.outputs.tag }}
           persist-credentials: false
@@ -195,7 +195,7 @@ jobs:
       run:
         shell: pwsh
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ needs.version.outputs.tag }}
           persist-credentials: false
@@ -275,7 +275,7 @@ jobs:
       id-token: write # OIDC token for the SLSA provenance attestation
       attestations: write
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ needs.version.outputs.tag }}
           # The release notes read the history back to the previous tag.
