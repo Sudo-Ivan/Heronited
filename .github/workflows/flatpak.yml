@@ -41,9 +41,12 @@ jobs:
         run: scripts/flatpak.sh
       # What Flathub's reviewers run on the submission: its linter on the
       # manifest, the AppStream data and the repository the build made.
+      # lint-exceptions.json: the appid's io.github.sudoivan prefix cannot be
+      # made reachable (the fork lives under Sudo-Ivan, and a hyphen is only
+      # allowed in the last app-id segment, so no valid id can match it).
       - name: Lint
         run: |
-          lint() { flatpak run --command=flatpak-builder-lint org.flatpak.Builder "$@"; }
+          lint() { flatpak run --command=flatpak-builder-lint org.flatpak.Builder --exceptions --user-exceptions packaging/flatpak/lint-exceptions.json "$@"; }
           lint manifest packaging/flatpak/io.github.sudoivan.Heronited.yml
           lint appstream packaging/linux/io.github.sudoivan.Heronited.metainfo.xml
           lint repo target/flatpak/repo
