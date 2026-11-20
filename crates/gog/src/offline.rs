@@ -360,6 +360,7 @@ pub fn download(
                     }
                     std::fs::rename(&tmp, &dest).with_context(|| format!("renaming {}", tmp.display()))?;
                     done += part.size;
+                    fetched += 1;
                     report(done, total, started, on_progress);
                 }
                 Err(e) => {
