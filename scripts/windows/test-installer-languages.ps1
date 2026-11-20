@@ -9,12 +9,12 @@
   What Setup does (install, update, uninstall, the language it keeps) is
   checked by smoke.ps1 on the built setup, not here.
 .PARAMETER Installer
-  Installer source to check (defaults to packaging\windows\heronite.iss).
+  Installer source to check (defaults to packaging\windows\heronited.iss).
 .EXAMPLE
   powershell -NoProfile -File scripts\windows\test-installer-languages.ps1
 #>
 param(
-    [string]$Installer = (Join-Path $PSScriptRoot '..\..\packaging\windows\heronite.iss')
+    [string]$Installer = (Join-Path $PSScriptRoot '..\..\packaging\windows\heronited.iss')
 )
 
 Set-StrictMode -Version Latest
