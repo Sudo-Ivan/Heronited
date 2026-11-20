@@ -3832,7 +3832,7 @@ dependencies = [
  "sha2 0.10.9",
  "shlex 1.3.0",
  "tempfile",
- "toml 0.8.23",
+ "toml 1.1.6+spec-1.1.0",
  "ureq",
  "zip",
 ]
@@ -3912,7 +3912,7 @@ dependencies = [
  "serde_json",
  "sha2 0.10.9",
  "tempfile",
- "toml 0.8.23",
+ "toml 1.1.6+spec-1.1.0",
  "url",
  "zip",
 ]
