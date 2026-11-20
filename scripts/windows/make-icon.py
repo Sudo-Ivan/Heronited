@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Makes packaging/windows/heronite.ico (the program's icon on Windows) from
+"""Makes packaging/windows/heronited.ico (the program's icon on Windows) from
 packaging/linux/io.github.sudoivan.Heronited.png and, for the small sizes, the icon
 without the controller's buttons (app/assets/app-icon/graphite-small.png).
 scripts/make-app-icons.sh runs it; commit the .ico, builds do not run it.
@@ -23,7 +23,7 @@ from PIL import Image
 ROOT = Path(__file__).resolve().parents[2]
 SOURCE = ROOT / "packaging" / "linux" / "io.github.sudoivan.Heronited.png"
 SMALL = ROOT / "app" / "assets" / "app-icon" / "graphite-small.png"
-TARGET = ROOT / "packaging" / "windows" / "heronite.ico"
+TARGET = ROOT / "packaging" / "windows" / "heronited.ico"
 SIZES = [16, 24, 32, 48, 64, 128, 256]
 # Up to this size the small icon is used: the buttons would be specks.
 SMALL_UP_TO = 32

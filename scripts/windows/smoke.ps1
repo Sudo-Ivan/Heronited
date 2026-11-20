@@ -38,7 +38,7 @@ $Root = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
 if (-not $Dist) { $Dist = Join-Path $Root 'dist' }
 $Zip = Join-Path $Dist 'Heronited-Portable-x86_64.zip'
 $Setup = Join-Path $Dist 'Heronited-Setup-x86_64.exe'
-# The AppId of packaging\windows\heronite.iss.
+# The AppId of packaging\windows\heronited.iss.
 $UninstallKey = 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Uninstall\{104041C7-B50B-4E70-8560-A6CFF660777E}_is1'
 $RunKey = 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Run'
 $ClassesKey = 'HKCU:\Software\Classes\heronite'
@@ -84,9 +84,9 @@ if (Test-Path $UninstallKey) {
     exit 1
 }
 
-$message = Select-String -Path (Join-Path $Root 'packaging\windows\heronite.iss') -Encoding UTF8 `
+$message = Select-String -Path (Join-Path $Root 'packaging\windows\heronited.iss') -Encoding UTF8 `
     -Pattern "^$Language\.ShortcutComment=(.+)$"
-if (-not $message) { throw "No shortcut comment for $Language in heronite.iss" }
+if (-not $message) { throw "No shortcut comment for $Language in heronited.iss" }
 $ShortcutComment = $message.Matches[0].Groups[1].Value
 
 # Portable zip.

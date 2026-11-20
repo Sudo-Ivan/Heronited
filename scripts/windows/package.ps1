@@ -8,7 +8,7 @@
                                   portable.txt (keeps the data in that folder)
                                   and LICENSE
     Heronited-Setup-x86_64.exe     the per-user installer (Inno Setup 6,
-                                  packaging\windows\heronite.iss)
+                                  packaging\windows\heronited.iss)
   The minisign signatures for the in-app updater are made afterwards by
   scripts/sign-release.sh, with the Linux files.
 

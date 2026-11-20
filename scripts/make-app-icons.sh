@@ -6,7 +6,7 @@
 #   app/assets/app-icon/graphite.png        256 px, the full icon (the X11 window)
 #   app/assets/app-icon/graphite-small.png  64 px, the small one (the .ico's 16 to 32 px)
 #   packaging/linux/io.github.sudoivan.Heronited.png  the full icon, 256 px
-#   packaging/windows/heronite.ico          through scripts/windows/make-icon.py
+#   packaging/windows/heronited.ico          through scripts/windows/make-icon.py
 #
 #   usage: scripts/make-app-icons.sh      (needs rsvg-convert and Pillow)
 set -euo pipefail
