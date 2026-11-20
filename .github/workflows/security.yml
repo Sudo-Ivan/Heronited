@@ -1,0 +1,41 @@
+name: Security
+
+# zizmor lints the workflows on every change to them. cargo audit checks
+# Cargo.lock against the RustSec advisory database when it changes and once
+# a week (advisories are published between changes).
+on:
+  push:
+    branches: [main]
+    paths: [".github/workflows/**", "Cargo.toml", "Cargo.lock", "crates/*/Cargo.toml", "app/Cargo.toml"]
+  pull_request:
+    paths: [".github/workflows/**", "Cargo.toml", "Cargo.lock", "crates/*/Cargo.toml", "app/Cargo.toml"]
+  schedule:
+    - cron: "0 6 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  zizmor:
+    name: zizmor (workflow lint)
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - name: zizmor
+        run: pipx run --spec zizmor==1.31.1 zizmor .github/workflows/
+
+  audit:
+    name: cargo audit (RustSec advisories)
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: dtolnay/rust-toolchain@39008827e6b4319a349e9a42dfc90579dd25f1ca # stable
+      - name: cargo audit
+        run: |
+          cargo install cargo-audit --locked
+          cargo audit

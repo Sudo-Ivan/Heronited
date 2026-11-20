@@ -1,28 +1,22 @@
 name: Release
 
-# A release starts in one of three ways:
-# - a pull request merged into main with a `release:patch`, `release:minor` or
-#   `release:major` label: the version in Cargo.toml is bumped, committed to
-#   main and tagged;
-# - "Run workflow" in the Actions tab, picking the bump (for work pushed
-#   straight to main);
+# A release starts in one of two ways:
+# - "Run workflow" in the Actions tab, picking the bump: the version in
+#   Cargo.toml is bumped, committed to main and tagged;
 # - pushing a `vX.Y.Z` tag by hand (Cargo.toml must already have X.Y.Z).
 # Then, from the tag and side by side, the AppImage and the .deb / .rpm / Arch
 # packages are built and checked on clean containers (job appimage), the
 # Flatpak bundle is built (job flatpak), and the Windows installer and
-# portable zip are built and checked (job windows).
+# portable zip are built and checked (job windows). All of it is x86_64.
+# Every file carries a SLSA build provenance attestation from the job that
+# built it; check a download with:
+#   gh attestation verify <file> --repo Sudo-Ivan/Heronited
 # The publish job gathers them, signs them (secret MINISIGN_SECRET_KEY, see
 # scripts/sign-release.sh) and publishes them as one GitHub release. The
-# Flatpak bundle is not published until Heronite is on Flathub (a bundle
-# gets no updates): it stays an artifact of the run, and a release whose
-# Flatpak does not build fails.
-# Last, the winget job opens the new version's pull request on
-# microsoft/winget-pkgs. Scoop's bucket (packaging/scoop) needs nothing from
-# here: its Excavator finds the release by itself.
+# Flatpak bundle is not attached to the release (a bundle gets no updates):
+# it stays an artifact of the run, and a release whose Flatpak does not
+# build fails.
 on:
-  pull_request_target:
-    types: [closed]
-    branches: [main]
   workflow_dispatch:
     inputs:
       bump:
@@ -34,7 +28,7 @@ on:
     tags: ["v*"]
 
 permissions:
-  contents: write
+  contents: read
 
 concurrency:
   group: release
@@ -53,41 +47,35 @@ jobs:
   version:
     name: Version
     runs-on: ubuntu-24.04
-    # Merged pull requests only, and only with a release label.
-    if: >-
-      github.event_name != 'pull_request_target' || (
-        github.event.pull_request.merged == true && (
-          contains(github.event.pull_request.labels.*.name, 'release:patch') ||
-          contains(github.event.pull_request.labels.*.name, 'release:minor') ||
-          contains(github.event.pull_request.labels.*.name, 'release:major')))
+    permissions:
+      contents: write # pushes the bump commit and its tag to main
     outputs:
-      tag: ${{ steps.out.outputs.tag }}
+      tag: ${{ steps.bump.outputs.tag || steps.pushed.outputs.tag }}
     steps:
-      # Always main (or the pushed tag), never the pull request's own code.
-      - uses: actions/checkout@v4
+      # Always main (or the pushed tag), never a pull request's own code.
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
           ref: ${{ github.event_name == 'push' && github.ref || 'main' }}
           fetch-depth: 0
+          persist-credentials: false
       - name: Bump, commit and tag
-        if: github.event_name != 'push'
+        id: bump
+        if: github.event_name == 'workflow_dispatch'
         env:
-          LABELS: ${{ toJSON(github.event.pull_request.labels.*.name) }}
           INPUT_BUMP: ${{ inputs.bump }}
+          GH_TOKEN: ${{ github.token }}
         run: |
-          if [[ "$GITHUB_EVENT_NAME" == workflow_dispatch ]]; then
-            BUMP="$INPUT_BUMP"
-          elif grep -q '"release:major"' <<<"$LABELS"; then BUMP=major
-          elif grep -q '"release:minor"' <<<"$LABELS"; then BUMP=minor
-          else BUMP=patch
-          fi
-          VERSION=$(scripts/bump-version.py "$BUMP")
+          VERSION=$(scripts/bump-version.py "$INPUT_BUMP")
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git commit -am "chore(release): v$VERSION"
           git tag "v$VERSION"
-          git push origin HEAD:main "v$VERSION"
-          echo "TAG=v$VERSION" >> "$GITHUB_ENV"
+          # The token goes on the push's URL only: nothing is written to the
+          # repo's config (persist-credentials stays off).
+          git push "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}" HEAD:main "v$VERSION"
+          echo "tag=v$VERSION" >> "$GITHUB_OUTPUT"
       - name: Check the pushed tag
+        id: pushed
         if: github.event_name == 'push'
         run: |
           CARGO=$(sed -n 's/^version = "\(.*\)"/\1/p' Cargo.toml | head -1)
@@ -95,9 +83,7 @@ jobs:
             echo "::error::Tag $GITHUB_REF_NAME does not match Cargo.toml version $CARGO"
             exit 1
           fi
-          echo "TAG=$GITHUB_REF_NAME" >> "$GITHUB_ENV"
-      - id: out
-        run: echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+          echo "tag=$GITHUB_REF_NAME" >> "$GITHUB_OUTPUT"
 
   appimage:
     name: AppImage and packages (x86_64)
@@ -105,14 +91,24 @@ jobs:
     # The oldest supported Ubuntu: the AppImage runs on systems with this
     # glibc (2.35) or newer.
     runs-on: ubuntu-22.04
+    permissions:
+      contents: read
+      id-token: write # OIDC token for the SLSA provenance attestation
+      attestations: write # pushes the attestation to this repository
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
           ref: ${{ needs.version.outputs.tag }}
+          persist-credentials: false
       - name: System packages
         run: scripts/ci-deps.sh
-      - uses: dtolnay/rust-toolchain@stable
-      - uses: Swatinem/rust-cache@v2
+      - uses: dtolnay/rust-toolchain@39008827e6b4319a349e9a42dfc90579dd25f1ca # stable
+      # Builds the published files: reads the shared cache but adds nothing to
+      # it, so a poisoned entry cannot come from this run (and this run alone
+      # cannot poison it for others).
+      - uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0 # v2
+        with:
+          lookup-only: true
       - name: Build
         run: cargo build --release --locked -p heronite -p heronite-epic-login
       - name: appimagetool and nfpm
@@ -145,10 +141,15 @@ jobs:
       # should bundle fails here.
       - name: Check the packages
         run: scripts/package-smoke.sh
-      # Not signed yet: the publish job signs them with the Windows files.
-      - uses: actions/upload-artifact@v4
+      # SLSA provenance for everything the job built, before anything leaves
+      # the runner: the attested hashes are what the release publishes.
+      - uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4
         with:
-          name: Heronite-linux
+          subject-path: dist/*
+      # Not signed yet: the publish job signs them with the Windows files.
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: Heronited-linux
           path: dist/*
           if-no-files-found: error
 
@@ -156,41 +157,52 @@ jobs:
     name: Flatpak bundle (x86_64)
     needs: version
     runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      id-token: write # OIDC token for the SLSA provenance attestation
+      attestations: write
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
           ref: ${{ needs.version.outputs.tag }}
+          persist-credentials: false
       - name: flatpak-builder
         run: scripts/ci-flatpak-deps.sh
-      # The downloads (crates, the tools' sources) and the tools' builds.
-      - uses: actions/cache@v4
-        with:
-          path: target/flatpak/state
-          key: flatpak-${{ hashFiles('packaging/flatpak/app.heronite.Heronite.yml', 'Cargo.lock') }}
-          restore-keys: flatpak-
+      # No cache: this job builds files a release ships, and a cache key
+      # shared with pull request runs could be poisoned from there.
       - name: Build
         run: scripts/flatpak.sh
-      - uses: actions/upload-artifact@v4
+      - uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4
         with:
-          name: Heronite-flatpak
-          path: dist/Heronite-x86_64.flatpak
+          subject-path: dist/Heronited-x86_64.flatpak
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: Heronited-flatpak
+          path: dist/Heronited-x86_64.flatpak
           if-no-files-found: error
 
   windows:
     name: Windows installer and portable zip (x86_64)
     needs: version
     runs-on: windows-latest
+    permissions:
+      contents: read
+      id-token: write # OIDC token for the SLSA provenance attestation
+      attestations: write
     outputs:
       signed: ${{ steps.cert.outputs.signed }}
     defaults:
       run:
         shell: pwsh
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
           ref: ${{ needs.version.outputs.tag }}
-      - uses: dtolnay/rust-toolchain@stable
-      - uses: Swatinem/rust-cache@v2
+          persist-credentials: false
+      - uses: dtolnay/rust-toolchain@39008827e6b4319a349e9a42dfc90579dd25f1ca # stable
+      - uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0 # v2
+        with:
+          lookup-only: true
       - name: Inno Setup
         run: |
           # Preinstalled on windows-latest (6.7.1 on the Windows Server 2025
@@ -223,46 +235,59 @@ jobs:
             "signed=false" >> $env:GITHUB_OUTPUT
             exit 0
           }
-          $pfx = Join-Path $env:RUNNER_TEMP 'heronite-sign.pfx'
+          $pfx = Join-Path $env:RUNNER_TEMP 'heronited-sign.pfx'
           [IO.File]::WriteAllBytes($pfx, [Convert]::FromBase64String($env:PFX_BASE64))
-          "WINDOWS_SIGN_PFX=$pfx" >> $env:GITHUB_ENV
+          "pfx=$pfx" >> $env:GITHUB_OUTPUT
           "signed=true" >> $env:GITHUB_OUTPUT
       - name: Package
         env:
           TAG: ${{ needs.version.outputs.tag }}
+          WINDOWS_SIGN_PFX: ${{ steps.cert.outputs.pfx }}
           WINDOWS_SIGN_PASSWORD: ${{ secrets.WINDOWS_SIGN_PASSWORD }}
         run: ./scripts/windows/package.ps1 -Version $env:TAG.Substring(1)
       # The zip's layout and its login window (--smoke); a silent install,
       # an update over it with /WAITPID and a silent uninstall on the runner.
       - name: Check the packages
         run: ./scripts/windows/smoke.ps1
+      # SLSA provenance, after any Authenticode signature is in place: the
+      # attested hashes are what the release publishes.
+      - uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4
+        with:
+          subject-path: |
+            dist/Heronited-Setup-x86_64.exe
+            dist/Heronited-Portable-x86_64.zip
       # Not minisign-signed yet: the publish job signs them with the Linux
       # files.
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
-          name: Heronite-windows
+          name: Heronited-windows
           path: |
-            dist/Heronite-Setup-x86_64.exe
-            dist/Heronite-Portable-x86_64.zip
+            dist/Heronited-Setup-x86_64.exe
+            dist/Heronited-Portable-x86_64.zip
           if-no-files-found: error
 
   publish:
     name: Sign and publish
     needs: [version, appimage, flatpak, windows]
     runs-on: ubuntu-24.04
+    permissions:
+      contents: write # creates the GitHub release
+      id-token: write # OIDC token for the SLSA provenance attestation
+      attestations: write
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
           ref: ${{ needs.version.outputs.tag }}
           # The release notes read the history back to the previous tag.
           fetch-depth: 0
-      - uses: actions/download-artifact@v4
+          persist-credentials: false
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
         with:
-          name: Heronite-linux
+          name: Heronited-linux
           path: dist
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
         with:
-          name: Heronite-windows
+          name: Heronited-windows
           path: dist
       - name: minisign
         run: |
@@ -282,17 +307,24 @@ jobs:
           MINISIGN_SECRET_KEY: ${{ secrets.MINISIGN_SECRET_KEY }}
           TAG: ${{ needs.version.outputs.tag }}
         run: |
-          for f in Heronite-x86_64.AppImage Heronite-Setup-x86_64.exe Heronite-Portable-x86_64.zip; do
+          for f in Heronited-x86_64.AppImage Heronited-Setup-x86_64.exe Heronited-Portable-x86_64.zip; do
             [[ -f dist/$f ]] || { echo "::error::dist/$f is missing"; exit 1; }
           done
           scripts/sign-release.sh "${TAG#v}" dist
           ls -l dist
-      - uses: actions/upload-artifact@v4
+      # The binaries were attested by the jobs that built them; this job
+      # attests what it creates itself: the checksums and the signatures.
+      - uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4
         with:
-          name: Heronite-release
+          subject-path: |
+            dist/SHA256SUMS
+            dist/*.minisig
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: Heronited-release
           path: dist/*
           overwrite: true
-      - uses: taiki-e/install-action@v2
+      - uses: taiki-e/install-action@75a7c0f87bd666af3cdb75c5b9e9d03ab6044e6f # v2
         with:
           tool: git-cliff
       - name: Release notes
@@ -306,49 +338,24 @@ jobs:
           # A short guide to the assets goes first: the .minisig and .zsync
           # files sit next to the downloads but are only for the updaters.
           cat > notes.md <<'EOF'
-          **Linux:** `Heronite-x86_64.AppImage` runs on any distribution (recommended). Or the package for your system: `.deb` (Debian, Ubuntu, Mint), `.rpm` (Fedora, openSUSE), `.pkg.tar.zst` (Arch, CachyOS).
+          **Linux:** `Heronited-x86_64.AppImage` runs on any distribution (recommended). Or the package for your system: `.deb` (Debian, Ubuntu, Mint), `.rpm` (Fedora, openSUSE), `.pkg.tar.zst` (Arch, CachyOS).
 
-          **Windows 10 and 11:** `Heronite-Setup-x86_64.exe` installs Heronite for your user, no administrator rights needed (recommended). `Heronite-Portable-x86_64.zip` runs from any folder you extract it to and keeps its library and settings in that folder.
+          **Windows 10 and 11:** `Heronited-Setup-x86_64.exe` installs Heronited for your user, no administrator rights needed (recommended). `Heronited-Portable-x86_64.zip` runs from any folder you extract it to and keeps its library and settings in that folder.
           EOF
           # Until the Windows files are code-signed (see the windows job).
           if [[ $WINDOWS_SIGNED != true ]]; then
             truncate -s -1 notes.md
             printf ' They are not code-signed yet, so Windows SmartScreen may say "Windows protected your PC": choose **More info**, then **Run anyway**.\n' >> notes.md
           fi
-          printf '\n`SHA256SUMS` lists the SHA-256 of every file (signed in `SHA256SUMS.minisig`). The `.minisig` and `.zsync` files are for the updaters; you do not need them.\n\n' >> notes.md
+          printf '\n`SHA256SUMS` lists the SHA-256 of every file (signed in `SHA256SUMS.minisig`). The `.minisig` and `.zsync` files are for the updaters; you do not need them. Every file has SLSA build provenance: `gh attestation verify <file> --repo Sudo-Ivan/Heronited` checks it came from this repository'\''s release workflow.\n\n' >> notes.md
           if [[ $(git tag --list 'v*' | wc -l) -le 1 ]]; then
-            printf 'First public release of Heronite. See the [README](https://github.com/RafaelGoulartB/Heronite#readme) for what it can do.\n' >> notes.md
+            printf 'First public release of Heronited. See the [README](https://github.com/Sudo-Ivan/Heronited#readme) for what it can do.\n' >> notes.md
           else
             git cliff --latest --strip all >> notes.md
           fi
-          # Last line: a star and the Discussions, where feedback goes.
-          printf '\n**Enjoying Heronite?** [Star it on GitHub](https://github.com/RafaelGoulartB/Heronite) and share your feedback and ideas in [Discussions](https://github.com/RafaelGoulartB/Heronite/discussions).\n' >> notes.md
           cat notes.md
       - name: Publish release
         env:
           GH_TOKEN: ${{ github.token }}
           TAG: ${{ needs.version.outputs.tag }}
-        run: gh release create "$TAG" dist/* --title "Heronite $TAG" --notes-file notes.md
-
-  # Opens the pull request of the new version on microsoft/winget-pkgs
-  # (packaging/winget/README.md). Its own job: the release is out either way.
-  # Needs the secret WINGET_TOKEN (a classic token with public_repo) and a
-  # fork of microsoft/winget-pkgs on this account; without the token it only
-  # says so. The first version of the package goes in by hand.
-  winget:
-    name: winget
-    runs-on: ubuntu-latest
-    needs: [version, publish]
-    env:
-      WINGET_TOKEN: ${{ secrets.WINGET_TOKEN }}
-    steps:
-      - name: No token
-        if: env.WINGET_TOKEN == ''
-        run: echo "::notice::WINGET_TOKEN is not set, so no winget pull request was opened"
-      - uses: vedantmgoyal9/winget-releaser@b7370d4d152efdce803a26cc6ca9eee58cb2ad54 # v2
-        if: env.WINGET_TOKEN != ''
-        with:
-          identifier: Heronite.Heronite
-          release-tag: ${{ needs.version.outputs.tag }}
-          installers-regex: 'Heronite-Setup-x86_64\.exe$'
-          token: ${{ env.WINGET_TOKEN }}
+        run: gh release create "$TAG" dist/* --title "Heronited $TAG" --notes-file notes.md
