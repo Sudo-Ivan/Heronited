@@ -39,7 +39,7 @@ if (-not $Dist) { $Dist = Join-Path $Root 'dist' }
 $Zip = Join-Path $Dist 'Heronited-Portable-x86_64.zip'
 $Setup = Join-Path $Dist 'Heronited-Setup-x86_64.exe'
 # The AppId of packaging\windows\heronited.iss.
-$UninstallKey = 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Uninstall\{104041C7-B50B-4E70-8560-A6CFF660777E}_is1'
+$UninstallKey = 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Uninstall\{3D3171D7-0476-4286-A3E3-B080280EDE75}_is1'
 $RunKey = 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Run'
 $ClassesKey = 'HKCU:\Software\Classes\heronite'
 $Shortcut = Join-Path ([Environment]::GetFolderPath('Programs')) 'Heronited.lnk'
