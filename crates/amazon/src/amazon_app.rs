@@ -59,7 +59,7 @@ pub fn read_installs(db: &Path) -> Result<Vec<AppGame>> {
     let conn = Connection::open_with_flags(&copy.db, OpenFlags::SQLITE_OPEN_READ_WRITE | OpenFlags::SQLITE_OPEN_NO_MUTEX)
         .with_context(|| format!("opening {}", db.display()))?;
     let mut stmt = conn.prepare("SELECT * FROM DbSet").with_context(|| format!("reading {}", db.display()))?;
-    let names: Vec<String> = stmt.column_names().into_iter().map(str::to_lowercase).collect();
+    let names: Vec<String> = stmt.column_names().map(str::to_lowercase).collect();
     let col = |name: &str| names.iter().position(|n| n == name);
     let (Some(id), Some(folder)) = (col("id"), col("installdirectory")) else {
         anyhow::bail!("{}: the table of installs has no Id or InstallDirectory", db.display());
