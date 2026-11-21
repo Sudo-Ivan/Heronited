@@ -3937,8 +3937,11 @@ dependencies = [
  "heronite-launch",
  "heronite-platform",
  "log",
+ "serde",
  "serde_json",
  "tempfile",
+ "ureq",
+ "url",
 ]
 
 [[package]]

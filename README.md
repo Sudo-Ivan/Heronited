@@ -108,7 +108,7 @@ The attestation proves the file came from this repository's release workflow, no
 - **GOG offline installers kept (fork default):** Windows GOG games are fetched as GOG's own offline backup installers into `~/Games/GOG Offline Installers` (a folder per game, with `installers.json`) and set up from them on first start — the files stay as your backup and a reinstall needs no download. Turn it off or pick another folder in Settings → Downloads; games without offline installers fall back to the depot download.
 - **Steam:** your library comes in by itself, no login needed.
 - **Xbox and PC Game Pass (Windows):** Microsoft Store and Game Pass games show up in your Collection, launch from Heronited, and count their play time.
-- **Battle.net, EA app, Ubisoft Connect, and Rockstar Games:** their games join your Collection, through the store's own app on Windows and in its own Wine prefix on Linux.
+- **Battle.net, EA app, Ubisoft Connect, and Rockstar Games:** their games join your Collection, through the store's own app on Windows and in its own Wine prefix on Linux. Connect your EA account on the EA app's page to also see the EA games you own that are not installed.
 - **Other launchers:** import and sync games from Heroic, Lutris, Bottles, and Faugus on Linux, and from Heroic and Playnite on Windows (Settings → Other launchers).
 - **Games you already have:** add one by hand, or a whole folder at once.
 
