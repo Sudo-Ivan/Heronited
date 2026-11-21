@@ -6,9 +6,17 @@ use std::path::Path;
 use sha2::{Digest, Sha256};
 
 pub fn sha256_file(path: &Path) -> Result<String, String> {
+    use std::io::Read;
     let mut f = std::fs::File::open(path).map_err(|e| format!("{}: {e}", path.display()))?;
     let mut h = Sha256::new();
-    std::io::copy(&mut f, &mut h).map_err(|e| format!("{}: {e}", path.display()))?;
+    let mut buf = [0u8; 64 * 1024];
+    loop {
+        let n = f.read(&mut buf).map_err(|e| format!("{}: {e}", path.display()))?;
+        if n == 0 {
+            break;
+        }
+        h.update(&buf[..n]);
+    }
     Ok(hex(&h.finalize()))
 }
 
