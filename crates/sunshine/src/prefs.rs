@@ -107,8 +107,8 @@ impl Prefs {
     }
 }
 
-/// `password` sealed for this Windows user, as stored in `password`. Fails
-/// on systems without DPAPI: nothing is ever kept in the clear.
+/// `password` sealed for this user, as stored in `password`. Fails on
+/// systems without protected storage: nothing is ever kept in the clear.
 pub fn seal(password: &str) -> std::io::Result<String> {
     let sealed = heronite_platform::secret::protect(password.as_bytes())?;
     Ok(base64::engine::general_purpose::STANDARD.encode(sealed))

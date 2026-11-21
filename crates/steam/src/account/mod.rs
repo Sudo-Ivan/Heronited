@@ -45,19 +45,20 @@ fn path(paths: &DataPaths) -> PathBuf {
 }
 
 /// The sign-in saved here; `None` when none is, or the file cannot be read
-/// (another Windows user's).
+/// (another user's, another PC's).
 fn load(paths: &DataPaths) -> Option<Account> {
     let bytes = std::fs::read(path(paths)).ok()?;
-    let plain = if cfg!(windows) {
-        match heronite_platform::secret::unprotect(&bytes) {
-            Ok(p) => p,
-            Err(e) => {
-                log::warn!("steam: the saved sign-in cannot be opened ({e}); signed out");
-                return None;
-            }
+    let plain = match heronite_platform::secret::unprotect(&bytes) {
+        Ok(p) => p,
+        // An unsealed file is read as is: Windows seals everything, other
+        // systems seal only where the keyring is. Plaintext is only ever a
+        // JSON document; sealed-looking bytes that do not unseal are a
+        // corrupt sign-in, not a file to guess at.
+        Err(_) if !cfg!(windows) && bytes.starts_with(b"{") => bytes,
+        Err(e) => {
+            log::warn!("steam: the saved sign-in cannot be opened ({e}); signed out");
+            return None;
         }
-    } else {
-        bytes
     };
     serde_json::from_slice(&plain).ok()
 }
@@ -66,7 +67,9 @@ fn load(paths: &DataPaths) -> Option<Account> {
 fn save(paths: &DataPaths, account: &Account) -> Result<()> {
     use anyhow::Context;
     let json = serde_json::to_vec_pretty(account)?;
-    let bytes = if cfg!(windows) { heronite_platform::secret::protect(&json).context("sealing the Steam sign-in")? } else { json };
+    // Sealed where the system has protected storage, else the file itself
+    // stays the only guard (0600).
+    let bytes = heronite_platform::secret::protect(&json).unwrap_or(json);
     let file = path(paths);
     if let Some(dir) = file.parent() {
         std::fs::create_dir_all(dir)?;

@@ -365,7 +365,7 @@ pub fn download(
         }
     }
 
-    let total: u64 = products.iter().flat_map(|p| p.parts.iter().map(|f| f.size)).sum();
+    let total: u64 = products.iter().flat_map(|p| p.parts.iter().map(|f| f.size)).fold(0u64, u64::saturating_add);
     if let Some(space) = heronite_epic::disk::check(&dir.display().to_string()) {
         if total > 0 && space.free < total {
             bail!(tr!("Not enough disk space for the offline installers ({need} needed)", need = file_size(total as f64)));
@@ -380,7 +380,8 @@ pub fn download(
     let prior: std::collections::BTreeMap<String, String> =
         Bundle::load(&dir).map(|b| b.products.into_iter().flat_map(|p| p.parts).map(|f| (f.name, f.sha256)).collect()).unwrap_or_default();
     let mut fetched = 0;
-    let mut done: u64 = products.iter().flat_map(|p| p.parts.iter()).filter(|f| present(&dir, f)).map(|f| f.size).sum();
+    let mut done: u64 =
+        products.iter().flat_map(|p| p.parts.iter()).filter(|f| present(&dir, f)).map(|f| f.size).fold(0u64, u64::saturating_add);
     for product in &mut products {
         for part in &mut product.parts {
             if cancel.is_requested() {
@@ -398,14 +399,14 @@ pub fn download(
                     };
                     continue;
                 }
-                done -= part.size;
+                done = done.saturating_sub(part.size);
             }
             if let Some((sibling, sha256)) = reusable(&root, &dir, part) {
                 match link_or_copy(&sibling, &dest) {
                     Ok(()) => {
                         log::info!("reused {} of {}", part.name, sibling.display());
                         part.sha256 = sha256;
-                        done += part.size;
+                        done = done.saturating_add(part.size);
                         fetched += 1;
                         report(done, total, started, on_progress);
                         continue;
@@ -417,7 +418,7 @@ pub fn download(
             let tmp = PathBuf::from(format!("{}.part", dest.display()));
             let base = done;
             let result = net.download_progress(&url, &tmp, &|| cancel.is_requested(), &mut |got| {
-                report(base + got, total, started, on_progress);
+                report(base.saturating_add(got), total, started, on_progress);
             });
             match result {
                 Ok(()) => {
@@ -429,7 +430,7 @@ pub fn download(
                     }
                     std::fs::rename(&tmp, &dest).with_context(|| format!("renaming {}", tmp.display()))?;
                     part.sha256 = heronite_launch::gfxmods::hash::sha256_file(&dest).unwrap_or_default();
-                    done += part.size;
+                    done = done.saturating_add(part.size);
                     fetched += 1;
                     report(done, total, started, on_progress);
                 }
@@ -666,5 +667,95 @@ mod tests {
         .unwrap();
         assert!(!enabled(&paths));
         assert_eq!(backup_dir(&paths), dir.path().join("x"));
+    }
+
+    use proptest::prelude::*;
+
+    proptest! {
+        /// `safe_name` never lets a name reach outside the folder it joins:
+        /// anything with a separator, or a dots-only segment, is refused.
+        #[test]
+        fn unsafe_names_never_join_outside_the_folder(name in ".*") {
+            let dir = Path::new("/backups/game");
+            if safe_name(&name) {
+                prop_assert_eq!(dir.join(&name).parent(), Some(dir));
+            }
+        }
+
+        /// The usual installer names (`setup_x_(1).exe`, `-1.bin` parts) pass.
+        #[test]
+        fn real_installer_names_are_safe(name in "[A-Za-z0-9_() -]{1,60}\\.(exe|bin|dat)") {
+            prop_assert!(safe_name(&name));
+        }
+
+        /// Every traversal/dots shape is refused.
+        #[test]
+        fn traversal_names_are_refused(name in "([.]?[.]?[/\\\\])+[a-z]*") {
+            prop_assert!(!safe_name(&name));
+        }
+
+        /// `pick_installer` never picks an installer of another system, and
+        /// picks the exact-language one when there is one for `os`.
+        #[test]
+        fn the_picked_installer_is_always_for_the_system(
+            os in prop::sample::select(vec!["windows", "mac", "linux"]),
+            code in prop::sample::select(vec!["en-US", "de-DE", "pt-BR", "en-GB"]),
+            others in prop::collection::vec(prop::sample::select(vec!["windows", "mac", "linux"]), 0..4),
+        ) {
+            let mut installers = others.iter().enumerate().map(|(i, o)| {
+                json!({"id": format!("o{i}"), "os": o, "language_code": "xx", "files": [{"name": "a", "size": 1, "downlink": "u"}]})
+            }).collect::<Vec<_>>();
+            installers.push(json!({"id": "mine", "os": os, "language_code": code, "files": [{"name": "a", "size": 1, "downlink": "u"}]}));
+            let doc = installer_doc(json!(installers));
+            let picked = pick_installer(&doc, os, code).unwrap();
+            prop_assert_eq!(text(picked.get("id")), "mine");
+            prop_assert!(text(picked.get("os")).eq_ignore_ascii_case(os));
+        }
+
+        /// The manifest round-trips through `save`/`load` with every field
+        /// but `downlink` and `fetched` (both download-only) preserved.
+        #[test]
+        fn a_saved_manifest_reads_back(products in prop::collection::vec(
+            (
+                "[0-9]{2,8}",
+                "[a-zA-Z0-9_. -]{0,20}",
+                prop::collection::vec(("[A-Za-z0-9_() -]{1,40}\\.(exe|bin)", 0u64..1_000_000u64, "[0-9a-f]{0,64}"), 1..4),
+            ),
+            1..4,
+        )) {
+            let dir = tempfile::tempdir().unwrap();
+            let bundle = Bundle {
+                dir: dir.path().to_path_buf(),
+                products: products
+                    .iter()
+                    .map(|(id, version, parts)| Product {
+                        product_id: id.clone(),
+                        version: version.clone(),
+                        parts: parts.iter().map(|(n, s, h)| Part { name: n.clone(), size: *s, sha256: h.clone(), downlink: String::new() }).collect(),
+                    })
+                    .collect(),
+                fetched: 0,
+            };
+            bundle.save().unwrap();
+            prop_assert_eq!(Bundle::load(dir.path()).unwrap(), bundle);
+        }
+
+        /// A hostile manifest never escapes the folder on load either.
+        #[test]
+        fn a_manifest_with_unsafe_names_loads_without_them(name in "[.]{1,2}[/\\\\][a-z]+|.*[/\\\\].*") {
+            let dir = tempfile::tempdir().unwrap();
+            let bundle = Bundle {
+                dir: dir.path().to_path_buf(),
+                products: vec![Product {
+                    product_id: "42".into(),
+                    version: "1".into(),
+                    parts: vec![Part { name, size: 1, sha256: String::new(), downlink: String::new() }],
+                }],
+                fetched: 0,
+            };
+            std::fs::create_dir_all(dir.path()).unwrap();
+            heronite_data::temps::write_atomic(&dir.path().join(MANIFEST), bundle.manifest().to_string().as_bytes(), None).unwrap();
+            prop_assert!(Bundle::load(dir.path()).map(|b| b.products[0].parts.is_empty()).unwrap_or(true));
+        }
     }
 }

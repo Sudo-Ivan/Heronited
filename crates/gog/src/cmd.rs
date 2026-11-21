@@ -251,4 +251,38 @@ mod tests {
         assert!(g.manifest_file("42").ends_with(Path::new("gogdlConfig").join(TOOL_DIR).join("manifests/42")));
         assert!(g.support_dir("42").ends_with(Path::new("gogdlConfig").join(TOOL_DIR).join("gog-support/42")));
     }
+
+    use proptest::prelude::*;
+
+    proptest! {
+        /// The value after every `--code` is hidden: the log line can never
+        /// carry the code, whatever else the args hold. Every other arg
+        /// survives in place.
+        #[test]
+        fn a_code_is_never_in_the_log_line(args in prop::collection::vec("[a-zA-Z0-9_.=-]{1,30}", 0..12)) {
+            let out = redact(&args);
+            prop_assert_eq!(out.len(), args.len());
+            for (i, a) in args.iter().enumerate() {
+                if a == "--code" && i + 1 < args.len() {
+                    prop_assert_eq!(out[i + 1].as_str(), "<redacted>");
+                } else if i == 0 || args[i - 1] != "--code" {
+                    prop_assert_eq!(&out[i], a);
+                }
+            }
+        }
+
+        /// Redacting twice changes nothing.
+        #[test]
+        fn redacting_is_idempotent(args in prop::collection::vec("[a-zA-Z0-9_.=-]{1,30}|--code", 0..12)) {
+            prop_assert_eq!(redact(&redact(&args)), redact(&args));
+        }
+
+        /// Whatever the noise around it, the last parseable `{` line is the
+        /// one `last_json_object` returns.
+        #[test]
+        fn the_last_json_line_wins(lines in prop::collection::vec("[^{}\\n]{0,30}", 0..8), n in 0u8..255) {
+            let text = format!("{}\n{{\"n\": {n}}}\n", lines.join("\n"));
+            prop_assert_eq!(last_json_object(&text).unwrap()["n"], n);
+        }
+    }
 }

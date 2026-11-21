@@ -403,7 +403,8 @@ pub(crate) mod tests {
         let paths = DataPaths::at(dir.path().join("heronite"));
         let url = GOGDL.download_url(GOGDL.asset_name().unwrap());
         let net = FakeNet::online().with_file(&url, fake_bin(false));
-        let err = GOGDL.ensure(&paths, &FakeProbe::default(), &net, &|| false).unwrap_err();
+        let probe = FakeProbe::default().with_env(GOGDL.env_sha, &crate::gfxmods::hash::sha256(&fake_bin(false)));
+        let err = GOGDL.ensure(&paths, &probe, &net, &|| false).unwrap_err();
         assert!(err.contains("gogdl does not run"), "{err}");
         assert!(!GOGDL.data_bin(&paths).exists());
         assert!(FakeNet::offline().requests().is_empty());
