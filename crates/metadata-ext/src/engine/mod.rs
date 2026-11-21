@@ -64,7 +64,7 @@ pub const MAX_STUCK_PER_EXTENSION: usize = 1;
 pub const MAX_STUCK: usize = 3;
 
 /// The threads left running, by extension id.
-static STUCK: Mutex<Vec<String>> = parking_lot::const_mutex(Vec::new());
+static STUCK: Mutex<Vec<String>> = Mutex::new(Vec::new());
 
 /// How many threads of extension `id` are still running past their time.
 pub fn stuck(id: &str) -> usize {
