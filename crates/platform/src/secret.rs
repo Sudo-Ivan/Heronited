@@ -112,7 +112,7 @@ mod imp {
         let mut nonce = [0u8; 12];
         getrandom::fill(&mut nonce).map_err(|e| io::Error::other(format!("no random numbers: {e}")))?;
         let ct = Aes256Gcm::new(key.into())
-            .encrypt(Nonce::try_from(&nonce[..]).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, format!("bad nonce: {e}")))?, data)
+            .encrypt(&Nonce::try_from(&nonce[..]).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, format!("bad nonce: {e}")))?, data)
             .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, format!("sealing failed: {e}")))?;
         let mut out = Vec::with_capacity(TAG.len() + nonce.len() + ct.len());
         out.extend_from_slice(TAG);
@@ -127,7 +127,7 @@ mod imp {
         let (nonce, ct) =
             rest.split_at_checked(12).ok_or_else(|| io::Error::new(io::ErrorKind::InvalidData, "a Heronited sealed blob is too short"))?;
         Aes256Gcm::new(key.into())
-            .decrypt(Nonce::try_from(nonce).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, format!("bad nonce: {e}")))?, ct)
+            .decrypt(&Nonce::try_from(nonce).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, format!("bad nonce: {e}")))?, ct)
             .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, format!("the sealed data cannot be opened: {e}")))
     }
 
