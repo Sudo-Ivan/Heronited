@@ -54,7 +54,7 @@ windows-sys = { version = "0.61", features = [
 # know and Windows.Gaming.Input loses once Steam switches their report mode.
 # Built from source and linked statically with only the joystick parts (no
 # video, audio or GPU), so there is no SDL3.dll to ship.
-sdl3-sys = { version = "=0.7.2", default-features = false, features = [
+sdl3-sys = { version = "=0.7.3", default-features = false, features = [
     "build-from-source-static",
     "no-default-subsystems",
     "sdl-joystick",
