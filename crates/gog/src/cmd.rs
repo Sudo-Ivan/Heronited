@@ -282,7 +282,8 @@ mod tests {
         #[test]
         fn the_last_json_line_wins(lines in prop::collection::vec("[^{}\\n]{0,30}", 0..8), n in 0u8..255) {
             let text = format!("{}\n{{\"n\": {n}}}\n", lines.join("\n"));
-            prop_assert_eq!(last_json_object(&text).unwrap()["n"], n);
+            let v = last_json_object(&text).unwrap();
+            prop_assert_eq!(v["n"].as_u64().unwrap(), u64::from(n));
         }
     }
 }

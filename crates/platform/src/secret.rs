@@ -98,7 +98,7 @@ mod imp {
                 .map_err(|_| io::Error::new(io::ErrorKind::InvalidData, "the keyring's key is not 32 bytes")),
             Err(keyring::Error::NoEntry) => {
                 let mut raw = [0u8; 32];
-                getrandom::fill(&mut raw).map_err(|e| io::Error::new(io::ErrorKind::Other, format!("no random numbers: {e}")))?;
+                getrandom::fill(&mut raw).map_err(|e| io::Error::other(format!("no random numbers: {e}")))?;
                 entry.set_secret(&raw).map_err(unsupported)?;
                 Ok(raw)
             }
@@ -110,7 +110,7 @@ mod imp {
     /// tests need no keyring.
     fn protect_with(key: &[u8; 32], data: &[u8]) -> io::Result<Vec<u8>> {
         let mut nonce = [0u8; 12];
-        getrandom::fill(&mut nonce).map_err(|e| io::Error::new(io::ErrorKind::Other, format!("no random numbers: {e}")))?;
+        getrandom::fill(&mut nonce).map_err(|e| io::Error::other(format!("no random numbers: {e}")))?;
         let ct = Aes256Gcm::new(key.into())
             .encrypt(Nonce::from_slice(&nonce), data)
             .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, format!("sealing failed: {e}")))?;
