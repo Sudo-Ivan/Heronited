@@ -7,7 +7,7 @@ description = "What differs between operating systems: processes, files, folders
 
 [dependencies]
 log.workspace = true
-dirs = "6"
+dirs = "7"
 
 [target.'cfg(unix)'.dependencies]
 libc = "0.2"
@@ -16,11 +16,11 @@ libc = "0.2"
 # Secret Service portal (`secret`): GNOME Keyring / KWallet hold the key the
 # sealed blobs are made with.
 [target.'cfg(target_os = "linux")'.dependencies]
-ashpd = { version = "0.13", default-features = false, features = ["async-io", "notification"] }
-pollster = "0.4"
-keyring = { version = "3", default-features = false, features = ["sync-secret-service", "crypto-rust"] }
-aes-gcm = "0.10"
-getrandom = "0.3"
+ashpd = { version = "0.14", default-features = false, features = ["async-io", "notification"] }
+pollster = "1"
+keyring = { version = "4", default-features = false, features = ["v1"] }
+aes-gcm = "0.11"
+getrandom = "0.4"
 
 [target.'cfg(windows)'.dependencies]
 windows-sys = { version = "0.61", features = [
@@ -54,7 +54,7 @@ windows-sys = { version = "0.61", features = [
 # know and Windows.Gaming.Input loses once Steam switches their report mode.
 # Built from source and linked statically with only the joystick parts (no
 # video, audio or GPU), so there is no SDL3.dll to ship.
-sdl3-sys = { version = "=0.7.2", default-features = false, features = [
+sdl3-sys = { version = "=0.7.3", default-features = false, features = [
     "build-from-source-static",
     "no-default-subsystems",
     "sdl-joystick",

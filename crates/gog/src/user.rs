@@ -107,13 +107,32 @@ fn parse_credentials(stdout: &str) -> Result<Credentials> {
 /// Fresh tokens (gogdl refreshes expired ones itself). When gogdl has
 /// tokens but cannot refresh them, the error is a [`SessionExpired`].
 pub fn credentials(paths: &DataPaths, gogdl: &Gogdl) -> Result<Credentials> {
-    credentials_from(paths, gogdl.run(&["auth"])?)
+    let out = gogdl.run(&["auth"])?;
+    private_auth(paths);
+    credentials_from(paths, out)
 }
 
 /// [`credentials`] that gives up after `limit` (gogdl may hang on a bad
 /// network while it refreshes the tokens).
 pub fn credentials_within(paths: &DataPaths, gogdl: &Gogdl, limit: std::time::Duration) -> Result<Credentials> {
-    credentials_from(paths, gogdl.run_within(&["auth"], limit)?)
+    let out = gogdl.run_within(&["auth"], limit)?;
+    private_auth(paths);
+    credentials_from(paths, out)
+}
+
+/// The tokens in gogdl's `auth.json` are for this user only: gogdl writes
+/// it with the usual umask, so its folder (0700, which also covers the
+/// files gogdl rewrites inside it) and the file (0600) are made private
+/// after every call that writes them.
+fn private_auth(paths: &DataPaths) {
+    let file = paths.gog_auth();
+    for path in [file.parent().unwrap_or(&file).to_path_buf(), file] {
+        if path.exists() {
+            if let Err(e) = heronite_platform::fs::make_private(&path) {
+                log::warn!("GOG: could not make {} private: {e}", path.display());
+            }
+        }
+    }
 }
 
 fn credentials_from(paths: &DataPaths, out: heronite_epic::cmd::Output) -> Result<Credentials> {
@@ -149,6 +168,7 @@ fn account_from_user(user_id: &str, doc: &Value) -> (Account, Option<String>) {
 pub fn login(paths: &DataPaths, gogdl: &Gogdl, input: &str) -> Result<Account> {
     let Some(code) = extract_code(input) else { bail!(tr!("That does not look like an authorization code")) };
     let out = gogdl.run(&["auth", "--code", &code])?;
+    private_auth(paths);
     if !out.success() && last_json_object(&out.stdout).is_none() {
         bail!(tr!("Failed to log in with gogdl: {error}", error = out.error_lines()));
     }

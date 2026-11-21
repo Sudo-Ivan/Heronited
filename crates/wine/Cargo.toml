@@ -12,10 +12,10 @@ serde = { version = "1", features = ["derive"] }
 serde_json = { version = "1", features = ["preserve_order", "float_roundtrip"] }
 anyhow = "1"
 log = "0.4"
-dirs = "6"
-parking_lot = "0.12"
+dirs = "7"
+parking_lot = "0.13"
 ureq = "3"
-sha2 = "0.10"
+sha2 = "0.11"
 trash = "5"
 
 [dev-dependencies]

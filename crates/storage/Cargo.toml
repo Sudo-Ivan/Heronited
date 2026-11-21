@@ -14,7 +14,7 @@ heronite-wine = { path = "../wine" }
 serde_json.workspace = true
 anyhow.workspace = true
 log.workspace = true
-dirs = "6"
+dirs = "7"
 trash = "5"
 
 [dev-dependencies]

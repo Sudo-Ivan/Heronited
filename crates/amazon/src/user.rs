@@ -156,6 +156,11 @@ pub fn register(paths: &DataPaths, nile: &Nile, request: &LoginRequest, input: &
         }
         bail!(tr!("Failed to sign in to Amazon Games: {error}", error = why));
     }
+    // nile writes its tokens into the config folder with the usual umask;
+    // it is for this user only.
+    if let Err(e) = heronite_platform::fs::make_private(&paths.nile_config_dir()) {
+        log::warn!("Amazon: could not make the nile config folder private: {e}");
+    }
     let Some(account) = sync_account(paths)? else { bail!(tr!("Signed in, but the account information could not be read")) };
     if let Err(err) = library::write_library(paths) {
         log::warn!("writing the Amazon library: {err:#}");

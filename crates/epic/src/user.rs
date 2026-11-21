@@ -120,6 +120,11 @@ pub fn login(data_paths: &DataPaths, legendary: &Legendary, input: &str) -> Resu
         bail!(tr!("That does not look like an authorization code"));
     }
     let out = legendary.run(&["auth", "--code", &code], &[])?;
+    // legendary writes its tokens (`user.json`) into the config folder
+    // with the usual umask; it is for this user only.
+    if let Err(e) = heronite_platform::fs::make_private(&data_paths.legendary_config_dir()) {
+        log::warn!("Epic: could not make the legendary config folder private: {e}");
+    }
     if out.stderr.contains("ERROR: Logging in ") || !out.success() {
         let why = out.error_lines();
         if why.is_empty() {

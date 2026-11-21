@@ -13,7 +13,7 @@ serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 log = "0.4"
 regex = "1"
-sha2 = "0.10"
+sha2 = "0.11"
 # Same line as heronite-images (JPEG encode for the cache, decode of cached previews).
 image = { version = "0.25", default-features = false, features = ["jpeg", "png", "webp"] }
 # Lossless WebP encoding of the captures (`compress`): libwebp, built from its
@@ -27,13 +27,13 @@ chrono = { version = "0.4", default-features = false, features = ["std", "clock"
 
 [target.'cfg(target_os = "linux")'.dependencies]
 heronite-platform = { path = "../platform" }
-ashpd = { version = "0.13", default-features = false, features = ["async-io", "global_shortcuts", "screenshot"] }
+ashpd = { version = "0.14", default-features = false, features = ["async-io", "global_shortcuts", "screenshot"] }
 futures-util = { version = "0.3", default-features = false, features = ["std", "async-await"] }
 futures-channel = "0.3"
-pollster = "0.4"
+pollster = "1"
 # Deadlines for the portal's answers (zbus already runs on it).
 async-io = "2"
-signal-hook = "0.3"
+signal-hook = "0.4"
 notify-rust = "4"
 
 [target.'cfg(windows)'.dependencies]

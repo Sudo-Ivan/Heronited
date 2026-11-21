@@ -16,14 +16,14 @@ serde = { version = "1", features = ["derive"] }
 serde_json = { version = "1", features = ["preserve_order", "float_roundtrip"] }
 anyhow = "1"
 log = "0.4"
-parking_lot = "0.12"
+parking_lot = "0.13"
 url = "2"
 rquickjs = { version = "=0.14.0", default-features = false, features = ["std"] }
-toml = "0.8"
+toml = "1"
 zip = { version = "9.1.3", default-features = false, features = ["deflate-flate2-zlib-rs"] }
-sha2 = "0.10"
+sha2 = "0.11"
 semver = "1"
-dom_query = { version = "0.27", default-features = false }
+dom_query = { version = "0.30", default-features = false }
 chrono = { version = "0.4", default-features = false, features = ["std", "clock"] }
 
 [dev-dependencies]

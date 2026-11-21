@@ -11,8 +11,8 @@ image = { version = "0.25", default-features = false, features = ["jpeg", "png",
 # Scaled-on-decode JPEG (DCT 1/2, 1/4, 1/8). rayon disabled: no hidden thread pool.
 jpeg-decoder = { version = "0.3", default-features = false }
 fast_image_resize = "6"
-lz4_flex = { version = "0.11", default-features = false, features = ["std", "safe-encode", "safe-decode"] }
-sha2 = "0.10"
+lz4_flex = { version = "0.14", default-features = false, features = ["std", "safe-encode", "safe-decode"] }
+sha2 = "0.11"
 ureq = "3"
 # Checking and joining the addresses of a redirect (`public`).
 url = "2"
@@ -21,7 +21,7 @@ log.workspace = true
 [dev-dependencies]
 tempfile = "3"
 qoi = "0.4"
-zstd = "0.13"
+zstd = "0.14"
 
 [lints]
 workspace = true

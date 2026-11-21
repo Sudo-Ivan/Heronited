@@ -10,7 +10,7 @@ heronite-data = { path = "../data" }
 heronite-platform = { path = "../platform" }
 serde_json = { version = "1", features = ["preserve_order", "float_roundtrip"] }
 anyhow = "1"
-base64 = "0.22"
+base64 = "0.23"
 ureq = "3"
 
 [dev-dependencies]
