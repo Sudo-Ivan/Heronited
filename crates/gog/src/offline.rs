@@ -678,7 +678,8 @@ mod tests {
         fn unsafe_names_never_join_outside_the_folder(name in ".*") {
             let dir = Path::new("/backups/game");
             if safe_name(&name) {
-                prop_assert_eq!(dir.join(&name).parent(), Some(dir));
+                let joined = dir.join(&name);
+                prop_assert_eq!(joined.parent(), Some(dir));
             }
         }
 
