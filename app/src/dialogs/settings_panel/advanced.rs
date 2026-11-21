@@ -109,7 +109,7 @@ impl SettingsPanel {
             col = col.child(self.scripts_section(false, cx));
         }
         if game && extras {
-            col = col.child(self.companions_section(cx));
+            col = col.child(self.companions_section(cx)).child(self.antimicrox_section(cx));
         }
 
         let mut advanced = rows();
@@ -155,9 +155,8 @@ impl SettingsPanel {
     fn steam_direct_tab(&mut self, cx: &mut Context<Self>) -> Div {
         let mut col = column();
         if heronite_launch::steam_extras::supported() {
-            col = col.child(self.scripts_section(false, cx)).child(self.companions_section(cx)).child(
-                help(tr!("Steam starts the game itself, as from its library. Heronited runs these when you play from Heronited."))
-                    .px(px(6.)),
+            col = col.child(self.scripts_section(false, cx)).child(self.companions_section(cx)).child(self.antimicrox_section(cx)).child(
+                help(tr!("Steam starts the game itself, as from its library. Heronited runs these when you play from Heronited.")).px(px(6.)),
             );
         }
         if self.steam_line_only() {
