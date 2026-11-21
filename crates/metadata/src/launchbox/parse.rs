@@ -34,7 +34,7 @@ fn reference(r: &BytesRef<'_>) -> Result<Option<String>> {
     if let Some(c) = r.resolve_char_ref()? {
         return Ok(Some(c.to_string()));
     }
-    Ok(match r.decode()?.as_ref() {
+    Ok(match &**r {
         "amp" => Some("&".into()),
         "lt" => Some("<".into()),
         "gt" => Some(">".into()),
@@ -75,7 +75,7 @@ pub(super) fn each_record(input: impl BufRead, mut each: impl FnMut(&Record) -> 
         match event {
             Event::Start(e) => {
                 depth += 1;
-                let name = String::from_utf8_lossy(e.name().as_ref()).into_owned();
+                let name = e.name().into_inner().to_owned();
                 match depth {
                     2 => {
                         record.kind = name;
@@ -90,7 +90,7 @@ pub(super) fn each_record(input: impl BufRead, mut each: impl FnMut(&Record) -> 
                 }
             }
             Event::Empty(e) => {
-                let name = String::from_utf8_lossy(e.name().as_ref()).into_owned();
+                let name = e.name().into_inner().to_owned();
                 match depth + 1 {
                     2 => {
                         record.kind = name;
@@ -101,14 +101,8 @@ pub(super) fn each_record(input: impl BufRead, mut each: impl FnMut(&Record) -> 
                     _ => {}
                 }
             }
-            Event::Text(e) if depth == 3 => match e.xml10_content() {
-                Ok(t) => text.push_str(&t),
-                Err(_) => bad = true,
-            },
-            Event::CData(e) if depth == 3 => match e.decode() {
-                Ok(t) => text.push_str(&t),
-                Err(_) => bad = true,
-            },
+            Event::Text(e) if depth == 3 => text.push_str(&e.xml10_content()),
+            Event::CData(e) if depth == 3 => text.push_str(&e.xml10_content()),
             Event::GeneralRef(r) if depth == 3 => match reference(&r) {
                 Ok(Some(s)) => text.push_str(&s),
                 Ok(None) => {}
