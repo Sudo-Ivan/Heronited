@@ -43,5 +43,13 @@ through `[patch.crates-io]` in the workspace `Cargo.toml`. Changes, in
   forwards through the socket, with that process's token; without it GNOME leaves the window
   behind the focused one. Returns `None` and does nothing on X11.
 
+- `map_window` and `activate` (`src/linux/x11/window.rs`) give an
+  override-redirect window (`WindowKind::PopUp`, which the in-game overlay
+  uses on X11) the keyboard when it asked for it (`WindowOptions::focus`):
+  no window manager will, and `_NET_ACTIVE_WINDOW` is ignored for windows it
+  does not manage. The focus reverts to the pointer root, so it goes back to
+  the game when the window closes. Two fields on `X11WindowState`
+  (`override_redirect`, `focus_on_map`) carry what `map_window` needs.
+
 To update: copy the new release from `~/.cargo/registry/src/*/` over this
 folder (without its `Cargo.lock`) and apply these changes again.

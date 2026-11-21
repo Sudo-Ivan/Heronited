@@ -286,6 +286,12 @@ pub struct X11WindowState {
     hovered: bool,
     force_render_after_recovery: bool,
     fullscreen: bool,
+    /// `WindowKind::PopUp`: unmanaged by the window manager (no decorations,
+    /// above the managed windows, no focus unless asked for).
+    override_redirect: bool,
+    /// The window asked for the keyboard (`WindowOptions::focus`): an
+    /// override-redirect window takes it itself, as no window manager will.
+    focus_on_map: bool,
     client_side_decorations_supported: bool,
     decorations: WindowDecorations,
     edge_constraints: Option<EdgeConstraints>,
@@ -846,6 +852,8 @@ impl X11WindowState {
                 hovered: false,
                 force_render_after_recovery: false,
                 fullscreen: false,
+                override_redirect: params.kind == WindowKind::PopUp,
+                focus_on_map: params.focus,
                 maximized_vertical: false,
                 maximized_horizontal: false,
                 hidden: false,
@@ -1530,6 +1538,22 @@ impl PlatformWindow for X11Window {
     }
 
     fn activate(&self) {
+        // The window manager ignores `_NET_ACTIVE_WINDOW` for a window it does
+        // not manage: an override-redirect one takes the keyboard directly.
+        if self.0.state.borrow().override_redirect {
+            check_reply(
+                || "X11 SetInputFocus failed.",
+                xproto::set_input_focus(
+                    &self.0.xcb,
+                    xproto::InputFocus::POINTER_ROOT,
+                    self.0.x_window,
+                    xproto::Time::CURRENT_TIME,
+                ),
+            )
+            .log_err();
+            xcb_flush(&self.0.xcb);
+            return;
+        }
         let data = [1, xproto::Time::CURRENT_TIME.into(), 0, 0, 0];
         let message = xproto::ClientMessageEvent::new(
             32,
@@ -1621,6 +1645,24 @@ impl PlatformWindow for X11Window {
             || "X11 MapWindow failed.",
             self.0.xcb.map_window(self.0.x_window),
         )?;
+        // No window manager gives an override-redirect window the keyboard:
+        // one that asked for it (the overlay's panel opened from a shortcut)
+        // sets the input focus itself. `RevertToPointerRoot` gives it back to
+        // whatever is under the pointer when this one goes away.
+        let state = self.0.state.borrow();
+        if state.override_redirect && state.focus_on_map {
+            check_reply(
+                || "X11 SetInputFocus failed.",
+                xproto::set_input_focus(
+                    &self.0.xcb,
+                    xproto::InputFocus::POINTER_ROOT,
+                    self.0.x_window,
+                    xproto::Time::CURRENT_TIME,
+                ),
+            )
+            .log_err();
+            xcb_flush(&self.0.xcb);
+        }
         Ok(())
     }
 

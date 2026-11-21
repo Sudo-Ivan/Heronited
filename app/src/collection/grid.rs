@@ -47,11 +47,13 @@ pub(super) struct ListMetrics {
 
 /// Columns and card width of a grid `width` wide whose cards are at least
 /// `min_card` wide, `gap` apart: the cards share the room left over, so a
-/// row always reaches both edges.
+/// row always reaches both edges. Room narrower than one card (a small
+/// window, a large cover size) gives one card that fills it rather than one
+/// that overflows it.
 pub(super) fn grid_columns(width: f32, min_card: f32, gap: f32) -> (usize, f32) {
-    let avail = (width - 2. * GRID_PAD).max(min_card);
-    let cols = (((avail + gap) / (min_card + gap)).floor() as usize).max(1);
-    let card = ((avail - gap * (cols - 1) as f32) / cols as f32).floor();
+    let avail = (width - 2. * GRID_PAD).max(1.);
+    let cols = (((avail + gap) / (min_card.max(1.) + gap)).floor() as usize).max(1);
+    let card = ((avail - gap * (cols - 1) as f32) / cols as f32).floor().max(1.);
     (cols, card)
 }
 
@@ -121,9 +123,10 @@ impl CollectionView {
             FocusCoverSize::Large => base.saturating_sub(1).max(1),
         };
         if cols == base && (widen - 1.).abs() < 0.01 {
-            return (cols, theme::CARD_W);
+            // The default: `CARD_W`, but never more than the column has.
+            return (cols, theme::CARD_W.min(room));
         }
-        (cols, ((room - m.gap_x * (cols - 1) as f32) / cols as f32).floor())
+        (cols, ((room - m.gap_x * (cols - 1) as f32) / cols as f32).floor().max(1.))
     }
 
     /// Focus (list + details) or Grid.
@@ -280,5 +283,17 @@ mod tests {
     #[test]
     fn narrow_grid_keeps_one_column() {
         assert_eq!(grid_columns(100., 150., GRID_GAP_X).0, 1);
+    }
+
+    #[test]
+    fn a_card_never_overflows_its_room() {
+        // Room narrower than the smallest card (a small window, a large
+        // cover size): one card that fills it, not one that sticks out.
+        for (width, min_card) in [(100., 150.), (80., 240.), (283., 240.), (44., 110.), (10., 110.)] {
+            let (cols, card) = grid_columns(width, min_card, GRID_GAP_X);
+            assert_eq!(cols, 1, "{width}/{min_card}");
+            let used = card * cols as f32 + GRID_GAP_X * (cols - 1) as f32;
+            assert!(used <= (width - 2. * GRID_PAD).max(1.) + 0.01, "{width}/{min_card}: {used} in {}", width - 2. * GRID_PAD);
+        }
     }
 }

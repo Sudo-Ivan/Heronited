@@ -62,7 +62,7 @@
   "None found. Connect a controller; it is looked for again when a game starts.": "Keiner gefunden. Verbinde einen Controller; beim Start eines Spiels wird erneut gesucht.",
   "Not reported": "Nicht gemeldet",
   "Not supported": "Nicht unterstützt",
-  "Not supported on X11: the overlay needs a Wayland session.": "Unter X11 nicht unterstützt: Das Overlay benötigt eine Wayland-Sitzung.",
+  "Supported (X11). The panel needs a compositing manager to draw transparently; without one its background is black.": "Unterstützt (X11). Für einen transparenten Hintergrund braucht das Panel einen Compositing-Manager; ohne ihn ist der Hintergrund schwarz.",
   "Open it with a keyboard shortcut": "Per Tastaturkürzel öffnen",
   "Open it without a game too": "Auch ohne Spiel öffnen",
   "Output": "Ausgabe",

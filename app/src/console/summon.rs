@@ -101,8 +101,8 @@ pub struct ConsoleSummon {
     notice: Option<WindowHandle<NoticeView>>,
     /// Bumped by every notice shown: an older timer leaves the new one alone.
     notice_gen: u64,
-    /// No surface can float over the other windows (no layer-shell, X11):
-    /// desktop notifications instead.
+    /// No surface can float over the other windows (no layer-shell on Wayland,
+    /// GNOME): desktop notifications instead.
     no_surface: bool,
     last_found: Option<Instant>,
     /// `HERONITE_DEBUG_SUMMON=…:window`: the notice in a normal window.

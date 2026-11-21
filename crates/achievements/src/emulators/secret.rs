@@ -7,7 +7,7 @@
 //! on the digest; the first 16 bytes are the key, the last 16 the IV. The
 //! token is zero-padded to 16 bytes and stored as standard base64.
 
-use aes::cipher::{block_padding::NoPadding, BlockDecryptMut, BlockEncryptMut, KeyIvInit};
+use aes::cipher::{block_padding::NoPadding, BlockModeDecrypt, BlockModeEncrypt, KeyIvInit};
 use base64::Engine;
 use sha2::{Digest, Sha256};
 
@@ -42,7 +42,7 @@ pub fn encrypt(token: &str, username: &str, machine_key: &str) -> String {
     data.resize(data.len().div_ceil(16) * 16, 0);
     let len = data.len();
     let encrypted = Enc::new(&key.into(), &iv.into())
-        .encrypt_padded_mut::<NoPadding>(&mut data, len)
+        .encrypt_padded::<NoPadding>(&mut data, len)
         .expect("the buffer is a whole number of blocks")
         .to_vec();
     base64::engine::general_purpose::STANDARD.encode(encrypted)
@@ -54,7 +54,7 @@ pub fn decrypt(encrypted: &str, username: &str, machine_key: &str) -> Option<Str
         return None;
     }
     let (key, iv) = key_and_iv(machine_key, username);
-    let plain = Dec::new(&key.into(), &iv.into()).decrypt_padded_mut::<NoPadding>(&mut data).ok()?;
+    let plain = Dec::new(&key.into(), &iv.into()).decrypt_padded::<NoPadding>(&mut data).ok()?;
     let end = plain.iter().position(|b| *b == 0).unwrap_or(plain.len());
     String::from_utf8(plain[..end].to_vec()).ok()
 }

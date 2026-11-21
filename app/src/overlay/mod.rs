@@ -27,8 +27,9 @@
 //!
 //! Windows uses native topmost tool windows over borderless/windowed games,
 //! not exclusive fullscreen. Its keyboard default is Ctrl+Shift+G; the panel
-//! takes the foreground however it opened, notices never activate. Linux uses Wayland layer-shell surfaces ([`window`]);
-//! desktops without layer-shell (GNOME, X11) cannot show them.
+//! takes the foreground however it opened, notices never activate. Linux uses
+//! Wayland layer-shell surfaces ([`window`]) on Wayland (desktops without the
+//! protocol, GNOME, cannot show them) and override-redirect windows on X11.
 
 mod debug;
 pub mod labels;
@@ -140,8 +141,10 @@ pub struct OverlayService {
     notice: Option<toast::NoticeWindow>,
     /// Achievement notices waiting for the screen.
     achievement_queue: toast::Queue,
-    /// `false` once the compositor refused a layer-shell surface.
-    layer_shell: bool,
+    /// This desktop draws the surfaces (layer-shell on Wayland,
+    /// override-redirect windows on X11, topmost windows on Windows):
+    /// false once one was refused (GNOME).
+    can_draw: bool,
     /// Debug: draw the panel in a normal window (`HERONITE_DEBUG_OVERLAY=window`).
     debug_window: bool,
     /// `HERONITE_DEBUG_OVERLAY_FPS`: a limiter the debug game pretends to have.
@@ -184,7 +187,7 @@ pub fn init(cx: &mut App, data_paths: DataPaths, runtime: Arc<GameRuntime>) {
         panel_opened: None,
         notice: None,
         achievement_queue: toast::Queue::default(),
-        layer_shell: window::supported(),
+        can_draw: window::supported(),
         debug_window: false,
         debug_live_fps: None,
         live_changes: HashMap::new(),
@@ -199,14 +202,19 @@ pub fn init(cx: &mut App, data_paths: DataPaths, runtime: Arc<GameRuntime>) {
     debug::start(&entity, cx);
 }
 
-/// Whether this desktop can draw the overlay over games: it needs Wayland's
-/// layer-shell, which GNOME does not have.
+/// Whether this desktop can draw the overlay over games: Wayland's
+/// layer-shell, which GNOME does not have, or X11's override-redirect windows
+/// (the panel is drawn over the game by hand there).
 pub fn desktop_status() -> (String, bool) {
     if cfg!(windows) {
         return (tr!("Supported over windowed and borderless games. Exclusive fullscreen is not supported.").into(), true);
     }
-    if std::env::var_os("WAYLAND_DISPLAY").is_none() {
-        return (tr!("Not supported on X11: the overlay needs a Wayland session.").into(), false);
+    if window::on_x11() {
+        return (
+            tr!("Supported (X11). The panel needs a compositing manager to draw transparently; without one its background is black.")
+                .into(),
+            true,
+        );
     }
     let desktop = std::env::var("XDG_CURRENT_DESKTOP").unwrap_or_default();
     if desktop.to_ascii_lowercase().contains("gnome") {
@@ -400,8 +408,7 @@ impl OverlayService {
 
     fn sync_hotkey(&mut self, cx: &mut Context<Self>) {
         let p = &self.prefs;
-        let wanted =
-            (self.active() && p.keyboard_shortcut && (self.layer_shell || self.debug_window)).then(|| p.keyboard_accelerator.clone());
+        let wanted = (self.active() && p.keyboard_shortcut && (self.can_draw || self.debug_window)).then(|| p.keyboard_accelerator.clone());
         if wanted.as_deref() == self.hotkey.as_ref().map(|(a, _)| a.as_str()) {
             return;
         }
@@ -541,8 +548,8 @@ impl OverlayService {
             self.release_input();
             return;
         }
-        if !self.layer_shell && !self.debug_window {
-            log::info!("overlay: this desktop cannot show it (no layer-shell)");
+        if !self.can_draw && !self.debug_window {
+            log::info!("overlay: this desktop cannot show it (no surface to draw over the game)");
             self.release_input();
             return;
         }
@@ -616,7 +623,7 @@ impl OverlayService {
             Err(e) => {
                 log::warn!("overlay: cannot open the panel: {e:#}");
                 if window::is_layer_shell_missing(&e) {
-                    self.layer_shell = false;
+                    self.can_draw = false;
                     crate::system::notify::send(
                         tr!("The overlay cannot open"),
                         tr!("This desktop cannot draw over games (it lacks the layer-shell protocol). Hyprland, KDE Plasma and Sway can."),
@@ -698,7 +705,7 @@ impl OverlayService {
 
     /// Whether notices can be drawn (a layer-shell surface, or the debug window).
     fn can_notify(&self) -> bool {
-        self.layer_shell || self.debug_window
+        self.can_draw || self.debug_window
     }
 
     /// Shows a short notice in a corner of the screen (replacing the one shown).
