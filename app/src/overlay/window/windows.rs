@@ -17,7 +17,7 @@ pub(super) fn open<V: Render>(
     let screen = screen?;
     // Notices never take the foreground nor the clicks.
     let notice = namespace.ends_with("notice");
-    let handle = cx.open_window(super::options(namespace, size, side, bottom, px(margin), true, false), |window, cx| {
+    let handle = cx.open_window(super::options(namespace, size, side, bottom, px(margin), true, false, None), |window, cx| {
         window.set_window_title(if notice { "Heronited overlay notice" } else { "Heronited overlay" });
         build(window, cx)
     })?;
