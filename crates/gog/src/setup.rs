@@ -656,8 +656,8 @@ mod tests {
                 product_id: "42".into(),
                 version: "1.5".into(),
                 parts: vec![
-                    offline::Part { name: "setup_the_game_1.5_(1).exe".into(), size: 1, downlink: String::new() },
-                    offline::Part { name: "setup_the_game_1.5_(1)-1.bin".into(), size: 1, downlink: String::new() },
+                    offline::Part { name: "setup_the_game_1.5_(1).exe".into(), size: 1, sha256: String::new(), downlink: String::new() },
+                    offline::Part { name: "setup_the_game_1.5_(1)-1.bin".into(), size: 1, sha256: String::new(), downlink: String::new() },
                 ],
             }],
         };

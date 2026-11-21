@@ -26,6 +26,9 @@ pub struct StoreTool {
     pub name: &'static str,
     /// Variable that overrides everything (tests, fake tools).
     pub env: &'static str,
+    /// Variable that overrides the pinned SHA-256 of the downloaded asset
+    /// (tests — a user-picked binary is `HERONITE_<NAME>_BIN` already).
+    pub env_sha: &'static str,
     /// Key of the global settings (`config.json` `defaultSettings`) holding a
     /// user-picked binary.
     pub setting: &'static str,
@@ -34,23 +37,25 @@ pub struct StoreTool {
     /// Looked for on `PATH` too. Not for a name other programs use
     /// (`comet`): it would get the account's tokens.
     on_path: bool,
-    /// Release assets: (system, CPU, file), as `std::env::consts` names them.
-    assets: &'static [(&'static str, &'static str, &'static str)],
+    /// Release assets: (system, CPU, file, SHA-256), as `std::env::consts`
+    /// names them. The hash is what a download must be byte for byte.
+    assets: &'static [(&'static str, &'static str, &'static str, &'static str)],
 }
 
 /// Epic's client.
 pub const LEGENDARY: StoreTool = StoreTool {
     name: "legendary",
     env: "HERONITE_LEGENDARY_BIN",
+    env_sha: "HERONITE_LEGENDARY_SHA256",
     setting: "altLegendaryBin",
     repo: "legendary-gl/legendary",
     version: "0.21.1",
     on_path: true,
     assets: &[
-        ("linux", "x86_64", "legendary_linux_x64"),
-        ("linux", "aarch64", "legendary_linux_arm64"),
-        ("windows", "x86_64", "legendary_windows_x64.exe"),
-        ("windows", "aarch64", "legendary_windows_arm64.exe"),
+        ("linux", "x86_64", "legendary_linux_x64", "dbed33bbe96031e65858233e4badf0a1d401bb6cb0cc995d1237cf3a0c826a45"),
+        ("linux", "aarch64", "legendary_linux_arm64", "e901cb52ada10d5cef6ffb2a0985099958124457bfb455a571023d1e042143d9"),
+        ("windows", "x86_64", "legendary_windows_x64.exe", "6be77857dc0a6dd33ea7442ce8b5291944ec6da53757f81ca95b57ce794baf5b"),
+        ("windows", "aarch64", "legendary_windows_arm64.exe", "5ca178d75713cb92ee24daa5df1905c75f05b8b403383669ca7aa32a5809fba3"),
     ],
 };
 
@@ -58,15 +63,16 @@ pub const LEGENDARY: StoreTool = StoreTool {
 pub const GOGDL: StoreTool = StoreTool {
     name: "gogdl",
     env: "HERONITE_GOGDL_BIN",
+    env_sha: "HERONITE_GOGDL_SHA256",
     setting: "altGogdlBin",
     repo: "Heroic-Games-Launcher/heroic-gogdl",
     version: "v1.3.0",
     on_path: true,
     assets: &[
-        ("linux", "x86_64", "gogdl_linux_x86_64"),
-        ("linux", "aarch64", "gogdl_linux_arm64"),
-        ("windows", "x86_64", "gogdl_windows_x86_64.exe"),
-        ("windows", "aarch64", "gogdl_windows_arm64.exe"),
+        ("linux", "x86_64", "gogdl_linux_x86_64", "cba013d42767c808237c437335ab1d56f58405d07e8f37b3324d264ea5c49655"),
+        ("linux", "aarch64", "gogdl_linux_arm64", "c49e1519146523ec94f33e2d21eedcc9a167004d7da218621e6d5fb84a7a0f4c"),
+        ("windows", "x86_64", "gogdl_windows_x86_64.exe", "69ea54467371803f681d6c39805992e3a4b8ddccb44ac8a1de7b1e3c80deaeec"),
+        ("windows", "aarch64", "gogdl_windows_arm64.exe", "a3dbb818530d21caad40f56136d3520966c151c7b205dd835bdbd53b63467e73"),
     ],
 };
 
@@ -74,16 +80,17 @@ pub const GOGDL: StoreTool = StoreTool {
 pub const NILE: StoreTool = StoreTool {
     name: "nile",
     env: "HERONITE_NILE_BIN",
+    env_sha: "HERONITE_NILE_SHA256",
     setting: "altNileBin",
     repo: "imLinguin/nile",
     version: "v1.2.0",
     on_path: true,
     assets: &[
-        ("linux", "x86_64", "nile_linux_x86_64"),
-        ("linux", "aarch64", "nile_linux_arm64"),
-        ("windows", "x86_64", "nile_windows_x86_64.exe"),
+        ("linux", "x86_64", "nile_linux_x86_64", "d73519514df9d52c50c6feec629373cc3a0d9504e087b6c7372a8ca8a95e7bfe"),
+        ("linux", "aarch64", "nile_linux_arm64", "197859c629c47e4e4d7ed1d2a290b7bef1e778f891ff8ca42ba65dbb020ba751"),
+        ("windows", "x86_64", "nile_windows_x86_64.exe", "6531790c59f78cea4a8743bf0582d5afda7fb887f5c143391d7339ad0f42ab88"),
         // No Arm build: Windows on Arm runs x64 programs.
-        ("windows", "aarch64", "nile_windows_x86_64.exe"),
+        ("windows", "aarch64", "nile_windows_x86_64.exe", "6531790c59f78cea4a8743bf0582d5afda7fb887f5c143391d7339ad0f42ab88"),
     ],
 };
 
@@ -91,15 +98,16 @@ pub const NILE: StoreTool = StoreTool {
 pub const COMET: StoreTool = StoreTool {
     name: "comet",
     env: "HERONITE_COMET_BIN",
+    env_sha: "HERONITE_COMET_SHA256",
     setting: "altCometBin",
     repo: "imLinguin/comet",
     version: "v0.4.1",
     on_path: false,
     assets: &[
-        ("linux", "x86_64", "comet-x86_64-unknown-linux-gnu"),
-        ("linux", "aarch64", "comet-aarch64-unknown-linux-gnu"),
-        ("windows", "x86_64", "comet-x86_64-pc-windows-msvc.exe"),
-        ("windows", "aarch64", "comet-aarch64-pc-windows-msvc.exe"),
+        ("linux", "x86_64", "comet-x86_64-unknown-linux-gnu", "868dd0b510f2c1c63a524b8e0466dd92bb2aecdb697217a690bf9effd04d3a5a"),
+        ("linux", "aarch64", "comet-aarch64-unknown-linux-gnu", "33c52a7f4747e4e3340b1de955683679e33d01ba1a4fd2f9d79d7eb4dc229fc8"),
+        ("windows", "x86_64", "comet-x86_64-pc-windows-msvc.exe", "35c8b1a7d82b9a03839bca9238ed1e68d1c2718ebeb1a0530b26c5f89885b876"),
+        ("windows", "aarch64", "comet-aarch64-pc-windows-msvc.exe", "ef57dda0f5f1513a0b9f068818f58f8c29528b46d5290ad01f6260af30e04127"),
     ],
 };
 
@@ -184,7 +192,13 @@ impl StoreTool {
 
     /// Release asset for a system and CPU (`std::env::consts` names).
     pub fn asset_for(&self, os: &str, arch: &str) -> Option<&'static str> {
-        self.assets.iter().find(|(o, a, _)| *o == os && *a == arch).map(|(_, _, file)| *file)
+        self.assets.iter().find(|(o, a, _, _)| *o == os && *a == arch).map(|(_, _, file, _)| *file)
+    }
+
+    /// The SHA-256 the release asset `file` must hash to; `None` for a
+    /// file the pinned release does not have.
+    pub fn hash_for(&self, file: &str) -> Option<&'static str> {
+        self.assets.iter().find(|(_, _, f, _)| *f == file).map(|(_, _, _, sha)| *sha)
     }
 
     pub fn download_url(&self, asset: &str) -> String {
@@ -237,7 +251,8 @@ impl StoreTool {
             return Err(format!("{} is not installed and there is no internet connection", self.name));
         }
         let target = self.data_bin(paths);
-        install_binary(self.name, &self.download_url(asset), &target, net, cancel)?;
+        let want = probe.env_var(self.env_sha).or_else(|| self.hash_for(asset).map(str::to_string)).unwrap_or_default();
+        install_binary(self.name, &self.download_url(asset), &want, &target, net, cancel)?;
         log::info!("{} {} downloaded to {}", self.name, self.version, target.display());
         Ok(target)
     }
@@ -266,7 +281,10 @@ pub(crate) mod tests {
             let paths = DataPaths::at(dir.path().join("heronite"));
             let url = tool.download_url(tool.asset_name().unwrap());
             let net = FakeNet::online().with_file(&url, fake_bin(true));
-            let got = tool.ensure(&paths, &FakeProbe::default(), &net, &|| false).unwrap();
+            // The override stands in for the pinned release: the check sees
+            // the same bytes the fake network serves.
+            let probe = FakeProbe::default().with_env(tool.env_sha, &crate::gfxmods::hash::sha256(&fake_bin(true)));
+            let got = tool.ensure(&paths, &probe, &net, &|| false).unwrap();
             assert_eq!(got, tool.data_bin(&paths));
             assert!(got.exists());
             assert!(!crate::legendary_install::part_file(&got).exists());

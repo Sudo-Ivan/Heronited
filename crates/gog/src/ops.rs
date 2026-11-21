@@ -178,7 +178,7 @@ impl GogJob {
         on_progress: &mut dyn FnMut(Progress),
     ) -> Result<Option<bool>> {
         let p = &el.params;
-        let outcome = offline::download(
+        let outcome = match offline::download(
             &self.paths,
             &self.gogdl,
             self.net.as_ref(),
@@ -189,7 +189,15 @@ impl GogJob {
             &p.install_dlcs,
             cancel,
             on_progress,
-        )?;
+        ) {
+            Ok(outcome) => outcome,
+            // A failed download leaves .part files for the retry; the depot
+            // path still finishes the install now.
+            Err(e) => {
+                log::warn!("the offline installers of {} could not be downloaded ({e:#}); the depot download takes over", p.app_name);
+                return Ok(None);
+            }
+        };
         let bundle = match outcome {
             offline::Outcome::NoInstallers => return Ok(None),
             offline::Outcome::Cancelled => return Ok(Some(false)),
@@ -277,7 +285,7 @@ impl GogJob {
         let backup = entry.offline_installer_dir().unwrap_or_default();
         // The folder's name below the backup root identifies the game.
         let folder = Path::new(&backup).file_name().map(|f| f.to_string_lossy().into_owned()).unwrap_or_else(|| app.to_string());
-        let outcome = offline::download(
+        let outcome = match offline::download(
             &self.paths,
             &self.gogdl,
             self.net.as_ref(),
@@ -288,7 +296,13 @@ impl GogJob {
             &entry.installed_dlcs,
             cancel,
             on_progress,
-        )?;
+        ) {
+            Ok(outcome) => outcome,
+            Err(e) => {
+                log::warn!("the offline installers of {app} could not be updated ({e:#}); the depot update takes over");
+                return Ok(None);
+            }
+        };
         let bundle = match outcome {
             offline::Outcome::NoInstallers => return Ok(None),
             offline::Outcome::Cancelled => return Ok(Some(false)),
@@ -654,6 +668,33 @@ mod tests {
             .with_json("https://api.gog.com/products/42?expand=downloads", json!({"downloads": {"installers": []}}));
         let result = net_job(&tool, &paths, net).run(&element(ElementKind::Install, &base, &[]), &Cancel::new(), &mut |_| {});
         assert_eq!(result.status, DmStatus::Done);
+        assert!(calls_of(&tool).iter().any(|c| c.starts_with("download ")));
+        assert!(installed::get(&paths, "42").unwrap().offline_installer_dir().is_none());
+    }
+
+    #[test]
+    fn a_failed_offline_download_still_installs_through_the_depot() {
+        let (dir, paths) = setup();
+        let base = dir.path().join("Games");
+        library_with_game(&paths);
+        let tool = fake_gog(dir.path(), progress(Reply::new()));
+        std::fs::create_dir_all(paths.global_config().parent().unwrap()).unwrap();
+        std::fs::write(
+            paths.global_config(),
+            json!({"defaultSettings": {"gogOfflineInstallerDir": dir.path().join("backups").display().to_string()}}).to_string(),
+        )
+        .unwrap();
+        // The listing works, but the first file's downlink never resolves:
+        // the depot path must take the install over.
+        let net = heronite_launch::net::FakeNet::online().with_json(
+            "https://api.gog.com/products/42?expand=downloads",
+            json!({"downloads": {"installers": [{
+                "id": "en1installer0", "os": "windows", "language": "en", "language_code": "de-DE", "version": "1.5",
+                "files": [{"name": "setup_the_game_(1).exe", "size": 4, "downlink": "https://api.gog.com/products/42/downlink/installer/f0"}]
+            }]}}),
+        );
+        let result = net_job(&tool, &paths, net).run(&element(ElementKind::Install, &base, &[]), &Cancel::new(), &mut |_| {});
+        assert_eq!(result.status, DmStatus::Done, "{:?}", result.error);
         assert!(calls_of(&tool).iter().any(|c| c.starts_with("download ")));
         assert!(installed::get(&paths, "42").unwrap().offline_installer_dir().is_none());
     }
