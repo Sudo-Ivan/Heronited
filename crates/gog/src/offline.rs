@@ -632,7 +632,7 @@ mod tests {
                 parts: vec![Part {
                     name: "setup_the_game_1.5_(64bit)_(1).exe".into(),
                     size: 20,
-                    sha256: heronite_launch::gfxmods::hash::sha256(&vec![0u8; 20]),
+                    sha256: heronite_launch::gfxmods::hash::sha256(&[0u8; 20]),
                     downlink: String::new(),
                 }],
             }],
