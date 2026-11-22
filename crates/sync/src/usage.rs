@@ -25,17 +25,16 @@ const ZIP_RATIO: f64 = 0.75;
 pub enum Kind {
     Library,
     Backups,
-    Saves,
     Captures,
 }
 
 impl Kind {
-    pub const ALL: [Kind; 4] = [Kind::Library, Kind::Backups, Kind::Saves, Kind::Captures];
+    pub const ALL: [Kind; 3] = [Kind::Library, Kind::Backups, Kind::Captures];
 }
 
 #[derive(Debug, Clone, Default)]
 pub struct Usage {
-    /// Bytes by kind, then by game (screenshots, saves) or part (backups:
+    /// Bytes by kind, then by game (screenshots) or part (backups:
     /// `zip`, `art`).
     pub shares: BTreeMap<Kind, BTreeMap<String, u64>>,
     /// Bytes of screenshots taken a month (the last year's average).
@@ -62,7 +61,6 @@ pub struct Local<'a> {
     pub pending_png: bool,
     /// With the screenshots, the replays (videos).
     pub replays: bool,
-    pub saves: Option<&'a Path>,
     /// Backups kept (0: all, counted as one).
     pub backups_kept: u32,
     /// The newest backup's folder name, if there is one.
@@ -105,15 +103,6 @@ pub fn measure(data: &DataPaths, app: &AppPaths, local: &Local) -> Usage {
         }
     };
     usage.status.insert(Kind::Backups, backups);
-
-    let mut saves = Vec::new();
-    if let Some(folder) = local.saves {
-        for f in walk(folder).into_iter().filter(|f| !f.rel.ends_with(".tmp")) {
-            usage.add(Kind::Saves, first(&f.rel), f.size);
-            saves.push((f.rel, f.size));
-        }
-    }
-    usage.status.insert(Kind::Saves, sent::compare(saves.iter().map(|(p, b)| (p.as_str(), *b)), &sent.saves));
 
     let mut captures = Vec::new();
     if let Some(folder) = local.captures {
@@ -237,17 +226,14 @@ mod tests {
     fn what_this_pc_sends_is_measured_here() {
         let dir = tempfile::tempdir().unwrap();
         let caps = dir.path().join("caps");
-        let saves = dir.path().join("saves");
-        for (path, bytes) in
-            [("caps/Hades/a.webp", 10usize), ("caps/Hades/b.webp", 30), ("caps/Celeste/c.png", 100), ("saves/Hades/backup.zip", 7)]
-        {
+        for (path, bytes) in [("caps/Hades/a.webp", 10usize), ("caps/Hades/b.webp", 30), ("caps/Celeste/c.png", 100)] {
             let p = dir.path().join(path);
             fs::create_dir_all(p.parent().unwrap()).unwrap();
             fs::write(p, vec![0u8; bytes]).unwrap();
         }
         let data = DataPaths::at(dir.path().join("data"));
         let app = AppPaths { config: dir.path().join("config"), cache: dir.path().join("cache") };
-        let local = Local { captures: Some(&caps), pending_png: true, saves: Some(&saves), ..Default::default() };
+        let local = Local { captures: Some(&caps), pending_png: true, ..Default::default() };
         let usage = measure(&data, &app, &local);
         assert_eq!(usage.status[&Kind::Captures], Status::Nothing);
         assert_eq!(usage.status[&Kind::Backups], Status::Empty);
@@ -261,7 +247,6 @@ mod tests {
         assert_eq!(measure(&data, &app, &local).status[&Kind::Captures], Status::Behind { files: 1, bytes: 100 });
         assert_eq!(usage.total(Kind::Captures), 10 + 30 + 60);
         assert_eq!(usage.shares[&Kind::Captures]["Celeste"], 60);
-        assert_eq!(usage.total(Kind::Saves), 7);
         assert_eq!(usage.monthly, 100 / 12);
     }
 }

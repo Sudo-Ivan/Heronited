@@ -19,8 +19,6 @@ pub struct Sent {
     pub destination: String,
     /// Screenshots: path in the captures folder → bytes.
     pub captures: BTreeMap<String, u64>,
-    /// Ludusavi's backups: path in its folder → bytes.
-    pub saves: BTreeMap<String, u64>,
     /// Backups sent, by folder name (`heronite-<date>`).
     pub backups: BTreeSet<String>,
     /// The artwork sent with them: `art/…`, `metadata-art/…` → bytes.

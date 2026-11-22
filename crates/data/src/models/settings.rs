@@ -11,8 +11,10 @@ use crate::num::JsNum;
 pub struct CollectionSettingsFile {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub backup: Option<BackupSettings>,
+    /// Game save backups to a saves server. Off until the user turns it on:
+    /// nothing is read from the `ludusavi` section older versions wrote.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub ludusavi: Option<LudusaviSettings>,
+    pub saves: Option<SavesSettings>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub grey_uninstalled_games: Option<bool>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -67,29 +69,18 @@ pub struct BackupSettings {
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub struct LudusaviSettings {
+pub struct SavesSettings {
     #[serde(default)]
     pub enabled: bool,
-    #[serde(default = "default_true")]
-    pub use_installed_config: bool,
-    #[serde(default)]
-    pub binary_path: String,
-    #[serde(default)]
-    pub backup_path: String,
-    #[serde(default)]
-    pub format: String,
-    #[serde(default)]
-    pub compression: String,
-    /// More folders to restore backups from (a Ludusavi folder made on
-    /// another PC or on Windows), after the backup folder.
-    #[serde(default, skip_serializing_if = "Vec::is_empty")]
-    pub restore_paths: Vec<String>,
-    /// Full backups kept per game (1..=255); `None` = Ludusavi's own setting.
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub full_limit: Option<u8>,
-    /// Differential backups kept per full one (0..=255); `None` = Ludusavi's own setting.
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub differential_limit: Option<u8>,
+    /// The saves server (`saves.quad4.io` when empty).
+    #[serde(default, skip_serializing_if = "String::is_empty")]
+    pub server: String,
+    /// Saves are not sent to the server (only to the local folder, if set).
+    #[serde(default, skip_serializing_if = "std::ops::Not::not")]
+    pub server_off: bool,
+    /// A folder on this PC that every backup is also copied to (empty: none).
+    #[serde(default, skip_serializing_if = "String::is_empty")]
+    pub local_folder: String,
     /// Games (`runner:appName`, `game_key`) left out of the after-play
     /// backup; a backup by hand still runs.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
@@ -103,11 +94,7 @@ pub struct LudusaviSettings {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub last_backup_game: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub last_backup_path: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub last_error: Option<String>,
-    #[serde(flatten)]
-    pub extra: Extra,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
@@ -149,7 +136,7 @@ pub struct ScreenshotsSettings {
     pub extra: Extra,
 }
 
-impl LudusaviSettings {
+impl SavesSettings {
     /// Whether a session of this game ends with a backup.
     pub fn auto_backup_for(&self, runner: &str, app_name: &str) -> bool {
         self.enabled && !self.auto_backup_off.contains(&super::game_key(runner, app_name))

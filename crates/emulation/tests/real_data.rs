@@ -205,7 +205,7 @@ fn disc_ids_and_save_states_of_the_real_library() {
 }
 
 #[test]
-fn real_machine_detection_and_ludusavi() {
+fn real_machine_detection() {
     let Some(fx) = fixture() else { return };
     let (_d, paths) = temp_copy(&fx);
     let existing = store::list_user_emulators(&paths).unwrap();
@@ -213,18 +213,6 @@ fn real_machine_detection_and_ludusavi() {
     println!("detected emulators: {}", detected.len());
     for d in &detected {
         println!("  {} -> {} ({}) profiles={}", d.definition_id, d.executable, d.launch_kind, d.profiles.len());
-    }
-
-    // Runs the installed `ludusavi --version` / `config path`: opt-in only.
-    if std::env::var_os("HERONITE_TEST_REAL_LUDUSAVI").is_none() {
-        return;
-    }
-    use heronite_emulation::ludusavi::{detect_ludusavi, SystemRunner};
-    let det = detect_ludusavi(&SystemRunner::default(), &heronite_launch::SystemProbe, None);
-    println!("ludusavi: {det:#?}");
-    if let Some(det) = det {
-        assert!(Path::new(&det.binary).exists());
-        assert!(det.version.is_some());
     }
 }
 

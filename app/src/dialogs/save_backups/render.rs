@@ -5,58 +5,42 @@ use std::path::Path;
 use gpui_kit::prelude::*;
 use gpui_kit::*;
 use heronite_data::maintenance::human_size;
-use heronite_emulation::ludusavi::restore::{BackupEntry, Change, FileKind, PlannedFile, RestorePlan, RestoreTarget, SourceKind};
+use heronite_emulation::saves::restore::{Change, FileKind, PlannedFile, RestorePlan};
 use heronite_i18n::{tr, trn};
+use heronite_saves::locations::Target;
+use heronite_saves::SnapshotInfo;
 
-use super::{BackupKey, Load, Loaded, SaveBackupsView, Stage};
+use super::{Load, Loaded, SaveBackupsView, Stage};
 use crate::icons::Icon;
 use crate::pages::settings::format_time;
 use crate::theme;
 use crate::ui::controls::{action_button, button_sm, caption, card_box, help_text, mini_checkbox, ButtonKind};
-use crate::ui::fields::{choose_path, input_box, meta_text, select_field};
+use crate::ui::fields::meta_text;
 use crate::ui::{icon, tool_button};
 
-/// `Windows` / `Linux` for the OS Ludusavi recorded.
-pub(super) fn os_label(os: Option<&str>) -> Option<&'static str> {
-    match os? {
-        "windows" => Some("Windows"),
-        "linux" => Some("Linux"),
-        "mac" => Some("macOS"),
-        _ => None,
-    }
-}
-
-/// A backup's title (its name, else its date) and the line under it
-/// (the date when named, the OS, the size, locked).
-pub(super) fn backup_line(b: &BackupEntry) -> (String, String) {
-    let when = format_time(&b.when);
+/// A backup's title (its date) and the line under it (the label when it has
+/// one, the PC that made it, the size).
+pub(super) fn backup_line(b: &SnapshotInfo) -> (String, String) {
+    let title = format_time(&b.created_at);
     let mut facts: Vec<String> = Vec::new();
-    let title = match &b.comment {
-        Some(name) => {
-            facts.push(when);
-            name.clone()
-        }
-        None => when,
-    };
-    facts.extend(os_label(b.os.as_deref()).map(|os| tr!("made on {os}", os)));
-    facts.extend(b.bytes.map(human_size));
-    if b.locked {
-        facts.push(tr!("locked").into());
+    if !b.device.is_empty() {
+        facts.push(tr!("made on {os}", os = b.device.clone()).to_string());
+    }
+    if b.id.starts_with(heronite_emulation::saves::LOCAL_PREFIX) {
+        facts.push(tr!("in the backup folder").to_string());
+    }
+    if b.files > 0 {
+        facts.push(trn!(b.files, "{n} file", "{n} files"));
+    }
+    if b.bytes > 0 {
+        facts.push(human_size(b.bytes));
     }
     (title, facts.join(" \u{b7} "))
 }
 
-pub(super) fn source_name(kind: SourceKind) -> &'static str {
-    match kind {
-        SourceKind::Backups => tr!("Backup folder"),
-        SourceKind::Extra => tr!("Added folder"),
-        SourceKind::Picked => tr!("Picked folder"),
-    }
-}
-
 /// A file path as the game sees it: `C:/users/steamuser/...` inside the
-/// prefix, `<game folder>/...`, `Steam userdata/...`, else the full path.
-pub(super) fn short_path(path: &str, target: &RestoreTarget) -> String {
+/// prefix, `Game folder: ...`, `Steam folder: ...`, else the full path.
+pub(super) fn short_path(path: &str, target: &Target) -> String {
     let p = Path::new(path);
     if let Some(prefix) = &target.prefix {
         if let Ok(rest) = p.strip_prefix(prefix.join("drive_c")) {
@@ -66,7 +50,6 @@ pub(super) fn short_path(path: &str, target: &RestoreTarget) -> String {
             return tr!("Prefix: {file}", file = rest.display().to_string());
         }
     }
-    // Ludusavi's `/`, also on Windows, so the folders below split one way.
     let shown = |rest: &Path| {
         let text = rest.display().to_string();
         if cfg!(windows) {
@@ -78,8 +61,8 @@ pub(super) fn short_path(path: &str, target: &RestoreTarget) -> String {
     if let Some(rest) = target.install_dir.as_ref().and_then(|d| p.strip_prefix(d).ok()) {
         return tr!("Game folder: {file}", file = shown(rest));
     }
-    if let Some(rest) = target.steam_userdata.as_ref().and_then(|d| p.strip_prefix(d).ok()) {
-        return tr!("Steam userdata: {file}", file = shown(rest));
+    if let Some(rest) = target.roots.iter().find_map(|d| p.strip_prefix(d).ok()) {
+        return tr!("Steam folder: {file}", file = shown(rest));
     }
     path.to_string()
 }
@@ -124,7 +107,7 @@ fn is_generic(parts: &[&str]) -> bool {
         Some(first) if first.ends_with(':') && first.len() == 2 => n <= 2,
         // An absolute Linux path: `/home/<user>/.local/share` and above.
         Some("") => n <= 5,
-        // `Steam userdata: <account>` / `Game folder: ...` labels.
+        // `Steam folder: <path>` / `Game folder: ...` labels.
         _ => n <= 1,
     }
 }
@@ -164,13 +147,19 @@ fn folders(paths: &[String]) -> Vec<(String, usize)> {
 }
 
 /// The groups of a preview: saves first, empty kinds left out.
-pub(super) fn groups(plan: &RestorePlan, target: &RestoreTarget) -> Vec<Group> {
-    [FileKind::Save, FileKind::Registry, FileKind::Outside, FileKind::Unmapped]
+pub(super) fn groups(plan: &RestorePlan, target: &Target) -> Vec<Group> {
+    [FileKind::Save, FileKind::Unmapped]
         .into_iter()
         .filter_map(|kind| {
             let files: Vec<&PlannedFile> = plan.files.iter().filter(|f| f.kind == kind).collect();
             (!files.is_empty()).then(|| {
-                let paths: Vec<String> = files.iter().map(|f| short_path(&f.target, target)).collect();
+                let paths: Vec<String> = files
+                    .iter()
+                    .map(|f| match &f.target {
+                        Some(t) => short_path(t, target),
+                        None => heronite_saves::snapshot::unescape_path(&f.path),
+                    })
+                    .collect();
                 Group {
                     kind,
                     count: files.len(),
@@ -187,8 +176,6 @@ pub(super) fn groups(plan: &RestorePlan, target: &RestoreTarget) -> Vec<Group> {
 pub(super) fn group_title(kind: FileKind) -> &'static str {
     match kind {
         FileKind::Save => tr!("Game saves"),
-        FileKind::Registry => tr!("Wine registry"),
-        FileKind::Outside => tr!("Outside the game's prefix"),
         FileKind::Unmapped if cfg!(windows) => tr!("No place on this PC"),
         FileKind::Unmapped => tr!("No place on Linux"),
     }
@@ -206,16 +193,9 @@ pub(super) fn group_facts(g: &Group) -> String {
 pub(super) fn group_help(kind: FileKind) -> Option<&'static str> {
     match kind {
         FileKind::Save => None,
-        FileKind::Registry => Some(tr!(
-            "The whole registry of the prefix: restoring it also rolls back the settings of everything else installed there. Only pick it if the game keeps its save in the registry."
+        FileKind::Unmapped => Some(tr!(
+            "These files need a Wine prefix, a Windows folder or a Steam account that this PC does not have yet. Start the game once, then restore."
         )),
-        FileKind::Outside => {
-            Some(tr!("Copies from another prefix or Steam library; they restore to where they came from."))
-        }
-        FileKind::Unmapped if cfg!(windows) => {
-            Some(tr!("Linux paths, Wine registry files or a drive this PC does not have. They cannot be restored here."))
-        }
-        FileKind::Unmapped => Some(tr!("Windows paths on another drive. They cannot be restored here.")),
     }
 }
 
@@ -234,21 +214,23 @@ pub(super) fn overwrite_line(plan: &RestorePlan) -> String {
 }
 
 /// Where the restore writes, as a sentence.
-pub(super) fn target_line(t: &RestoreTarget, installed: bool) -> (String, bool) {
-    if t.missing_prefix() && !installed {
+pub(super) fn target_line(l: &Loaded, installed: bool) -> (String, bool) {
+    if !l.prefix_ok && !installed {
         return (
-            tr!("The game is not installed. You can see, lock and take its backups here; to restore one, install the game and start it once.")
+            tr!("The game is not installed. You can see and take its backups here; to restore one, install the game and start it once.")
                 .into(),
             false,
         );
     }
-    if t.missing_prefix() {
+    if !l.prefix_ok {
         return (tr!("The game's prefix does not exist yet. Start the game once, then restore.").into(), true);
     }
-    match (&t.prefix, &t.user) {
-        (Some(p), Some(u)) => (tr!("Restores into {prefix} (Wine user {user}).", prefix = p.display().to_string(), user = u), false),
+    match (&l.target.prefix, &l.target.wine_user) {
+        (Some(p), Some(u)) => {
+            (tr!("Restores into {prefix} (Wine user {user}).", prefix = p.display().to_string(), user = u.clone()), false)
+        }
         (Some(p), None) => (tr!("Restores into {prefix}.", prefix = p.display().to_string()), false),
-        _ => (tr!("Native game: saves go back to the folders they were backed up from.").into(), false),
+        _ => (tr!("Saves go back to the folders the game keeps them in on this PC.").into(), false),
     }
 }
 
@@ -260,7 +242,12 @@ impl SaveBackupsView {
     pub(super) fn render_desktop(&mut self, _window: &mut Window, cx: &mut Context<Self>) -> AnyElement {
         let body: AnyElement = match &self.load {
             Load::Idle | Load::Loading => card_box().py(px(12.)).child(help_text(tr!("Looking for backups…"))).into_any_element(),
-            Load::Missing => crate::ui::ludusavi::missing_card("sb-missing", cx.listener(|v, _, _, cx| v.reload(cx))).into_any_element(),
+            Load::Off => card_box()
+                .py(px(12.))
+                .child(help_text(tr!(
+                    "Save backups are off. Turn them on in Settings → Saves to keep this game's saves on a saves server or in a folder."
+                )))
+                .into_any_element(),
             Load::Failed(e) => div()
                 .flex()
                 .flex_col()
@@ -285,7 +272,7 @@ impl SaveBackupsView {
     }
 
     fn render_target(&self, l: &Loaded) -> Div {
-        let (line, error) = target_line(&l.target, self.installed);
+        let (line, error) = target_line(l, self.installed);
         let steam = self.steam_app_id.is_some() && l.target.prefix.is_some();
         card_box()
             .py(px(12.))
@@ -310,59 +297,17 @@ impl SaveBackupsView {
         let busy = self.busy();
         let target = self.render_target(l);
 
-        let options: Vec<(SharedString, bool)> = l
-            .sources
-            .iter()
-            .enumerate()
-            .map(|(i, s)| {
-                let count = trn!(s.backups.len(), "{n} backup", "{n} backups");
-                (format!("{} \u{b7} {count}", s.source.root.display()).into(), i == self.source)
-            })
-            .chain(std::iter::once((tr!("Other folder…").into(), false)))
-            .collect();
-        let n_sources = l.sources.len();
-        let current = l.sources.get(self.source);
-        let value = current.map(|s| s.source.root.display().to_string()).unwrap_or_else(|| tr!("No folder").into());
-        let folder = select_field(
-            "sb-folder",
-            Some(tr!("Backup folder")),
-            value,
-            busy,
-            self.source_open,
-            options,
-            cx,
-            |v: &mut Self, _, cx| {
-                v.source_open = !v.source_open;
-                cx.notify();
-            },
-            move |v: &mut Self, i, window, cx| {
-                if i < n_sources {
-                    v.pick_source(i, cx);
-                } else {
-                    v.source_open = false;
-                    choose_path(window, cx, true, tr!("Folder with Ludusavi backups"), |v: &mut Self, p, _, cx| v.use_folder(p, cx));
-                }
-            },
-        );
-
         let mut list = card_box().py(px(6.));
-        match current {
-            None => list = list.child(div().py(px(10.)).child(meta_text(tr!("No backup folder yet. Set one in Settings → Saves.")))),
-            Some(s) if s.backups.is_empty() => {
-                let text = s.error.clone().unwrap_or_else(|| tr!("No backup of this game in this folder.").into());
-                list = list.child(div().py(px(10.)).child(meta_text(text)));
-            }
-            Some(s) => {
-                let picked = self.selected_key();
-                for (i, b) in s.backups.iter().enumerate() {
-                    let key = BackupKey::of(s, b);
-                    let selected = picked.as_ref() == Some(&key);
-                    list = list.child(self.backup_row(i, key, b, selected, busy, cx));
-                }
+        if l.snapshots.is_empty() {
+            list = list.child(div().py(px(10.)).child(meta_text(tr!("No backup of this game on the saves server yet."))));
+        } else {
+            let picked = self.selected_id();
+            for (i, b) in l.snapshots.iter().enumerate() {
+                let selected = picked.as_deref() == Some(b.id.as_str());
+                list = list.child(self.backup_row(i, b, selected, busy, cx));
             }
         }
-        let has_backup = current.is_some_and(|s| !s.backups.is_empty());
-        let can_restore = has_backup && !busy && !l.target.missing_prefix();
+        let can_restore = !l.snapshots.is_empty() && !busy && l.prefix_ok;
         let actions = div()
             .flex()
             .items_center()
@@ -403,21 +348,13 @@ impl SaveBackupsView {
             )
         });
 
-        div()
-            .flex()
-            .flex_col()
-            .child(target)
-            .child(div().mt(px(12.)).child(folder))
-            .child(caption(tr!("Backups")))
-            .child(list)
-            .child(actions)
-            .children(undo)
-            .into_any_element()
+        div().flex().flex_col().child(target).child(caption(tr!("Backups"))).child(list).child(actions).children(undo).into_any_element()
     }
 
-    /// `i` only names the elements; every action goes by `key`.
-    fn backup_row(&self, i: usize, key: BackupKey, b: &BackupEntry, selected: bool, busy: bool, cx: &mut Context<Self>) -> AnyElement {
+    /// `i` only names the elements; every action goes by the backup's id.
+    fn backup_row(&self, i: usize, b: &SnapshotInfo, selected: bool, busy: bool, cx: &mut Context<Self>) -> AnyElement {
         let (title, facts) = backup_line(b);
+        let id = b.id.clone();
         let dot = div()
             .flex_none()
             .size(px(16.))
@@ -438,14 +375,7 @@ impl SaveBackupsView {
             .child(dot);
         let small = |id: &str, kind, label: &'static str| button_sm(SharedString::from(format!("sb-{id}-{i}")), kind, label);
 
-        if let Some((_, input, _)) = self.renaming.as_ref().filter(|(r, _, _)| *r == key) {
-            return row
-                .child(div().flex_1().min_w_0().child(input_box(input, false)))
-                .child(small("name-save", ButtonKind::Primary, tr!("Save")).on_click(cx.listener(|v, _, _, cx| v.save_rename(cx))))
-                .child(small("name-cancel", ButtonKind::Ghost, tr!("Cancel")).on_click(cx.listener(|v, _, _, cx| v.cancel_rename(cx))))
-                .into_any_element();
-        }
-        if self.confirm_delete.as_ref() == Some(&key) {
+        if self.confirm_delete.as_deref() == Some(id.as_str()) {
             return row
                 .child(
                     div()
@@ -459,18 +389,12 @@ impl SaveBackupsView {
                 .child(small("delete-no", ButtonKind::Ghost, tr!("Cancel")).on_click(cx.listener(|v, _, _, cx| v.cancel_delete(cx))))
                 .into_any_element();
         }
-        let k = key.clone();
-        let lock = small("lock", ButtonKind::Ghost, if b.locked { tr!("Unlock") } else { tr!("Lock") })
-            .when(!busy, |b| b.on_click(cx.listener(move |v, _, _, cx| v.toggle_lock(k.clone(), cx))));
-        let k = key.clone();
-        let rename = tool_button(SharedString::from(format!("sb-rename-{i}")), Icon::Edit, false)
-            .when(!busy, |b| b.on_click(cx.listener(move |v, _, window, cx| v.start_rename(k.clone(), window, cx))));
-        let k = key.clone();
+        let k = id.clone();
         let delete = tool_button(SharedString::from(format!("sb-delete-{i}")), Icon::DeleteOutline, false)
             .when(!busy, |b| b.on_click(cx.listener(move |v, _, _, cx| v.ask_delete(k.clone(), cx))));
         row.cursor_pointer()
             .hover(|s| s.bg(theme::ink_a(0.04)))
-            .on_click(cx.listener(move |v, _, _, cx| v.pick_backup(key.clone(), cx)))
+            .on_click(cx.listener(move |v, _, _, cx| v.pick_backup(id.clone(), cx)))
             .child(
                 div()
                     .flex()
@@ -480,9 +404,6 @@ impl SaveBackupsView {
                     .child(div().text_size(px(14.)).text_color(theme::text_primary()).truncate().child(title))
                     .children((!facts.is_empty()).then(|| div().text_size(px(12.)).text_color(theme::text_dim()).truncate().child(facts))),
             )
-            .children(b.locked.then(|| icon(Icon::Flag, px(14.), theme::text_muted())))
-            .child(rename)
-            .child(lock)
             .child(delete)
             .into_any_element()
     }
@@ -536,12 +457,7 @@ impl SaveBackupsView {
     fn render_plan(&self, cx: &mut Context<Self>) -> AnyElement {
         let (Stage::Plan(preview), Some(l)) = (&self.stage, self.loaded()) else { return div().into_any_element() };
         let (plan, groups) = (&preview.plan, &preview.groups);
-        let when = l
-            .sources
-            .get(self.source)
-            .and_then(|s| s.backups.iter().find(|b| b.id == plan.request.backup_id))
-            .map(|b| format_time(&b.when))
-            .unwrap_or_else(|| plan.request.backup_id.clone());
+        let when = format_time(&plan.snapshot.created_at);
         let selected = plan.selected().count();
 
         let mut col = div().flex().flex_col().gap(px(10.));
@@ -638,14 +554,12 @@ impl SaveBackupsView {
 mod tests {
     use super::folders;
 
-    /// Windows: the game folder's files read with `/` like Ludusavi's, so
-    /// they group by folder.
     #[cfg(windows)]
     #[test]
     fn windows_paths_group_by_folder() {
         use super::short_path;
-        use heronite_emulation::ludusavi::restore::RestoreTarget;
-        let t = RestoreTarget { install_dir: Some(r"D:\Games\Hollow Knight".into()), ..Default::default() };
+        use heronite_saves::locations::Target;
+        let t = Target { install_dir: Some(r"D:\Games\Hollow Knight".into()), ..Default::default() };
         let game = short_path("D:/Games/Hollow Knight/saves/a.sav", &t);
         assert_eq!(game, "Game folder: saves/a.sav");
         let mine = "C:/Users/rafael/AppData/LocalLow/Team Cherry/Hollow Knight";
@@ -668,7 +582,7 @@ mod tests {
         assert_eq!(folders(&paths), [(base.to_string(), 31), ("C:/users/steamuser/Documents/Other".to_string(), 2)]);
         assert_eq!(folders(&["user.reg".to_string()]), [("user.reg".to_string(), 1)]);
         // Steam userdata merges at the game's folder; two games in AppData stay apart.
-        let ud = "Steam userdata: 314512607/1933000/remote";
+        let ud = "Steam folder: userdata/314512607/1933000/remote";
         let paths = vec![
             format!("{ud}/profiles/123/a.sav"),
             format!("{ud}/profiles/456/b.sav"),

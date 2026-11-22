@@ -213,7 +213,7 @@ mod tests {
             Row::action("ua:1", "Mod manager"),
             Row::toggle("favourite", "Favourite", false),
             Row::header("Manage"),
-            Row::action("x:ludusavi", "Back up"),
+            Row::action("x:saves", "Back up"),
         ];
         let ids: Vec<_> = sheet_rows(all).iter().map(|r| r.id.to_string()).collect();
         assert_eq!(ids, ["primary", "favourite", "full"]);

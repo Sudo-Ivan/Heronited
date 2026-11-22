@@ -1,5 +1,5 @@
 //! Data of the focus panel's left column that the Library does not hold: the
-//! user's star rating (`local_library/ratings.json`), the last Ludusavi save
+//! user's star rating (`local_library/ratings.json`), the last save
 //! backup, the Linux facts (ProtonDB tier, anti-cheat) and the folders of
 //! the Details panel with their size (`folder_size`). Everything is read
 //! off the UI thread when the focused game changes; ProtonDB is fetched (and
@@ -15,7 +15,7 @@ use heronite_data::anticheat::{self, AntiCheatInfo};
 use heronite_data::models::LocalGameSession;
 use heronite_data::timeline::{build_timeline, TimelineDay};
 use heronite_data::{ratings, settings, CollectionGame};
-use heronite_emulation::ludusavi::{last_backup, LudusaviGame};
+use heronite_emulation::saves::last_backup;
 use heronite_metadata::{protondb, sources, Endpoints, Http};
 
 use super::open_links::{game_folders, FolderKind};
@@ -25,10 +25,10 @@ use heronite_i18n::tr;
 /// Days of the timeline shown before "Show more".
 pub(super) const TIMELINE_DAYS: usize = 4;
 
-/// The last Ludusavi backup of the focused game.
+/// The last save backup of the focused game.
 #[derive(Clone)]
 pub(super) enum Backup {
-    /// Ludusavi is off (the row is hidden).
+    /// Save backups are off (the row is hidden).
     Off,
     /// On, but nothing backed up for this game yet.
     Never,
@@ -176,8 +176,6 @@ impl CollectionView {
         let paths = self.data_paths.clone();
         let cache = self.app_paths.cache.join("protondb");
         let emulated = game.launch_kind.as_deref() == Some("emulator");
-        let emulator_id = LudusaviGame::emulator_of(game.meta.as_deref());
-        let rom_path = LudusaviGame::rom_path_of(game.meta.as_deref());
         // The game's own Steam id, else the one the metadata found.
         let known_steam = [game.steam_app_id.as_deref(), game.metadata.as_ref().and_then(|m| m.steam_app_id.as_deref())]
             .into_iter()
@@ -200,11 +198,11 @@ impl CollectionView {
             let (local, net) = cx
                 .background_spawn(async move {
                     let enabled = heronite_platform::supported(heronite_platform::Feature::SaveBackups)
-                        && settings::load(&paths).map(|s| s.ludusavi.enabled).unwrap_or(false);
+                        && settings::load(&paths).map(|s| s.saves.enabled).unwrap_or(false);
                     let backup = if !enabled {
                         Backup::Off
                     } else {
-                        match last_backup(&paths, &game.title, known_steam.as_deref(), emulator_id.as_deref(), rom_path.as_deref()) {
+                        match last_backup(&paths, &game.runner, &game.app_name) {
                             Some(b) => Backup::At(b.at),
                             None => Backup::Never,
                         }

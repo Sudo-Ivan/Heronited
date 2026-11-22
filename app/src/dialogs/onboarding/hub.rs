@@ -281,16 +281,7 @@ impl OnboardingDialog {
         } else {
             line(Step::Overlay.icon(), Step::Overlay.title(), dim(tr!("Not on this desktop"))).into_any_element()
         };
-        let saves = match f.ludusavi {
-            Some(false) if !f.saves => {
-                let setup = button_sm("onb-saves-setup", ButtonKind::Ghost, tr!("Set up"))
-                    .on_click(cx.listener(|this, _, _, cx| this.go(Step::Saves, Action::Settings(Section::Saves), cx)));
-                line(Step::Saves.icon(), Step::Saves.title(), self.settled(Step::Saves, setup.into_any_element(), false, cx))
-                    .when(f.is_skipped(Step::Saves), |d| d.opacity(0.6))
-                    .into_any_element()
-            }
-            _ => self.switch_line(Step::Saves, Step::Saves.title(), None, cx),
-        };
+        let saves = self.switch_line(Step::Saves, Step::Saves.title(), None, cx);
         let proton = match &f.proton {
             Some(name) => line(Step::Proton.icon(), tr!("Proton for Windows games"), done_label(short_proton(name))).into_any_element(),
             None => {

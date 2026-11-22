@@ -25,7 +25,6 @@ fn is_on(kind: Kind, p: &SyncPrefs) -> bool {
     match kind {
         Kind::Library => p.library.is_on(),
         Kind::Backups => p.backups.is_on(),
-        Kind::Saves => p.saves.is_on(),
         Kind::Captures => p.captures.is_on(),
     }
 }
@@ -82,7 +81,7 @@ fn intro() -> Div {
                 .child(div().text_size(px(17.)).font_weight(theme::W_BOLD).text_color(theme::text_bright()).child(tr!("Your library, in the cloud"))),
         )
         .child(div().text_size(px(13.)).line_height(px(19.)).text_color(theme::text_muted()).child(tr!(
-            "Keep the same library on every PC you play on, and a copy of your Heronited backups, game saves and screenshots. Each PC writes only its own files, so nothing is overwritten."
+            "Keep the same library on every PC you play on, and a copy of your Heronited backups and screenshots. Each PC writes only its own files, so nothing is overwritten."
         )))
         .child(
             div()

@@ -150,7 +150,7 @@ impl CollectionView {
                     .desc(tr!("As a non-Steam game in your Steam library")),
             );
         }
-        manage.push(Row::action("x:ludusavi", tr!("Back up saves (Ludusavi)")).icon(Icon::Save));
+        manage.push(Row::action("x:saves", tr!("Back up saves")).icon(Icon::Save));
         manage.push(
             Row::action("x:pictures", tr!("Change pictures\u{2026}"))
                 .icon(Icon::Image)
@@ -474,7 +474,7 @@ impl CollectionView {
             Outcome::Activate(id) => match id.as_ref() {
                 "primary" => self.install_or_play(key, window, cx),
                 "x:manual-install" => self.open_manual_install(key, window, cx),
-                "x:ludusavi" => self.open_ludusavi_backup(key, cx),
+                "x:saves" => self.open_saves_backup(key, cx),
                 "x:pictures" => self.open_covers_for(key, window, cx),
                 "x:steam-uninstall" => self.open_steam_uninstall(key, window, cx),
                 "x:steam-play" => self.play_with_steam(key, cx),

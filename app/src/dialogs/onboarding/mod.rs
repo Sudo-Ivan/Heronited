@@ -19,11 +19,9 @@ use gpui_kit::prelude::*;
 use gpui_kit::*;
 use heronite_data::appearance::{Appearance, StartView};
 use heronite_data::{art as game_art, ArtContext};
-use heronite_emulation::ludusavi::{detect_ludusavi, SystemRunner};
-use heronite_emulation::settings_ext::{set_ludusavi_settings, LudusaviSettingsPatch};
+use heronite_emulation::settings_ext::{set_saves_settings, SavesSettingsPatch};
 use heronite_i18n::tr;
 use heronite_images::ImageRef;
-use heronite_launch::SystemProbe;
 use serde_json::Value;
 
 use self::art::Art;
@@ -84,24 +82,6 @@ impl OnboardingDialog {
         let launchers = crate::services::launcher_imports(cx);
         cx.observe(&launchers, |_, _, cx| cx.notify()).detach();
         let games = pick_games(&ctx);
-        // Whether Ludusavi is installed decides if backups can be turned on.
-        let preferred = ctx.lib.settings.ludusavi.binary_path.clone();
-        let saves = heronite_platform::supported(heronite_platform::Feature::SaveBackups);
-        cx.spawn(async move |this, cx| {
-            let found = cx
-                .background_spawn(async move {
-                    saves
-                        && detect_ludusavi(&SystemRunner::default(), &SystemProbe, Some(preferred.as_str()).filter(|p| !p.is_empty()))
-                            .is_some()
-                })
-                .await;
-            this.update(cx, |this, cx| {
-                this.facts.ludusavi = Some(found);
-                cx.notify();
-            })
-            .ok();
-        })
-        .detach();
         Self { ctx, facts, view: View::Hub, games, images, error: None, on_action: Rc::new(on_action) }
     }
 
@@ -172,8 +152,9 @@ impl OnboardingDialog {
                 heronite_data::settings::save_screenshots(paths, &s.folder, s.cache_limit_mb.get(), on, &s.capture_accelerator)
                     .map(|_| self.facts.screenshots = on)
             }
-            Step::Saves => set_ludusavi_settings(paths, &LudusaviSettingsPatch { enabled: Some(on), ..Default::default() })
-                .map(|_| self.facts.saves = on),
+            Step::Saves => {
+                set_saves_settings(paths, &SavesSettingsPatch { enabled: Some(on), ..Default::default() }).map(|_| self.facts.saves = on)
+            }
             Step::Tray => {
                 let home = dirs::home_dir().map(|h| h.to_string_lossy().into_owned()).unwrap_or_default();
                 heronite_data::game_config::set_global_setting(paths, &home, "exitToTray", Value::Bool(on)).map(|_| self.facts.tray = on)

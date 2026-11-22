@@ -397,7 +397,7 @@ impl CollectionView {
             w if w.starts_with("play-copy:") => self.play_copy(&w["play-copy:".len()..], window, cx),
             w if w.starts_with("play-as-pc:") => self.open_play_as_pc(&w["play-as-pc:".len()..], window, cx),
             w if w.starts_with("local-uninstall:") => self.open_sideload_uninstall(&w["local-uninstall:".len()..], window, cx),
-            w if matches!(w, "playtime" | "remove" | "ludusavi" | "steam-missing") || w.starts_with("ludusavi:") => {
+            w if matches!(w, "playtime" | "remove" | "saves" | "steam-missing") || w.starts_with("saves:") => {
                 self.open_extras_debug(which.as_str(), window, cx)
             }
             w if w.starts_with("scan-folder") => self.scan_folder_debug_dialog(w, window, cx),

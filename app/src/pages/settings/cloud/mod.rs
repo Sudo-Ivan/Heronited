@@ -7,10 +7,10 @@
 //! Google app of one's own behind "Advanced options"), and 2, what goes
 //! there, waiting for the connection. Once connected: how things stand, with
 //! the account folded under "Account"; what goes to the cloud (`features.rs`:
-//! the library sync, backups, game saves, screenshots, each off, manual or
+//! the library sync, backups, screenshots, each off, manual or
 //! automatic, under the space they take, `space.rs`, measured on this PC);
 //! then, folded, restoring from the cloud (`restore.rs`) and the PCs (this
-//! one's name, the others found, how the last sync went). Backups, Saves and
+//! one's name, the others found, how the last sync went). Backups and
 //! Screenshots link here (`features::link_row`).
 
 mod account;
@@ -143,7 +143,7 @@ impl State {
             })
             .detach();
         }
-        // Backups, Saves and Screenshots say whether they go to the cloud.
+        // Backups and Screenshots say whether they go to the cloud.
         let app = ctx.app.clone();
         cx.spawn(async move |this, cx| {
             let loaded = cx.background_spawn(async move { prefs::load(&app) }).await;
@@ -479,7 +479,7 @@ fn render_connected(d: &mut SettingsPage, p: &SyncPrefs, cx: &mut Context<Settin
         "cloud-restore",
         Icon::CloudDownload,
         tr!("Restore from the cloud"),
-        tr!("New PC, or formatted this one? Connect, then bring back your Collection, game saves and screenshots.").to_owned(),
+        tr!("New PC, or formatted this one? Connect, then bring back your Collection and screenshots.").to_owned(),
         restore_open.then(|| restore::render(d, cx)),
         cx.listener(move |d, _, _, cx| {
             d.cloud.restore_open = !restore_open;

@@ -1,6 +1,6 @@
 //! A copy of what a restore overwrites, to put it back.
 //!
-//! Ludusavi's own backup of the current saves is no safety net: with a small
+//! The server's own history is no safety net for the current saves: with a small
 //! retention it would push out the very backup being restored. So before a
 //! restore the files it will write are copied to
 //! `save-restore-undo/<game>/<time>/` in the data folder, with `undo.json`
@@ -33,7 +33,7 @@ pub struct UndoRecord {
     #[serde(skip)]
     pub dir: PathBuf,
     pub created_at: String,
-    /// Ludusavi's name of the game and the backup restored.
+    /// The app id of the game and the backup restored.
     pub game_name: String,
     pub backup_id: String,
     pub entries: Vec<UndoEntry>,

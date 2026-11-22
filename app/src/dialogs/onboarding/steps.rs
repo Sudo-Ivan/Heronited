@@ -227,8 +227,6 @@ pub struct Facts {
     pub screenshots: bool,
     pub shot_key: String,
     pub saves: bool,
-    /// Whether Ludusavi is installed (`None` while looking).
-    pub ludusavi: Option<bool>,
     pub tray: bool,
     /// The Collection shows the Grid view (else the Focus view).
     pub grid_view: bool,
@@ -260,8 +258,7 @@ impl Facts {
             overlay_why,
             screenshots: lib.settings.screenshots.capture_enabled,
             shot_key: Some(lib.settings.screenshots.capture_accelerator.clone()).filter(|k| !k.is_empty()).unwrap_or_else(|| "F10".into()),
-            saves: lib.settings.ludusavi.enabled,
-            ludusavi: None,
+            saves: lib.settings.saves.enabled,
             tray: crate::system::settings::SysSettings::load(data_paths).exit_to_tray,
             grid_view: heronite_data::ui_state::UiState::load(app).grid_view,
             done,

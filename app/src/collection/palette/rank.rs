@@ -559,7 +559,7 @@ mod tests {
         for (q, section) in [
             ("blur", "Settings \u{203a} Appearance"),
             ("igdb", "Settings \u{203a} Metadata"),
-            ("ludusavi", "Settings \u{203a} Saves"),
+            ("secure key", "Settings \u{203a} Saves"),
             ("schedule", "Settings \u{203a} Backups"),
             ("screenshots", "Settings \u{203a} Screenshots"),
         ] {

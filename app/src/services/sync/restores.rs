@@ -1,9 +1,7 @@
 //! Bringing things back from the cloud account (Settings → Cloud, "Restore
 //! from the cloud"), for a new or formatted PC: what is there, listed when
 //! the user asks; a PC's Heronited backup (into the backup folder, then
-//! Settings → Backups asks to restore it); its game saves (into Ludusavi's
-//! backup folder only: a game's own save folder is never touched, restoring
-//! one is Ludusavi's); the screenshots (into the captures folder, the ones
+//! Settings → Backups asks to restore it); the screenshots (into the captures folder, the ones
 //! here kept); or all of it, the backup last since its restore restarts.
 //! One at a time, on a thread of its own.
 
@@ -15,9 +13,7 @@ use futures::StreamExt;
 use gpui_kit::*;
 use heronite_data::proc::Cancel;
 use heronite_data::{settings, AppPaths, DataPaths};
-use heronite_emulation::ludusavi::{detect_ludusavi, SystemRunner};
 use heronite_i18n::tr;
-use heronite_launch::SystemProbe;
 use heronite_sync::cloud::{self, CloudBackup, InCloud};
 use heronite_sync::SyncError;
 
@@ -27,10 +23,8 @@ use super::LibrarySync;
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum Bring {
     Backup(CloudBackup),
-    /// The saves of a PC.
-    Saves(String),
     Captures,
-    /// A PC's saves and newest backup, and the screenshots.
+    /// A PC's newest backup, and the screenshots.
     Everything(String),
 }
 
@@ -46,7 +40,6 @@ pub struct Bringing {
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Step {
     Backup,
-    Saves,
     Captures,
 }
 
@@ -134,7 +127,7 @@ impl LibrarySync {
         let first = match &what {
             Bring::Backup(_) => Step::Backup,
             Bring::Captures => Step::Captures,
-            Bring::Saves(_) | Bring::Everything(_) => Step::Saves,
+            Bring::Everything(_) => Step::Captures,
         };
         self.restores.current = Some(Bringing { what: what.clone(), step: first, percent: None, cancel: cancel.clone() });
         self.restores.notice = None;
@@ -186,9 +179,6 @@ impl LibrarySync {
 
 fn done_text(what: &Bring) -> String {
     match what {
-        Bring::Saves(_) => {
-            tr!("The game saves are in Ludusavi's backup folder. Restore a game from its Saves tab when you want it back.").into()
-        }
         Bring::Captures => tr!("The screenshots are back in the screenshots folder.").into(),
         Bring::Backup(_) | Bring::Everything(_) => tr!("Brought back.").into(),
     }
@@ -212,19 +202,11 @@ fn run(
     };
     match what {
         Bring::Backup(b) => backup(data, app, b, cancel).map(Some),
-        Bring::Saves(pc) => {
-            cloud::download_saves(data, app, pc, &saves_folder(data)?, cancel, &mut on_percent).map_err(localized)?;
-            Ok(None)
-        }
         Bring::Captures => {
             cloud::download_captures(data, app, &captures_folder(data)?, cancel, &mut on_percent).map_err(localized)?;
             Ok(None)
         }
         Bring::Everything(pc) => {
-            if in_cloud.saves.contains(pc) {
-                step(Step::Saves);
-                cloud::download_saves(data, app, pc, &saves_folder(data)?, cancel, &mut on_percent).map_err(localized)?;
-            }
             if in_cloud.captures {
                 step(Step::Captures);
                 cloud::download_captures(data, app, &captures_folder(data)?, cancel, &mut on_percent).map_err(localized)?;
@@ -248,20 +230,6 @@ fn backup(data: &DataPaths, app: &AppPaths, b: &CloudBackup, cancel: &Cancel) ->
         return Err(tr!("Choose a backup folder in Settings → Backups first.").into());
     }
     cloud::download_backup(data, app, b, Path::new(folder.trim()), cancel).map_err(|e| e.localized())
-}
-
-/// Ludusavi's backup folder: the one set in Settings → Saves, else the one
-/// of the Ludusavi installed, else where its last backup went.
-fn saves_folder(data: &DataPaths) -> Result<PathBuf, String> {
-    let s = settings::load(data).map_err(|e| format!("{e:#}"))?;
-    let l = &s.ludusavi;
-    let configured = Some(l.backup_path.trim()).filter(|p| !p.is_empty() && !l.use_installed_config).map(PathBuf::from);
-    let found = || {
-        let preferred = Some(l.binary_path.as_str()).filter(|p| !p.is_empty());
-        detect_ludusavi(&SystemRunner::default(), &SystemProbe, preferred).and_then(|d| d.backup_path).map(PathBuf::from)
-    };
-    let last = || l.last_backup_path.as_deref().and_then(|p| Path::new(p).parent()).map(Path::to_path_buf);
-    configured.or_else(found).or_else(last).ok_or_else(|| tr!("Set Ludusavi's backup folder in Settings → Saves first.").to_string())
 }
 
 fn captures_folder(data: &DataPaths) -> Result<PathBuf, String> {

@@ -124,8 +124,6 @@ pub struct SyncPrefs {
     pub play_only: bool,
     /// Each backup of the data folder goes up as a zip (without sign-ins).
     pub backups: Mode,
-    /// The Ludusavi backups go up (automatic: after each game).
-    pub saves: Mode,
     /// The screenshots go up once compressed.
     pub captures: Mode,
     /// With the screenshots, the replays (videos).
@@ -150,7 +148,7 @@ pub struct SyncPrefs {
     pub google_client_secret: String,
     pub device_id: String,
     pub device_name: String,
-    /// This PC's folder in the account (`Backups/<it>`, `Saves/<it>`):
+    /// This PC's folder in the account (`Backups/<it>`):
     /// its name when it first uploaded, so a rename does not split them.
     pub device_folder: String,
     pub last_sync_at: Option<String>,
@@ -176,7 +174,6 @@ impl Default for SyncPrefs {
             library: Mode::Off,
             play_only: false,
             backups: Mode::Off,
-            saves: Mode::Off,
             captures: Mode::Off,
             replays: false,
             provider: Provider::Folder,
@@ -245,7 +242,7 @@ impl SyncPrefs {
 
     /// Whether anything goes to the account or folder.
     pub fn any_on(&self) -> bool {
-        [self.library, self.backups, self.saves, self.captures].iter().any(|m| m.is_on())
+        [self.library, self.backups, self.captures].iter().any(|m| m.is_on())
     }
 
     /// The Google app Google Drive signs in with: the user's own, else the
@@ -338,9 +335,9 @@ mod tests {
 
     #[test]
     fn settings_of_the_switches_load_as_modes() {
-        let old = r#"{"enabled":true,"backups":false,"saves":true,"provider":"drive","connected":"drive","deviceId":"a"}"#;
+        let old = r#"{"enabled":true,"backups":false,"captures":true,"provider":"drive","connected":"drive","deviceId":"a"}"#;
         let p: SyncPrefs = serde_json::from_str(old).unwrap();
-        assert_eq!((p.library, p.backups, p.saves, p.captures), (Mode::Auto, Mode::Off, Mode::Auto, Mode::Off));
+        assert_eq!((p.library, p.backups, p.captures), (Mode::Auto, Mode::Off, Mode::Auto));
         let new: SyncPrefs = serde_json::from_str(&serde_json::to_string(&p).unwrap()).unwrap();
         assert_eq!(new, p);
         assert_eq!(serde_json::to_value(Mode::Manual).unwrap(), "manual");

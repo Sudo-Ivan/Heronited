@@ -21,7 +21,7 @@ pub fn hook_for(view: &AnyView) -> Option<PadHook> {
         crate::dialogs::store_install::StoreInstallDialog,
         crate::dialogs::remove_game::RemoveGameDialog,
         crate::dialogs::quit_confirm::QuitConfirmDialog,
-        crate::dialogs::ludusavi_backup::LudusaviBackupDialog,
+        crate::dialogs::saves_backup::SavesBackupDialog,
         crate::dialogs::epic_import::EpicImportPicker,
         crate::dialogs::store_import::StoreImportPicker,
         crate::dialogs::epic_modify::EpicModifyDialog,

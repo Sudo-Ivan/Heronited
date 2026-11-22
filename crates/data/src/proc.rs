@@ -1,4 +1,4 @@
-//! One way to run helper processes (rsync, tar, ludusavi, legendary, the Epic
+//! One way to run helper processes (rsync, tar, legendary, the Epic
 //! login window...).
 //!
 //! Helpers must not outlive the app: each one gets its own process group and,

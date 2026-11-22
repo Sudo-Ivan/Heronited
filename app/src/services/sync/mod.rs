@@ -1,7 +1,7 @@
 //! The cloud account (`heronite_sync`, Settings → Cloud): the library sync
 //! between PCs [`AFTER_START`] after the app starts, [`AFTER_GAME`] after
 //! each game and every [`EVERY`] (never while a game launched from here
-//! runs), plus "Sync now", and the uploads (`uploads`: backups, game saves,
+//! runs), plus "Sync now", and the uploads (`uploads`: backups,
 //! screenshots). Connecting the account runs here too, so the page can close
 //! while the browser sign-in waits.
 //!
@@ -85,7 +85,6 @@ pub fn init(cx: &mut App, data_paths: DataPaths) {
                         // What came in while the app was closed, then hourly.
                         if round == 0 {
                             s.upload(Job::LatestBackup, false, cx);
-                            s.upload(Job::Saves, false, cx);
                         }
                         if round.is_multiple_of(CAPTURES_EVERY) {
                             s.upload(Job::Captures, false, cx);
@@ -131,7 +130,7 @@ pub fn get(cx: &App) -> Option<Entity<LibrarySync>> {
     cx.try_global::<SyncGlobal>().map(|g| g.0.clone())
 }
 
-/// A game ended (its post-game work, the Ludusavi backup too, is done):
+/// A game ended (its post-game work, the save backup too, is done):
 /// its session goes to the other PCs and its saves to the account. Its
 /// screenshots follow the compression (or go now when it is off).
 pub fn after_game(cx: &mut App) {
@@ -142,7 +141,6 @@ pub fn after_game(cx: &mut App) {
             cx.background_executor().timer(AFTER_GAME).await;
             this.update(cx, |s, cx| {
                 s.sync(false, cx);
-                s.upload(Job::Saves, false, cx);
                 if !compression_on {
                     s.upload(Job::Captures, false, cx);
                 }

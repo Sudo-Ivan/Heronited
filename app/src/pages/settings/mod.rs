@@ -400,7 +400,7 @@ impl SettingsPage {
         }
         self.library.reload(&self.ctx, cx);
         self.logs.refresh(cx);
-        // Ludusavi's "last backup" lines change while a game runs.
+        // The "last backup" lines of the saves change while a game runs.
         let data_paths = self.ctx.data_paths.clone();
         cx.spawn(async move |this, cx| {
             if let Ok(fresh) = cx.background_spawn(async move { store::load(&data_paths) }).await {
@@ -922,10 +922,8 @@ impl SettingsPage {
                     .flex()
                     .flex_col()
                     .child(saves::render(self, window, cx))
-                    // Restoring needs Ludusavi: the card above says how to get it.
-                    .when(!self.saves.missing(), |d| d.child(div().mt(px(12.)).child(saves_restore::render(self, window, cx))))
+                    .child(div().mt(px(12.)).child(saves_restore::render(self, window, cx)))
                     .into_any_element();
-                let body = self.with_cloud_row(Upload::Saves, body, cx);
                 Self::collection_section(body, self.error.clone())
             }
             Section::Backups => {

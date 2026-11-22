@@ -43,7 +43,7 @@ app (bin heronite-rs) ── GPUI UI, desktop integration
  │                      Connect, Rockstar Games Launcher), under Wine
  │                      on Linux, as they are on Windows:
  │                      setup, their games, sign-in, open / close     → data, launch, epic
- ├─ heronite-emulation  emulators, ROM scan, save states, Ludusavi   → data, launch
+ ├─ heronite-emulation  emulators, ROM scan, save states, saves   → data, launch
  ├─ heronite-xbox       the Microsoft Store and PC Game Pass games the
  │                      Xbox app installs (Windows packages): found
  │                      among the user's packages, kept in the
@@ -543,10 +543,9 @@ text size) and applies it.
   place, what goes there, this PC's id and name, the last results and the other PCs seen). A PC set
   to send only its play (`playOnly`, for a PC the user does not keep organised) publishes sessions
   and play time and none of its fields, and its own changes lose to any other PC's. `cloud` is what
-  else the same sign-in takes, under `<root>/Backups/<PC>`, `Saves/<PC>` and `Screenshots` (the sync
+  else the same sign-in takes, under `<root>/Backups/<PC>` and `Screenshots` (the sync
   is `Sync/`): each backup as one zip of its Collection and app settings with a manifest of only
-  them (sign-ins never leave the PC; the artwork goes next to it as files, sent once), Ludusavi's
-  backup folder mirrored (it is a zip per game already; an empty folder never empties the copy),
+  them (sign-ins never leave the PC; the artwork goes next to it as files, sent once),
   and the screenshots one file each with only the new ones sent (a WebP gains nothing in a zip),
   never a PNG waiting for its compression, replays only when asked. `list_backups` lists every PC's
   backups in the account (one listing, when the user asks) and `download_backup` brings one into the

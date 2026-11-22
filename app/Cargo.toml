@@ -34,6 +34,7 @@ heronite-mods = { path = "../crates/mods" }
 heronite-platform = { path = "../crates/platform" }
 heronite-overlay = { path = "../crates/overlay" }
 heronite-emulation = { path = "../crates/emulation" }
+heronite-saves = { path = "../crates/saves" }
 heronite-import = { path = "../crates/import" }
 heronite-installer = { path = "../crates/installer" }
 heronite-wine = { path = "../crates/wine" }

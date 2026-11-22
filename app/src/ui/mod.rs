@@ -10,7 +10,6 @@ pub mod find;
 pub mod game_actions;
 pub mod glass;
 pub mod lsfg;
-pub mod ludusavi;
 pub mod release_notes;
 mod scrollbar;
 mod window_area;

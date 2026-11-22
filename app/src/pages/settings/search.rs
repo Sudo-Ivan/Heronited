@@ -277,17 +277,15 @@ const INDEX: &[(Section, &[&str])] = &[
     (
         Section::Saves,
         &[
-            "Save backups (Ludusavi)",
+            "Save backups",
             "Back up saves when a game closes",
-            "Use installed Ludusavi settings",
-            "Ludusavi binary",
-            "Save backup folder",
-            "Backup format",
-            "Zip compression",
-            "Full backups kept per game",
-            "Differential backups",
-            "Restoring saves",
-            "Backups kept",
+            "Also back up while playing",
+            "Saves server",
+            "Account",
+            "Secure key",
+            "Copy secure key",
+            "Game list",
+            "Update game list",
         ],
     ),
     (
@@ -318,7 +316,6 @@ const INDEX: &[(Section, &[&str])] = &[
             "Heronited backups",
             "Restore from the cloud",
             "What is in the cloud",
-            "Game saves (Ludusavi)",
             "Screenshots",
             "Include replays (videos)",
             "Your PCs",
@@ -587,7 +584,7 @@ mod tests {
         assert!(search("  ").is_empty());
         assert_eq!(sections("saves").first(), Some(&Section::Saves));
         assert_eq!(sections("Aparência").first(), Some(&Section::Appearance));
-        assert_eq!(sections("ludusavi").first(), Some(&Section::Saves));
+        assert_eq!(sections("secure key").first(), Some(&Section::Saves));
         assert_eq!(sections("apearance").first(), Some(&Section::Appearance));
         assert!(sections("proton").contains(&Section::GameDefaults));
         // The group caption brings its sections, ahead of a blurb that says the word.

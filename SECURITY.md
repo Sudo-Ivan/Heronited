@@ -24,4 +24,4 @@ Heronited handles data that must stay private and starts programs on your machin
 - **Files:** writing or deleting files outside the folders Heronited is meant to touch.
 - **Network:** sending data to a server the user did not expect.
 
-Problems in Wine, Proton, legendary, Ludusavi, or a game itself should go to those projects.
+Problems in Wine, Proton, legendary, or a game itself should go to those projects.

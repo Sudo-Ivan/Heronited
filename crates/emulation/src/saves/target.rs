@@ -1,35 +1,7 @@
-//! Where a restore writes: the game's prefix as it is now.
+//! Facts about the game's Wine prefix and Steam process.
 
 use std::fs;
-use std::path::{Path, PathBuf};
-
-/// The places a backup is put back into.
-#[derive(Debug, Clone, Default, PartialEq, Eq)]
-pub struct RestoreTarget {
-    /// The active prefix (the folder holding `drive_c`): Steam's
-    /// `compatdata/<id>/pfx` or the game's Wine prefix.
-    pub prefix: Option<PathBuf>,
-    /// The Wine user inside it (`steamuser` in Proton prefixes).
-    pub user: Option<String>,
-    /// The game's install folder (saves kept next to the game).
-    pub install_dir: Option<PathBuf>,
-    /// Steam's `userdata` folder, for Steam games.
-    pub steam_userdata: Option<PathBuf>,
-    /// Windows: this user's folder (`C:\Users\<name>`). Files backed up from
-    /// another user's folder, or from the users of a Wine prefix on Linux,
-    /// land here. Unused on Linux.
-    pub user_home: Option<PathBuf>,
-    /// The game runs through Wine / Proton. Without a prefix yet (never
-    /// started), nothing can be restored.
-    pub needs_prefix: bool,
-}
-
-impl RestoreTarget {
-    /// A Wine / Proton game whose prefix does not exist yet.
-    pub fn missing_prefix(&self) -> bool {
-        self.needs_prefix && self.prefix.is_none()
-    }
-}
+use std::path::Path;
 
 /// The user folder Wine made in `prefix/drive_c/users` (`Public` is shared):
 /// `steamuser` when there (Proton), the only one, the login name, then the
@@ -115,12 +87,5 @@ mod tests {
         assert!(!steam_game_running_in(d.path(), "124562"));
         assert!(!steam_game_running_in(d.path(), "7"));
         assert!(!steam_game_running_in(d.path(), ""));
-    }
-
-    #[test]
-    fn missing_prefix_only_for_wine_games() {
-        assert!(RestoreTarget { needs_prefix: true, ..Default::default() }.missing_prefix());
-        assert!(!RestoreTarget::default().missing_prefix());
-        assert!(!RestoreTarget { needs_prefix: true, prefix: Some("/p".into()), ..Default::default() }.missing_prefix());
     }
 }

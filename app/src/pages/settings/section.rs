@@ -39,12 +39,12 @@ pub enum Section {
     /// how achievements show.
     Achievements,
     Screenshots,
-    /// Ludusavi: game save backups and restoring them.
+    /// Game save backups to a saves server.
     Saves,
     /// Backups of the data folder and the app settings, and restoring them.
     Backups,
-    /// The account the library sync, backups, game saves and screenshots go
-    /// to (`heronite_sync`).
+    /// The account the library sync, backups and screenshots go to
+    /// (`heronite_sync`).
     Cloud,
     Logs,
     About,
@@ -187,9 +187,9 @@ impl Section {
             Section::Metadata => tr!("Where the details and pictures of your games come from. Sources are asked from the top of each list down; a field stays with the first one that has it."),
             Section::Achievements => tr!("Achievements from Steam, GOG, Epic Games and RetroAchievements. Heronited keeps its own copy of them, so your history stays even if a store or an account goes away."),
             Section::Screenshots => tr!("Where your captures live, the in-game shortcut and the preview cache of the gallery."),
-            Section::Saves => tr!("Game saves backed up with Ludusavi after you close a game, and the folders a game's Saves tab restores them from."),
+            Section::Saves => tr!("Game saves backed up to a saves server after you close a game, and the secure key that is your account there."),
             Section::Backups => tr!("Scheduled backups of your Collection, play history and settings, and putting one back."),
-            Section::Cloud => tr!("One account for the library synced between your PCs, your backups, game saves and screenshots: Google Drive, Dropbox, OneDrive, a server or a shared folder."),
+            Section::Cloud => tr!("One account for the library synced between your PCs, your backups and screenshots: Google Drive, Dropbox, OneDrive, a server or a shared folder."),
             Section::Logs => tr!("The logs of this app, the runners and every game you launched. Logging is turned off in Advanced (Turn off logs) and made more detailed per game (Detailed logs)."),
             Section::About => tr!("Updates, help and feedback, this app's data folders and the system it runs on."),
         }
@@ -216,7 +216,7 @@ impl Section {
             Section::Achievements => "achievements trophies retroachievements retro emulator rom steam gog epic unlocked rare points hardcore web api key conquistas trofeus emulador desbloqueadas raras pontos chave",
             Section::Metadata => "metadata sources igdb twitch steam lutris steamgriddb howlongtobeat protondb tags covers backgrounds fill download update images order priority age ratings metadados fontes capas fundos preencher baixar atualizar imagens ordem prioridade classificacao etaria",
             Section::Screenshots => "screenshots capture shortcut hotkey folder thumbnails cache gallery capturas de tela atalho pasta miniaturas galeria",
-            Section::Saves => "saves ludusavi backup restore retention locked differential zip compression game list manifest salvamentos restaurar retencao travado diferencial compressao lista de jogos",
+            Section::Saves => "saves backup restore server key secure account game list manifest salvamentos restaurar servidor chave conta lista de jogos",
             Section::Cloud => "cloud sync synchronize upload backup saves screenshots google drive dropbox onedrive box ftp smb webdav rclone syncthing dual boot windows linux other pc devices space restore sincronizar sincronizacao nuvem outro computador dispositivos enviar backup capturas espaco restaurar",
             Section::Backups => "backups backup restore data folder config copy schedule retention sign-ins artwork pasta de dados copia agendar agendamento restaurar retencao logins arte",
             Section::Logs => "logs log viewer debug registros visualizador depurar",
@@ -253,7 +253,7 @@ impl Section {
             "metadata" => Some(Section::Metadata),
             "achievements" | "retroachievements" => Some(Section::Achievements),
             "screenshots" => Some(Section::Screenshots),
-            "saves" | "ludusavi" => Some(Section::Saves),
+            "saves" => Some(Section::Saves),
             "backups" | "backup" => Some(Section::Backups),
             "cloud" | "sync" => Some(Section::Cloud),
             "logs" => Some(Section::Logs),

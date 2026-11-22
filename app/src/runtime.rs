@@ -48,6 +48,8 @@ pub struct SessionInfo {
     pub selected_rom: Option<String>,
     /// The store client the game is started through (Battle.net...).
     pub client: Option<heronite_data::clients::Client>,
+    /// The folder the game is installed in.
+    pub install_dir: Option<std::path::PathBuf>,
 }
 
 pub struct GameRuntime {
@@ -138,6 +140,7 @@ impl GameRuntime {
                 rom: None,
                 selected_rom: None,
                 client: None,
+                install_dir: None,
             });
             if let Ok(mut s) = self.sessions.lock() {
                 s.insert(g.app_name.clone(), info);
@@ -396,6 +399,7 @@ fn session_info(game: &CollectionGame, rom: Option<String>) -> SessionInfo {
         rom,
         selected_rom: game.meta.as_ref().and_then(|m| m.selected_rom_path.clone()),
         client: client_of(game),
+        install_dir: game.game.install.install_path.as_deref().filter(|p| !p.is_empty()).map(std::path::PathBuf::from),
     }
 }
 

@@ -8,7 +8,7 @@
 //! * [`disc_id`]: PS1/PS2/PSP/PS3/GameCube/Wii disc identifiers.
 //! * [`save_states`]: per-engine save state listing, thumbnails and one-shot
 //!   launch arguments.
-//! * [`ludusavi`], [`settings_ext`]: Ludusavi save backups, with their status
+//! * [`saves`], [`settings_ext`]: game save backups to a saves server, with their status
 //!   fields in `settings.json`.
 //! * [`jobs`]: the idle jobs schedule.
 //! * [`setup`]: emulators and ROM folders set up by themselves for a new
@@ -21,11 +21,11 @@ pub mod discover;
 pub mod import;
 mod iso;
 pub mod jobs;
-pub mod ludusavi;
 pub mod manager;
 pub mod names;
 pub mod pathutil;
 pub mod save_states;
+pub mod saves;
 pub mod scan;
 pub mod settings_ext;
 pub mod setup;

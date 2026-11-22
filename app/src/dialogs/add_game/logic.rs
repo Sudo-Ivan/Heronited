@@ -16,9 +16,9 @@ pub const TITLE_MAX: usize = 40;
 /// `handleTitle`: `removeSpecialcharacters`, then the 40 character limit.
 ///
 /// Both steps are lossy: a ROM's tags stay (`Game (NA)`), punctuation such as
-/// `: ! ' & +` is deleted, and long names are cut. The Ludusavi save lookup
+/// `: ! ' & +` is deleted, and long names are cut. The save lookup
 /// therefore also tries the ROM file name — see
-/// `crates/emulation/src/ludusavi/titles.rs`.
+/// `crates/emulation/src/saves/titles.rs`.
 pub fn clean_title(raw: &str) -> String {
     remove_special_characters(raw).chars().take(TITLE_MAX).collect()
 }

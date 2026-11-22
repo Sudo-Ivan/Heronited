@@ -1,6 +1,6 @@
 //! rclone: the cloud accounts and servers the library syncs through (Google
-//! Drive, Dropbox, OneDrive, Box, FTP, SMB, WebDAV), the way Ludusavi uses
-//! it. Its settings, with the account's token, live in this app's own
+//! Drive, Dropbox, OneDrive, Box, FTP, SMB, WebDAV), the way other
+//! tools use it. Its settings, with the account's token, live in this app's own
 //! `rclone.conf` (`AppPaths::rclone_conf`), never in the user's; a
 //! [`Provider::Custom`] remote is the one place the user's own settings are
 //! used.

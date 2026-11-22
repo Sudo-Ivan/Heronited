@@ -74,7 +74,7 @@ fn submenu_of(action: &GameAction) -> Option<Flyout> {
 
 /// Actions under the "Saves" row.
 fn in_saves(action: &GameAction) -> bool {
-    matches!(action, GameAction::Ludusavi | GameAction::AutoBackup { .. })
+    matches!(action, GameAction::Saves | GameAction::AutoBackup { .. })
 }
 
 /// Group and place in the group of an action in the context menu.
@@ -98,7 +98,7 @@ fn menu_place(action: &GameAction) -> (usize, u8) {
         A::EditGame => (2, 1),
         A::Metadata => (2, 2),
         A::OpenFolder | A::GogBackup => (2, 3),
-        A::Ludusavi | A::AutoBackup { .. } => (2, 4),
+        A::Saves | A::AutoBackup { .. } => (2, 4),
         A::Details | A::Covers | A::EditPlaytime | A::Epic(E::Sync) => (2, 5),
         A::Epic(E::Verify) => (3, 0),
         A::Epic(E::Modify) => (3, 1),
@@ -262,7 +262,7 @@ impl CollectionView {
         let (folded, actions): (Vec<_>, Vec<_>) = actions.into_iter().partition(|a| submenu_of(&a.action).is_some());
         let (saves, actions): (Vec<_>, Vec<_>) = actions.into_iter().partition(|a| in_saves(&a.action));
         let mut saves_row = self.saves_row(&key, saves, open == Some(Flyout::Saves), flyout_left, cx);
-        let saves_at = menu_place(&GameAction::Ludusavi);
+        let saves_at = menu_place(&GameAction::Saves);
         for a in actions {
             let place = menu_place(&a.action);
             // The sorted rows reach past the saves' place: put the row in.
@@ -642,7 +642,7 @@ impl CollectionView {
         if !open {
             return Some(row);
         }
-        let enabled = self.lib.as_ref().is_some_and(|l| l.settings.ludusavi.enabled);
+        let enabled = self.lib.as_ref().is_some_and(|l| l.settings.saves.enabled);
         let rows = actions.into_iter().map(|a| match a.action {
             GameAction::AutoBackup { on } => {
                 let k = key.clone();

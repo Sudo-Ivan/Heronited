@@ -30,7 +30,6 @@ pub(super) fn kind_label(kind: Kind) -> &'static str {
     match kind {
         Kind::Library => tr!("Library"),
         Kind::Backups => tr!("Backups"),
-        Kind::Saves => tr!("Saves"),
         Kind::Captures => tr!("Screenshots"),
     }
 }
@@ -39,7 +38,6 @@ pub(super) fn kind_color(kind: Kind) -> Hsla {
     match kind {
         Kind::Library => theme::chart_series(0),
         Kind::Backups => theme::chart_series(2),
-        Kind::Saves => theme::chart_series(1),
         Kind::Captures => theme::chart_series(3),
     }
     .into()
@@ -50,7 +48,6 @@ fn is_on(kind: Kind, p: &SyncPrefs) -> bool {
     match kind {
         Kind::Library => p.library.is_on(),
         Kind::Backups => p.backups.is_on(),
-        Kind::Saves => p.saves.is_on(),
         Kind::Captures => p.captures.is_on(),
     }
 }
@@ -77,12 +74,10 @@ pub(super) fn measure(d: &mut SettingsPage, cx: &mut Context<SettingsPage>) {
         let measured = cx
             .background_spawn(async move {
                 let captures = s.screenshots_folder().map(Path::to_path_buf).or_else(|| data.default_screenshots());
-                let saves = s.ludusavi.last_backup_path.as_deref().and_then(|p| Path::new(p).parent()).map(Path::to_path_buf);
                 let local = Local {
                     captures: captures.as_deref(),
                     pending_png: ScreenshotPrefs::load(&app).compress_lossless,
                     replays,
-                    saves: saves.as_deref(),
                     backups_kept: s.backup.keep.unwrap_or(DEFAULT_BACKUP_KEEP),
                     latest_backup: s
                         .backup
@@ -143,7 +138,7 @@ fn share_label(kind: Kind, name: &str) -> String {
     }
 }
 
-/// What takes the space by game (screenshots, saves) or part (backups), of
+/// What takes the space by game (screenshots) or part (backups), of
 /// the kinds that are on (all of them while none is).
 fn map(u: &Usage, p: &SyncPrefs) -> Div {
     let any_on = Kind::ALL.iter().any(|k| is_on(*k, p) && u.total(*k) > 0);

@@ -70,6 +70,6 @@ Heronite runs these programs if they are installed. It does not include them:
 
 - [legendary](https://github.com/derrod/legendary) (GPL-3.0) for Epic Games
 - [Comet](https://github.com/imLinguin/comet) (GPL-3.0) for the achievements of GOG games, with its dummy `GalaxyCommunication` service, downloaded from its GitHub releases when a GOG game first needs it
-- [Ludusavi](https://github.com/mtkennerly/ludusavi) (MIT) for save backups
+- [Ludusavi manifest](https://github.com/mtkennerly/ludusavi-manifest) (MIT), the list of games and where they keep saves, downloaded on demand and not bundled
 - [rclone](https://github.com/rclone/rclone) (MIT) for the cloud accounts of Settings → Cloud, downloaded from rclone's site when it is not installed
 - Wine/Proton builds downloaded by the Wine Manager ([GE-Proton](https://github.com/GloriousEggroll/proton-ge-custom), [Proton-CachyOS](https://github.com/CachyOS/proton-cachyos)), under their own licenses

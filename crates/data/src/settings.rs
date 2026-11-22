@@ -13,7 +13,7 @@ use serde_json::json;
 
 use crate::json_store;
 use crate::models::{
-    BackgroundSettings, BackupSettings, CollectionSettingsFile, LudusaviSettings, MetadataSettings, ScreenshotsSettings, SourcePrefs,
+    BackgroundSettings, BackupSettings, CollectionSettingsFile, MetadataSettings, SavesSettings, ScreenshotsSettings, SourcePrefs,
     StoreConfigFile,
 };
 use crate::num::{js_round, JsNum};
@@ -182,7 +182,7 @@ pub struct EffectiveSettings {
     pub cover_aspect: CoverAspect,
     /// `keep` is always `Some` here.
     pub backup: BackupSettings,
-    pub ludusavi: LudusaviSettings,
+    pub saves: SavesSettings,
     /// MB, 0 = no cap ([`DEFAULT_IMAGE_CACHE_LIMIT_MB`] when unset).
     pub image_cache_limit_mb: u32,
     /// MB of store videos kept on this PC, 0 = none
@@ -218,7 +218,7 @@ impl EffectiveSettings {
             "daily" | "weekly" | "monthly" | "never" => backup.interval.clone(),
             _ => "weekly".to_owned(),
         };
-        let ludusavi = file.ludusavi.clone().unwrap_or_else(fallback_ludusavi);
+        let saves = file.saves.clone().unwrap_or_default();
         let screenshots = file.screenshots.clone().unwrap_or_default();
         let metadata = normalize_metadata(file.metadata.as_ref());
         Self {
@@ -243,26 +243,16 @@ impl EffectiveSettings {
                 last_error: backup.last_error,
                 extra: Default::default(),
             },
-            ludusavi: LudusaviSettings {
-                enabled: ludusavi.enabled,
-                use_installed_config: ludusavi.use_installed_config,
-                binary_path: ludusavi.binary_path,
-                backup_path: ludusavi.backup_path,
-                format: if ludusavi.format == "simple" { "simple".into() } else { "zip".into() },
-                compression: match ludusavi.compression.as_str() {
-                    c @ ("none" | "bzip2" | "zstd") => c.to_owned(),
-                    _ => "deflate".to_owned(),
-                },
-                restore_paths: ludusavi.restore_paths.into_iter().map(|p| p.trim().to_owned()).filter(|p| !p.is_empty()).collect(),
-                full_limit: ludusavi.full_limit.filter(|n| *n >= 1),
-                differential_limit: ludusavi.differential_limit,
-                auto_backup_off: ludusavi.auto_backup_off,
-                interval_minutes: as_ludusavi_interval(ludusavi.interval_minutes),
-                last_backup_at: ludusavi.last_backup_at,
-                last_backup_game: ludusavi.last_backup_game,
-                last_backup_path: ludusavi.last_backup_path,
-                last_error: ludusavi.last_error,
-                extra: Default::default(),
+            saves: SavesSettings {
+                enabled: saves.enabled,
+                server: saves.server.trim().to_owned(),
+                server_off: saves.server_off,
+                local_folder: saves.local_folder.trim().to_owned(),
+                auto_backup_off: saves.auto_backup_off,
+                interval_minutes: as_saves_interval(saves.interval_minutes),
+                last_backup_at: saves.last_backup_at,
+                last_backup_game: saves.last_backup_game,
+                last_error: saves.last_error,
             },
             image_cache_limit_mb: file.image_cache_limit_mb.unwrap_or(DEFAULT_IMAGE_CACHE_LIMIT_MB),
             video_cache_limit_mb: file.video_cache_limit_mb.map_or(DEFAULT_VIDEO_CACHE_LIMIT_MB, |mb| mb.min(MAX_VIDEO_CACHE_LIMIT_MB)),
@@ -316,27 +306,15 @@ pub const MAX_VIDEO_CACHE_LIMIT_MB: u32 = 1024;
 
 /// Shortest and longest time between save backups while a game runs, in
 /// minutes: a hand-edited value is clamped into this range.
-pub const LUDUSAVI_INTERVAL_RANGE: std::ops::RangeInclusive<u32> = 5..=24 * 60;
+pub const SAVES_INTERVAL_RANGE: std::ops::RangeInclusive<u32> = 5..=24 * 60;
 
-/// `ludusavi.intervalMinutes`: 0 or unset = off.
-pub fn as_ludusavi_interval(minutes: Option<u32>) -> Option<u32> {
-    minutes.filter(|m| *m > 0).map(|m| m.clamp(*LUDUSAVI_INTERVAL_RANGE.start(), *LUDUSAVI_INTERVAL_RANGE.end()))
+/// `saves.intervalMinutes`: 0 or unset = off.
+pub fn as_saves_interval(minutes: Option<u32>) -> Option<u32> {
+    minutes.filter(|m| *m > 0).map(|m| m.clamp(*SAVES_INTERVAL_RANGE.start(), *SAVES_INTERVAL_RANGE.end()))
 }
 
 fn fallback_backup() -> BackupSettings {
     BackupSettings { folder: String::new(), interval: "weekly".into(), ..Default::default() }
-}
-
-fn fallback_ludusavi() -> LudusaviSettings {
-    LudusaviSettings {
-        enabled: false,
-        use_installed_config: true,
-        binary_path: String::new(),
-        backup_path: String::new(),
-        format: "zip".into(),
-        compression: "deflate".into(),
-        ..Default::default()
-    }
 }
 
 /// Reads `settings.json` + the store config and applies defaults.
@@ -730,10 +708,8 @@ mod tests {
         assert_eq!(s.metadata.field_priority["coverSquare"], ["steamgriddb", "launchbox", "libretro"]);
         assert!(s.metadata.keep_cover_families.is_empty() && !s.metadata.fill_cover_families);
         assert_eq!(s.backup.interval, "weekly");
-        assert_eq!(s.ludusavi.format, "zip");
-        assert_eq!(s.ludusavi.compression, "deflate");
-        assert!(s.ludusavi.use_installed_config);
-        assert_eq!(s.ludusavi.interval_minutes, None, "no backups during play unless asked for");
+        assert!(!s.saves.enabled, "game saves go to a server only when asked");
+        assert_eq!(s.saves.interval_minutes, None, "no backups during play unless asked for");
         assert_eq!(s.theme, "midnightMirage");
         assert_eq!(s.language, "en");
         assert!(!s.all_tiles_in_color);
@@ -757,21 +733,23 @@ mod tests {
     }
 
     #[test]
-    fn ludusavi_interval_is_off_unless_set_and_clamped() {
+    fn saves_interval_is_off_unless_set_and_clamped() {
         let read = |json: &str| {
             let file: CollectionSettingsFile = serde_json::from_str(json).unwrap();
-            EffectiveSettings::from_files(&file, &StoreConfigFile::default()).ludusavi
+            EffectiveSettings::from_files(&file, &StoreConfigFile::default()).saves
         };
-        assert_eq!(read(r#"{"ludusavi":{"enabled":true}}"#).interval_minutes, None);
-        assert_eq!(read(r#"{"ludusavi":{"enabled":true,"intervalMinutes":0}}"#).interval_minutes, None);
-        assert_eq!(read(r#"{"ludusavi":{"enabled":true,"intervalMinutes":30}}"#).interval_minutes, Some(30));
-        assert_eq!(read(r#"{"ludusavi":{"enabled":true,"intervalMinutes":1}}"#).interval_minutes, Some(5));
-        assert_eq!(read(r#"{"ludusavi":{"enabled":true,"intervalMinutes":99999}}"#).interval_minutes, Some(1440));
-        let l = read(r#"{"ludusavi":{"enabled":true,"intervalMinutes":30,"autoBackupOff":["sideload:g"]}}"#);
+        assert_eq!(read(r#"{"saves":{"enabled":true}}"#).interval_minutes, None);
+        assert_eq!(read(r#"{"saves":{"enabled":true,"intervalMinutes":0}}"#).interval_minutes, None);
+        assert_eq!(read(r#"{"saves":{"enabled":true,"intervalMinutes":30}}"#).interval_minutes, Some(30));
+        assert_eq!(read(r#"{"saves":{"enabled":true,"intervalMinutes":1}}"#).interval_minutes, Some(5));
+        assert_eq!(read(r#"{"saves":{"enabled":true,"intervalMinutes":99999}}"#).interval_minutes, Some(1440));
+        let l = read(r#"{"saves":{"enabled":true,"intervalMinutes":30,"autoBackupOff":["sideload:g"]}}"#);
         assert_eq!(l.periodic_interval_for("sideload", "h"), Some(std::time::Duration::from_secs(30 * 60)));
         assert_eq!(l.periodic_interval_for("sideload", "g"), None, "a game left out of the after-play backup is left out too");
-        assert_eq!(read(r#"{"ludusavi":{"enabled":false,"intervalMinutes":30}}"#).periodic_interval_for("sideload", "h"), None);
-        assert_eq!(read(r#"{"ludusavi":{"enabled":true}}"#).periodic_interval_for("sideload", "h"), None);
+        assert_eq!(read(r#"{"saves":{"enabled":false,"intervalMinutes":30}}"#).periodic_interval_for("sideload", "h"), None);
+        assert_eq!(read(r#"{"saves":{"enabled":true}}"#).periodic_interval_for("sideload", "h"), None);
+        let old = read(r#"{"ludusavi":{"enabled":true,"intervalMinutes":30}}"#);
+        assert!(!old.enabled && old.interval_minutes.is_none(), "the Ludusavi section is not read: uploading saves is a new choice");
     }
 
     #[test]

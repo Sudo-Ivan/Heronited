@@ -1,8 +1,8 @@
 //! Settings → Cloud: what goes to the account (the library sync, backups,
-//! game saves, screenshots), each Off, Manual (only "Send now") or
+//! screenshots), each Off, Manual (only "Send now") or
 //! Automatic, with a dot for how much of it is up, what its mode does and
 //! the space it takes, under the bar of that space (`space.rs`); and the row
-//! the Backups, Saves and Screenshots sections show to link here.
+//! the Backups and Screenshots sections show to link here.
 
 use gpui_kit::prelude::*;
 use gpui_kit::*;
@@ -55,7 +55,6 @@ impl Line {
         match self {
             Line::Library => Kind::Library,
             Line::Up(Upload::Backups) => Kind::Backups,
-            Line::Up(Upload::Saves) => Kind::Saves,
             Line::Up(Upload::Captures) => Kind::Captures,
         }
     }
@@ -64,7 +63,6 @@ impl Line {
         match self {
             Line::Library => Icon::Collections,
             Line::Up(Upload::Backups) => Icon::History,
-            Line::Up(Upload::Saves) => Icon::Save,
             Line::Up(Upload::Captures) => Icon::PhotoCamera,
         }
     }
@@ -73,7 +71,6 @@ impl Line {
         match self {
             Line::Library => tr!("Library between PCs"),
             Line::Up(Upload::Backups) => tr!("Heronited backups"),
-            Line::Up(Upload::Saves) => tr!("Game saves (Ludusavi)"),
             Line::Up(Upload::Captures) => tr!("Screenshots"),
         }
     }
@@ -88,8 +85,6 @@ impl Line {
                 tr!("Each backup as one zip, your artwork next to it once. Store sign-ins stay on this PC.")
             }
             (Line::Up(Upload::Backups), Mode::Auto) => tr!("Each backup goes up as it is made."),
-            (Line::Up(Upload::Saves), Mode::Off) => tr!("Ludusavi's backups of your games, only what changed."),
-            (Line::Up(Upload::Saves), Mode::Auto) => tr!("Ludusavi's backups go up after each game."),
             (Line::Up(Upload::Captures), Mode::Off) => {
                 tr!("Once compressed, one file each, only the new ones. Deleting one here keeps it in the cloud.")
             }
@@ -103,7 +98,6 @@ impl Line {
 pub(super) fn upload_what(upload: Upload) -> &'static str {
     match upload {
         Upload::Backups => tr!("the backup"),
-        Upload::Saves => tr!("the game saves"),
         Upload::Captures => tr!("the screenshots"),
     }
 }
@@ -178,7 +172,6 @@ fn joined(parts: [Option<String>; 2]) -> Option<String> {
 pub(super) fn job_of(d: &SettingsPage, upload: Upload) -> Option<Job> {
     match upload {
         Upload::Backups => d.settings.backup.last_backup_path.clone().map(|p| Job::Backup(p.into())),
-        Upload::Saves => Some(Job::Saves),
         Upload::Captures => Some(Job::Captures),
     }
 }
@@ -189,7 +182,6 @@ fn set_mode(d: &mut SettingsPage, line: Line, mode: Mode, cx: &mut Context<Setti
         move |p| match line {
             Line::Library => p.library = mode,
             Line::Up(Upload::Backups) => p.backups = mode,
-            Line::Up(Upload::Saves) => p.saves = mode,
             Line::Up(Upload::Captures) => p.captures = mode,
         },
         cx,
@@ -352,20 +344,14 @@ fn captures_row(d: &SettingsPage, p: &SyncPrefs, cx: &mut Context<SettingsPage>)
     with_sub_rows(parent, sub.into_iter().collect())
 }
 
-/// The space it all takes, then the four lines, each with its mode (dimmed
+/// The space it all takes, then the three lines, each with its mode (dimmed
 /// until an account is connected).
 pub(super) fn render(d: &mut SettingsPage, p: &SyncPrefs, cx: &mut Context<SettingsPage>) -> Div {
-    let rows = vec![
-        space::render(d, p, cx).into_any_element(),
-        library_row(d, p, cx),
-        backups_row(d, p, cx),
-        line_row(d, p, Line::Up(Upload::Saves), cx),
-        captures_row(d, p, cx),
-    ];
+    let rows = vec![space::render(d, p, cx).into_any_element(), library_row(d, p, cx), backups_row(d, p, cx), captures_row(d, p, cx)];
     card(rows).when(!p.ready(), |c| c.opacity(0.55))
 }
 
-/// The Cloud row of Backups, Saves and Screenshots: whether `upload` goes to
+/// The Cloud row of Backups and Screenshots: whether `upload` goes to
 /// the account, and the way to Settings → Cloud.
 pub(in crate::pages::settings) fn link_row(d: &SettingsPage, upload: Upload, cx: &mut Context<SettingsPage>) -> Div {
     let status = match &d.cloud.prefs {

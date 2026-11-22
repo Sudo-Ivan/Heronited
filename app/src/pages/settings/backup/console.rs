@@ -1,4 +1,4 @@
-//! Console mode rows of Settings → Backups (under Ludusavi's). A backup is
+//! Console mode rows of Settings → Backups (under the saves'). A backup is
 //! restored whole: A on it asks, A again restores.
 
 use gpui_kit::*;

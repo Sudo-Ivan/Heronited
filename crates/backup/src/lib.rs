@@ -11,7 +11,7 @@
 //!   anything reads the data.
 //! * [`usage`]: the size of each part, for the settings page.
 //!
-//! Game saves are not here: Ludusavi backs them up (Settings → Saves).
+//! Game saves are not here: they go to a saves server (Settings → Saves).
 //! All functions block; the app runs them off the UI thread.
 
 pub mod catalog;

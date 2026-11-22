@@ -79,7 +79,7 @@ dialogs, drawers, pages, settings) follows the **Glass design system** below.
   with each backup's parts and an inline "Restore and restart" confirmation; `HERONITE_DEBUG_SETTINGS_ACTION=backup-now|backup-open:<n>|backup-confirm:<n>`) with `State::new(&PageCtx, &EffectiveSettings, …)`
   and `render(&mut SettingsPage, …)`; save with `heronite_data::settings::*` and call `d.saved(result, cx)`
   (updates the page copy of `settings.json` and emits `PageEvent::LibraryChanged`). Work that spawns a process or
-  reads folders (Ludusavi detection, screenshot cache size) starts in `SettingsPage::on_section_shown`, never at page
+  reads folders (screenshot cache size) starts in `SettingsPage::on_section_shown`, never at page
   creation. Open a section from code with `CollectionView::open_settings_section` (or `pages::settings::request_section`
   + navigate); add new sections to `Section` (label, icon, blurb, palette `keywords`, `parse`). The search above the
   sections (Ctrl F, `pages/settings/search.rs`) also finds the settings listed in its `INDEX` (the English labels of
@@ -1035,7 +1035,7 @@ user's actions; each is a one-line summary that opens its editor in place, one a
 the other rows dim; Play opens only for local games, others show a lock; actions reorder by dragging, an empty menu
 offers shortcuts (Mod manager, Settings tool...); `HERONITE_DEBUG_PLAY_EDIT=1`, `HERONITE_DEBUG_ACTION_EDIT=new|<id>`),
 Launch (the panel's launch settings), Compatibility (Wine / Proton), Performance (overlays, FPS limit, frame
-generation, image, system) and Saves (Ludusavi backups + cloud saves); a tab only goes away when the
+generation, image, system) and Saves (server backups + cloud saves); a tab only goes away when the
 game has nothing for it. Sandbox shows only for a game whose settings have the sandbox on (set when it
 was added or installed); turning it off there keeps the tab until the drawer closes. Descriptions are one short line saying the effect; paths and rare warnings
 only show when they matter. The Heroic
@@ -1523,4 +1523,4 @@ Replay controls, live Linux FPS controls and Bluetooth disconnect are hidden.
 - Anything that WRITES data must be exercised only against a copy:
   `HERONITE_DATA_DIR=/tmp/heronite-fixture-<you> scripts/shot.sh …`
   (copy `/tmp/heronite-fixture`, which mirrors the data folder's JSON).
-- Never launch games, emulators, Steam or Ludusavi backups for real.
+- Never launch games, emulators, Steam or save backups for real.

@@ -20,7 +20,7 @@
       <li>Install, update and repair Epic, GOG and Amazon games from one download queue</li>
       <li>Statuses, ratings, playtime, sessions, statistics and a year in review</li>
       <li>Metadata and artwork from IGDB, SteamGridDB, Steam and Lutris</li>
-      <li>Wine and Proton manager, save backups with Ludusavi</li>
+      <li>Wine and Proton manager, save backups to a saves server</li>
       <li>Emulator detection, ROM folder scanning and RetroAchievements</li>
       <li>A controller-first console mode with shareable themes</li>
     </ul>

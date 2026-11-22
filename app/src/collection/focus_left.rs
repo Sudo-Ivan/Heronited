@@ -434,7 +434,7 @@ impl CollectionView {
     fn backup_row(&self, key: &SharedString, value: Div, cx: &mut Context<Self>) -> AnyElement {
         let key = key.clone();
         clickable(fact_row(tr!("Save backup"), value), "focus-backup")
-            .on_click(cx.listener(move |this, _, _, cx| this.open_ludusavi_backup(&key, cx)))
+            .on_click(cx.listener(move |this, _, _, cx| this.open_saves_backup(&key, cx)))
             .into_any_element()
     }
 }

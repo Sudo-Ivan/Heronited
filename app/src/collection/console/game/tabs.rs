@@ -353,10 +353,10 @@ mod tests {
 
     #[test]
     fn the_rows_split_at_the_manage_header() {
-        let rows = vec![Row::action("primary", "Play"), Row::header(tr!("Manage")), Row::action("x:ludusavi", "Back up")];
+        let rows = vec![Row::action("primary", "Play"), Row::header(tr!("Manage")), Row::action("x:saves", "Back up")];
         let (play, manage) = split_rows(rows);
         assert_eq!((play.len(), manage.len()), (1, 1));
-        assert_eq!(manage[0].id.as_ref(), "x:ludusavi");
+        assert_eq!(manage[0].id.as_ref(), "x:saves");
         let (all, none) = split_rows(vec![Row::action("primary", "Play")]);
         assert_eq!((all.len(), none.len()), (1, 0));
     }

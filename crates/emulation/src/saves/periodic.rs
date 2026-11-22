@@ -1,13 +1,11 @@
-//! Save backups while a game runs (`ludusavi.intervalMinutes`, off unless
-//! set): a thread per running game backs it up every interval until the
-//! session ends, and the after-play backup still follows.
+//! Save backups while a game runs (`saves.intervalMinutes`, off unless set):
+//! a thread per running game backs it up every interval until the session
+//! ends, and the after-play backup still follows.
 //!
-//! Ludusavi copies the save files as they are at that moment. A game that
-//! writes while the copy runs can leave a backup that mixes old and new
-//! files: this is not an application-consistent snapshot, and the after-play
-//! backup is the one taken with the game closed. Windows registry entries
-//! are copied the same way and are missing from the restore preview. Nothing
-//! is ever restored automatically.
+//! The save files are read as they are at that moment. A game that writes
+//! while they are read can leave a backup that mixes old and new files: this
+//! is not an application-consistent snapshot, and the after-play backup is the
+//! one taken with the game closed. Nothing is ever restored automatically.
 
 use std::sync::{Arc, Condvar, Mutex};
 use std::thread::JoinHandle;
@@ -15,7 +13,8 @@ use std::time::{Duration, Instant};
 
 use heronite_data::settings;
 
-use super::backup::{backup_for_game, BackupReason, LudusaviBackupResult, LudusaviEnv, LudusaviGame};
+use super::backup::{backup_for_game, BackupReason, BackupResult};
+use super::game::{SavesEnv, SavesGame};
 
 /// The backups of one running game. Dropping it cancels them without
 /// waiting; [`Self::finish`] also waits for one still running.
@@ -60,7 +59,7 @@ impl PeriodicBackups {
     pub fn start(name: &str, first: Duration, mut job: impl FnMut() -> Option<Duration> + Send + 'static) -> std::io::Result<Self> {
         let stop = Arc::new(Stop::default());
         let s = stop.clone();
-        let thread = std::thread::Builder::new().name(format!("ludusavi-periodic-{name}")).spawn(move || {
+        let thread = std::thread::Builder::new().name(format!("saves-periodic-{name}")).spawn(move || {
             let mut wait = first;
             while s.sleep(wait) {
                 match job() {
@@ -78,12 +77,12 @@ impl PeriodicBackups {
     }
 
     /// Cancels and waits for a backup still running, so the after-play one
-    /// does not find Ludusavi busy. Blocking: never on the UI thread.
+    /// does not find the saves busy. Blocking: never on the UI thread.
     pub fn finish(mut self) {
         self.stop.cancel();
         if let Some(t) = self.thread.take() {
             if t.join().is_err() {
-                log::error!("the periodic Ludusavi backup thread panicked");
+                log::error!("the periodic saves backup thread panicked");
             }
         }
     }
@@ -99,7 +98,7 @@ impl Drop for PeriodicBackups {
 #[derive(Debug, Default, PartialEq)]
 pub struct PeriodicTick {
     /// `None` when no backup was tried (turned off since the game started).
-    pub result: Option<LudusaviBackupResult>,
+    pub result: Option<BackupResult>,
     /// Time to the next backup from the settings read now; `None` stops them
     /// for this session (interval or automatic backups turned off, or the
     /// game left out of them).
@@ -108,22 +107,22 @@ pub struct PeriodicTick {
 
 /// One backup while `game` runs; `current` is the interval in use, kept when
 /// the settings cannot be read.
-pub fn periodic_backup(env: &LudusaviEnv, game: &LudusaviGame, current: Duration) -> PeriodicTick {
+pub fn periodic_backup(env: &SavesEnv, game: &SavesGame, current: Duration) -> PeriodicTick {
     let next = match settings::load(env.paths) {
-        Ok(s) => s.ludusavi.periodic_interval_for(&game.runner, &game.app_name),
+        Ok(s) => s.saves.periodic_interval_for(&game.runner, &game.app_name),
         Err(e) => {
             let error = format!("{e:#}");
-            log::error!("reading the settings for the periodic Ludusavi backup of {}: {error}", game.title);
-            return PeriodicTick { result: Some(LudusaviBackupResult { error: Some(error), ..Default::default() }), next: Some(current) };
+            log::error!("reading the settings for the periodic saves backup of {}: {error}", game.title);
+            return PeriodicTick { result: Some(BackupResult { error: Some(error), ..Default::default() }), next: Some(current) };
         }
     };
     if next.is_none() {
-        log::info!("periodic Ludusavi backups of {} were turned off; none until it starts again", game.title);
+        log::info!("periodic saves backups of {} were turned off; none until it starts again", game.title);
         return PeriodicTick::default();
     }
     let result = backup_for_game(env, game, BackupReason::Periodic);
     if let Some(e) = &result.error {
-        log::error!("periodic Ludusavi backup of {} failed: {e}", game.title);
+        log::error!("periodic saves backup of {} failed: {e}", game.title);
     }
     PeriodicTick { result: Some(result), next }
 }
@@ -136,8 +135,7 @@ mod tests {
     use heronite_launch::probe::FakeProbe;
 
     use super::*;
-    use crate::ludusavi::backup::{test_lock, InFlight};
-    use crate::ludusavi::fake::{out, Fake};
+    use crate::saves::backup::{test_lock, InFlight};
 
     const MS: Duration = Duration::from_millis(1);
 
@@ -263,68 +261,50 @@ mod tests {
         (d, paths)
     }
 
-    fn game() -> LudusaviGame {
-        LudusaviGame { app_name: "g".into(), title: "G".into(), runner: "sideload".into(), ..Default::default() }
+    fn game() -> SavesGame {
+        SavesGame { app_name: "g".into(), title: "G".into(), runner: "sideload".into(), ..Default::default() }
     }
 
-    const EVERY_30: &str =
-        r#"{"ludusavi":{"enabled":true,"useInstalledConfig":false,"backupPath":"/backups","format":"zip","intervalMinutes":30}}"#;
+    const EVERY_30: &str = r#"{"saves":{"enabled":true,"intervalMinutes":30}}"#;
 
     #[test]
-    fn periodic_backup_runs_ludusavi_and_reads_the_next_interval() {
+    fn periodic_backup_reads_the_next_interval() {
         let _l = test_lock();
         let (_d, paths) = setup(EVERY_30);
-        let runner =
-            Fake { replies: vec![("backup".into(), out(r#"{"overall":{"totalGames":1},"games":{"G":{}}}"#, "", 0))], ..Default::default() };
-        let probe = FakeProbe::new("/h").with_bin("ludusavi", "/usr/bin/ludusavi");
-        let env = LudusaviEnv { paths: &paths, runner: &runner, probe: &probe };
+        heronite_saves::manifest::store(&heronite_saves::manifest::dir(&paths.root), vec![], "").unwrap();
+        let probe = FakeProbe::new("/h");
+        let env = SavesEnv { paths: &paths, probe: &probe };
         let t = periodic_backup(&env, &game(), Duration::from_secs(60));
-        assert!(t.result.as_ref().is_some_and(|r| r.ran), "{t:?}");
+        let r = t.result.unwrap();
+        assert_eq!(r.skipped_reason.as_deref(), Some("no-match"), "{r:?}");
         assert_eq!(t.next, Some(Duration::from_secs(30 * 60)));
-        assert!(runner.calls.lock().unwrap().iter().any(|c| c[0] == "backup"));
     }
 
     #[test]
     fn periodic_backup_turned_off_mid_session_stops_without_running() {
-        let _l = test_lock();
-        let runner = Fake::default();
-        let probe = FakeProbe::new("/h").with_bin("ludusavi", "/usr/bin/ludusavi");
+        let probe = FakeProbe::new("/h");
         for json in [
-            r#"{"ludusavi":{"enabled":true,"backupPath":"/b"}}"#,
-            r#"{"ludusavi":{"enabled":false,"backupPath":"/b","intervalMinutes":30}}"#,
-            r#"{"ludusavi":{"enabled":true,"backupPath":"/b","intervalMinutes":30,"autoBackupOff":["sideload:g"]}}"#,
+            r#"{"saves":{"enabled":true}}"#,
+            r#"{"saves":{"enabled":false,"intervalMinutes":30}}"#,
+            r#"{"saves":{"enabled":true,"intervalMinutes":30,"autoBackupOff":["sideload:g"]}}"#,
         ] {
             let (_d, paths) = setup(json);
-            let env = LudusaviEnv { paths: &paths, runner: &runner, probe: &probe };
+            let env = SavesEnv { paths: &paths, probe: &probe };
             assert_eq!(periodic_backup(&env, &game(), Duration::from_secs(60)), PeriodicTick::default(), "{json}");
         }
-        assert!(runner.calls.lock().unwrap().is_empty());
     }
 
     #[test]
     fn periodic_backup_skips_while_another_backup_runs_and_keeps_its_schedule() {
         let _l = test_lock();
         let (_d, paths) = setup(EVERY_30);
-        let runner = Fake::default();
-        let probe = FakeProbe::new("/h").with_bin("ludusavi", "/usr/bin/ludusavi");
-        let env = LudusaviEnv { paths: &paths, runner: &runner, probe: &probe };
+        let probe = FakeProbe::new("/h");
+        let env = SavesEnv { paths: &paths, probe: &probe };
         let _held = InFlight::acquire().unwrap();
         let t = periodic_backup(&env, &game(), Duration::from_secs(60));
         let r = t.result.unwrap();
         assert_eq!(r.skipped_reason.as_deref(), Some("already-running"));
         assert!(!r.ran && r.error.is_none(), "a skip is neither a success nor a failure");
-        assert_eq!(t.next, Some(Duration::from_secs(30 * 60)));
-        assert!(runner.calls.lock().unwrap().is_empty());
-    }
-
-    #[test]
-    fn a_failed_periodic_backup_is_an_error_and_the_schedule_goes_on() {
-        let _l = test_lock();
-        let (_d, paths) = setup(EVERY_30);
-        let runner = Fake::default();
-        let env = LudusaviEnv { paths: &paths, runner: &runner, probe: &FakeProbe::new("/h") };
-        let t = periodic_backup(&env, &game(), Duration::from_secs(60));
-        assert_eq!(t.result.and_then(|r| r.error).as_deref(), Some("Ludusavi was not found"));
         assert_eq!(t.next, Some(Duration::from_secs(30 * 60)));
     }
 }

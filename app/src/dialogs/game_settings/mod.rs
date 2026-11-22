@@ -48,7 +48,7 @@ pub enum Tab {
     Compatibility,
     Performance,
     Gpu,
-    /// The Ludusavi backups.
+    /// The save backups.
     Saves,
     /// The store's cloud saves.
     CloudSaves,

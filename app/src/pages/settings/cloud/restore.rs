@@ -1,8 +1,7 @@
 //! Settings → Cloud, "Restore from the cloud" (folded at the end of the
 //! page): a new or formatted PC connects and brings everything back. What
 //! the account holds is listed when asked; one PC is picked (the one of the
-//! newest backup first); then its Heronited backup, its game saves (into
-//! Ludusavi's backup folder only) and the screenshots come back one by one,
+//! newest backup first); then its Heronited backup and the screenshots come back one by one,
 //! or all at once.
 
 use gpui_kit::prelude::*;
@@ -41,7 +40,6 @@ fn picked(d: &SettingsPage, listed: &InCloud) -> Option<String> {
 fn progress(step: Step, percent: Option<u8>, cx: &mut Context<SettingsPage>) -> Div {
     let what = match step {
         Step::Backup => tr!("Bringing the backup…"),
-        Step::Saves => tr!("Bringing the game saves…"),
         Step::Captures => tr!("Bringing the screenshots…"),
     };
     let label = match percent {
@@ -94,7 +92,6 @@ fn listed_body(d: &mut SettingsPage, listed: &InCloud, busy: bool, cx: &mut Cont
         },
     );
     let newest = listed.backups.iter().find(|b| b.pc == pc).cloned();
-    let has_saves = listed.saves.contains(&pc);
     let bring = |id: &'static str, label: &'static str, enabled: bool, what: Bring, cx: &mut Context<SettingsPage>| {
         button_sm(id, ButtonKind::Glass, label).when(enabled && !busy, |b| {
             b.on_click(cx.listener(move |_, _, _, cx| {
@@ -111,15 +108,6 @@ fn listed_body(d: &mut SettingsPage, listed: &InCloud, busy: bool, cx: &mut Cont
         ),
         None => row(tr!("Heronited backup"), Some(tr!("None from this PC")), div()),
     };
-    let saves_row = row(
-        tr!("Game saves"),
-        Some(if has_saves {
-            tr!("Go to Ludusavi's backup folder only: your games' own save folders are not touched. Restore a game from its Saves tab when you want it back.")
-        } else {
-            tr!("None from this PC")
-        }),
-        bring("cloud-bring-saves", tr!("Bring here"), has_saves, Bring::Saves(pc.clone()), cx),
-    );
     let captures_row = row(
         tr!("Screenshots"),
         Some(if listed.captures {
@@ -146,8 +134,6 @@ fn listed_body(d: &mut SettingsPage, listed: &InCloud, busy: bool, cx: &mut Cont
         .child(div().pb(px(6.)).child(select))
         .child(backup_row)
         .child(separator())
-        .child(saves_row)
-        .child(separator())
         .child(captures_row)
         .child(
             div()
@@ -156,7 +142,7 @@ fn listed_body(d: &mut SettingsPage, listed: &InCloud, busy: bool, cx: &mut Cont
                 .gap(px(12.))
                 .pt(px(10.))
                 .child(everything)
-                .child(meta_text(tr!("The saves and screenshots first, then the backup: restoring it restarts Heronited."))),
+                .child(meta_text(tr!("The screenshots first, then the backup: restoring it restarts Heronited."))),
         )
         .children(render_all_backups(listed, busy, cx))
 }

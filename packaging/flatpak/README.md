@@ -69,7 +69,7 @@ The app finds out it runs in a sandbox (`heronite_platform::flatpak`):
   `~/Games/GOG Offline Installers` by default, which the home access covers.
   The same override applies if you point the folder elsewhere.
 
-Programs installed on the host itself (a native emulator, Ludusavi, the
+Programs installed on the host itself (a native emulator, the
 system's Wine, gpu-screen-recorder) are not seen from inside the sandbox: use
 their Flatpak or AppImage, or the AppImage of Heronited.
 

@@ -5,14 +5,12 @@
 //! <root>/Sync/devices/<id>/state.json        the library sync (transport)
 //! <root>/Backups/<PC>/heronite-<date>.zip     each backup, without sign-ins
 //! <root>/Backups/<PC>/art, metadata-art       the artwork, sent once
-//! <root>/Saves/<PC>/<game>/…                  Ludusavi's backups, mirrored
 //! <root>/Screenshots/<game>/…                 the captures, one file each
 //! ```
 //!
 //! A backup goes up as one zip (hundreds of small files would take far
 //! longer); the artwork, which barely changes and does not compress, goes
-//! next to it as files, so only new pictures are sent. Ludusavi's backups
-//! already are a zip per game. The screenshots are WebP already: a zip would
+//! next to it as files, so only new pictures are sent.  The screenshots are WebP already: a zip would
 //! save nothing and send a month again for each new capture, so they go one
 //! by one, several at a time, and only the ones not there yet.
 
@@ -32,30 +30,22 @@ use crate::{sent, usage};
 
 pub const SYNC_DIR: &str = "Sync";
 pub const BACKUPS_DIR: &str = "Backups";
-pub const SAVES_DIR: &str = "Saves";
 pub const CAPTURES_DIR: &str = "Screenshots";
-
-/// Ludusavi backups the mirror may delete in one go (its retention removes
-/// old ones); more means the local folder is not what it was, and nothing
-/// is deleted.
-const MAX_SAVES_DELETED: &str = "50";
 
 /// What goes up besides the library sync.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum Upload {
     Backups,
-    Saves,
     Captures,
 }
 
 impl Upload {
-    pub const ALL: [Upload; 3] = [Upload::Backups, Upload::Saves, Upload::Captures];
+    pub const ALL: [Upload; 2] = [Upload::Backups, Upload::Captures];
 
     /// The key in `sync.json` `uploads`.
     pub fn key(self) -> &'static str {
         match self {
             Upload::Backups => "backups",
-            Upload::Saves => "saves",
             Upload::Captures => "captures",
         }
     }
@@ -63,7 +53,6 @@ impl Upload {
     pub fn mode(self, p: &SyncPrefs) -> Mode {
         match self {
             Upload::Backups => p.backups,
-            Upload::Saves => p.saves,
             Upload::Captures => p.captures,
         }
     }
@@ -260,35 +249,6 @@ fn backup_zip(backup: &Path, out: &Path) -> anyhow::Result<()> {
     Ok(())
 }
 
-/// Mirrors Ludusavi's backup folder (`saves`) into `Saves/<PC>`.
-pub fn upload_saves(
-    data: &DataPaths,
-    app: &AppPaths,
-    saves: &Path,
-    manual: bool,
-    cancel: &Cancel,
-    on_percent: &mut dyn FnMut(u8),
-) -> Result<(), SyncError> {
-    let result = (|| {
-        let p = prefs_for(app, Upload::Saves, manual)?;
-        // An empty or missing folder (a drive not mounted) must not empty
-        // the copy in the account.
-        if fs::read_dir(saves).map_or(true, |mut d| d.next().is_none()) {
-            return Err(SyncError::FolderMissing(saves.display().to_string()));
-        }
-        let (rc, root) = root(data, app, &p)?;
-        let dest = remote_path(&root, &format!("{SAVES_DIR}/{}", pc_folder(app, &p)));
-        let src = saves.to_string_lossy().into_owned();
-        let files = usage::walk(saves).into_iter().filter(|f| !f.rel.ends_with(".tmp")).map(|f| (f.rel, f.size)).collect();
-        rc.transfer(&["sync", &src, &dest, "--max-delete", MAX_SAVES_DELETED, "--exclude", "*.tmp"], cancel, on_percent)
-            .map_err(cloud_error)?;
-        keep_sent(app, &p, |s| s.saves = files);
-        Ok(())
-    })();
-    record(app, Upload::Saves, &result);
-    result
-}
-
 /// Sends the screenshots of `captures` not in the account yet. `pending_png`:
 /// PNGs still wait for their compression and are left for a later run.
 /// Nothing is deleted there when a capture is deleted here.
@@ -406,13 +366,11 @@ pub fn download_backup(data: &DataPaths, app: &AppPaths, backup: &CloudBackup, i
 }
 
 /// What the account holds to bring back to a PC (a new one, or one
-/// formatted): the backups, the PCs with game saves, whether screenshots.
+/// formatted): the backups, whether screenshots.
 #[derive(Debug, Clone, Default, PartialEq, Eq)]
 pub struct InCloud {
     /// Newest first.
     pub backups: Vec<CloudBackup>,
-    /// The PCs whose game saves are there (`Saves/<pc>`).
-    pub saves: Vec<String>,
     pub captures: bool,
 }
 
@@ -420,7 +378,7 @@ impl InCloud {
     /// Every PC with something there, the one of the newest backup first.
     pub fn pcs(&self) -> Vec<String> {
         let mut pcs: Vec<String> = Vec::new();
-        for pc in self.backups.iter().map(|b| &b.pc).chain(self.saves.iter()) {
+        for pc in self.backups.iter().map(|b| &b.pc) {
             if !pcs.contains(pc) {
                 pcs.push(pc.clone());
             }
@@ -434,32 +392,8 @@ pub fn in_cloud(data: &DataPaths, app: &AppPaths) -> Result<InCloud, SyncError> 
     let backups = list_backups(data, app)?;
     let p = prefs::load(app).map_err(|e| SyncError::Data(format!("{e:#}")))?;
     let (rc, root) = root(data, app, &p)?;
-    let saves = rc.list(&remote_path(&root, SAVES_DIR), true).map_err(cloud_error)?;
     let captures = !rc.list(&remote_path(&root, CAPTURES_DIR), true).map_err(cloud_error)?.is_empty();
-    Ok(InCloud { backups, saves, captures })
-}
-
-/// Brings the game saves `pc` sent into `into`, Ludusavi's backup folder:
-/// only its backups come back, a game's own save folder is never touched
-/// (restoring one is Ludusavi's, from the game's Saves tab). What is newer
-/// here stays; nothing here is deleted.
-pub fn download_saves(
-    data: &DataPaths,
-    app: &AppPaths,
-    pc: &str,
-    into: &Path,
-    cancel: &Cancel,
-    on_percent: &mut dyn FnMut(u8),
-) -> Result<(), SyncError> {
-    let p = prefs::load(app).map_err(|e| SyncError::Data(format!("{e:#}")))?;
-    if !p.ready() {
-        return Err(SyncError::Off);
-    }
-    let (rc, root) = root(data, app, &p)?;
-    fs::create_dir_all(into).map_err(|e| SyncError::Data(e.to_string()))?;
-    let from = remote_path(&root, &format!("{SAVES_DIR}/{pc}"));
-    let to = into.to_string_lossy().into_owned();
-    rc.transfer(&["copy", &from, &to, "--update"], cancel, on_percent).map_err(cloud_error)
+    Ok(InCloud { backups, captures })
 }
 
 /// Brings the screenshots of the account into `into` (the captures folder);

@@ -1,4 +1,4 @@
-//! How Ludusavi names an emulated game.
+//! How the game list names an emulated game.
 //!
 //! The emulator manifests ([`ludusavi-emulator-manifests`]) key a game by its
 //! cleaned No-Intro/Redump title plus the platform, and their generator strips

@@ -1,7 +1,7 @@
 //! Emulation hooks of the Collection: the "Add emulated games" dialog, the
 //! pre-launch flow of emulated games (pick a disc, pick a save state) and the
 //! idle jobs (ROM auto-scan, scheduled config backup). What happens after a
-//! session (save-state key, Ludusavi backup) is `services::session`.
+//! session (save-state key, save backup) is `services::session`.
 
 use std::rc::Rc;
 use std::time::Duration;

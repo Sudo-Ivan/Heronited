@@ -1,29 +1,28 @@
 //! Collection leftovers: edit playtime, remove from Collection, manual
-//! Ludusavi backup, the focus panel's achievements / session history /
+//! save backup, the focus panel's achievements / session history /
 //! "open details" button and the "Steam not found" and "Proton needed"
 //! messages.
 //!
 //! The data work lives in `heronite-data` (playtime, sessions, details URL),
 //! `heronite-metadata` (remove), `heronite-achievements` (through
-//! `services::achievements`) and `heronite-emulation` (Ludusavi); this file
+//! `services::achievements`) and `heronite-emulation` (saves); this file
 //! only wires it to the screen.
 
 use std::rc::Rc;
-use std::sync::Arc;
 
 use gpui_kit::prelude::*;
 use gpui_kit::*;
 use heronite_data::details_url::details_url;
 use heronite_data::CollectionGame;
-use heronite_emulation::ludusavi::{LudusaviGame, SystemRunner};
+use heronite_emulation::saves::SavesGame;
 use heronite_emulation::settings_ext::set_auto_backup;
 use heronite_images::{ImageRef, Variant};
 
 use super::game_actions::{GameAction, GameActionItem};
 use super::{achievements, focus, CollectionView};
 use crate::dialogs::epic_confirm::{Confirm, EpicConfirmDialog};
-use crate::dialogs::ludusavi_backup::LudusaviBackupDialog;
 use crate::dialogs::remove_game::RemoveGameDialog;
+use crate::dialogs::saves_backup::SavesBackupDialog;
 use crate::icons::Icon;
 use crate::pages::Page;
 use heronite_i18n::tr;
@@ -147,7 +146,7 @@ impl CollectionView {
         cx.notify();
     }
 
-    /// `HERONITE_DEBUG_DIALOG=playtime|remove|ludusavi|steam-missing` for the
+    /// `HERONITE_DEBUG_DIALOG=playtime|remove|saves|steam-missing` for the
     /// selected game (`HERONITE_DEBUG_SELECT`).
     pub(super) fn open_extras_debug(&mut self, which: &str, window: &mut Window, cx: &mut Context<Self>) {
         if which == "steam-missing" {
@@ -155,29 +154,23 @@ impl CollectionView {
             return;
         }
         let Some(key) = self.selected.as_ref().map(|k| k.to_string()) else { return };
-        if let Some(kind) = which.strip_prefix("ludusavi:") {
-            use crate::dialogs::ludusavi_backup::{describe, Outcome};
-            use heronite_emulation::ludusavi::LudusaviBackupResult;
+        if let Some(kind) = which.strip_prefix("saves:") {
+            use crate::dialogs::saves_backup::{describe, Outcome};
+            use heronite_emulation::saves::BackupResult;
             let result = match kind {
-                "busy" => LudusaviBackupResult { skipped_reason: Some("already-running".into()), ..Default::default() },
-                "error" => LudusaviBackupResult { error: Some("Ludusavi was not found".into()), ..Default::default() },
-                _ => LudusaviBackupResult {
-                    ran: true,
-                    game_name: Some("Portal 2".into()),
-                    backup_path: Some("/tmp/heronite-fixture-collection/ludusavi-out/Portal 2".into()),
-                    total_games: Some(1),
-                    ..Default::default()
-                },
+                "busy" => BackupResult { skipped_reason: Some("already-running".into()), ..Default::default() },
+                "error" => BackupResult { error: Some("Could not reach the saves server".into()), ..Default::default() },
+                _ => BackupResult { ran: true, game_name: Some("Portal 2".into()), files: Some(3), ..Default::default() },
             };
             let outcome: Outcome = describe(&result, "Portal 2");
-            let view = cx.new(|_| LudusaviBackupDialog::showing(outcome));
+            let view = cx.new(|_| SavesBackupDialog::showing(outcome));
             self.open_dialog(view, cx);
             return;
         }
         match which {
             "playtime" => self.open_playtime_settings(&key, window, cx),
             "remove" => self.open_remove_game(&key, cx),
-            _ => self.open_ludusavi_backup(&key, cx),
+            _ => self.open_saves_backup(&key, cx),
         }
     }
 
@@ -208,7 +201,7 @@ impl CollectionView {
         }
     }
 
-    /// Backup save and its after-play switch (Ludusavi), Uninstall and Remove from Collection, and for
+    /// Backup save and its after-play switch (saves), Uninstall and Remove from Collection, and for
     /// the palette only Details (the store page) and Edit playtime (the time
     /// played is edited in the game settings).
     pub(super) fn extras_actions(&self, game: &CollectionGame) -> Vec<GameActionItem> {
@@ -236,14 +229,14 @@ impl CollectionView {
             );
         }
         if heronite_platform::supported(heronite_platform::Feature::SaveBackups) {
-            v.push(item(A::Ludusavi, "ludusavi", tr!("Backup save"), Icon::Save, "saves backup ludusavi salvamentos jogos salvos"));
+            v.push(item(A::Saves, "saves", tr!("Backup save"), Icon::Save, "saves backup server salvamentos jogos salvos servidor"));
             let auto = self.auto_backup(game);
             v.push(item(
                 A::AutoBackup { on: !auto },
                 "auto-backup",
                 if auto { tr!("Turn off automatic save backup") } else { tr!("Turn on automatic save backup") },
                 Icon::CloudSync,
-                "saves backup ludusavi after play automatic salvamentos jogos salvos automatico depois de jogar",
+                "saves backup server after play automatic salvamentos jogos salvos automatico depois de jogar",
             ));
         }
         if game.steam_launch_id.is_some() && game.installed && !tracking {
@@ -373,25 +366,26 @@ impl CollectionView {
         .detach();
     }
 
-    pub(super) fn open_ludusavi_backup(&mut self, key: &str, cx: &mut Context<Self>) {
+    pub(super) fn open_saves_backup(&mut self, key: &str, cx: &mut Context<Self>) {
         let (Some(ctx), Some(game)) = (self.dialog_ctx(), self.lib.as_ref().and_then(|l| l.get(key)).cloned()) else { return };
-        let target = LudusaviGame {
+        let target = SavesGame {
             app_name: game.app_name.clone(),
             title: game.title.clone(),
             runner: game.runner.clone(),
             // `steamAppIdFromMeta`: only Steam-launched games.
             steam_app_id: game.steam_launch_id.clone(),
             store_game_id: game.meta.as_ref().and_then(|m| m.store_game_id.clone()),
-            emulator_id: LudusaviGame::emulator_of(game.meta.as_deref()),
-            rom_path: LudusaviGame::rom_path_of(game.meta.as_deref()),
+            emulator_id: SavesGame::emulator_of(game.meta.as_deref()),
+            rom_path: SavesGame::rom_path_of(game.meta.as_deref()),
+            install_dir: game.game.install.install_path.as_deref().filter(|p| !p.is_empty()).map(std::path::PathBuf::from),
         };
-        let view = cx.new(|cx| LudusaviBackupDialog::new(ctx, target, Arc::new(SystemRunner::default()), cx));
+        let view = cx.new(|cx| SavesBackupDialog::new(ctx, target, cx));
         self.open_dialog(view, cx);
     }
 
     /// Whether a session of `game` ends with a save backup.
     pub(super) fn auto_backup(&self, game: &CollectionGame) -> bool {
-        self.lib.as_ref().is_some_and(|l| l.settings.ludusavi.auto_backup_for(&game.runner, &game.app_name))
+        self.lib.as_ref().is_some_and(|l| l.settings.saves.auto_backup_for(&game.runner, &game.app_name))
     }
 
     /// Leaves the game out of the after-play backup or puts it back in. While
@@ -399,7 +393,7 @@ impl CollectionView {
     pub(super) fn set_auto_backup(&mut self, key: &str, on: bool, window: &mut Window, cx: &mut Context<Self>) {
         let Some(lib) = self.lib.clone() else { return };
         let Some(game) = lib.get(key) else { return };
-        if !lib.settings.ludusavi.enabled {
+        if !lib.settings.saves.enabled {
             self.open_settings_section(crate::pages::settings::Section::Saves, window, cx);
             return;
         }

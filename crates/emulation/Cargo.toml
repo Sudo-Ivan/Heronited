@@ -3,13 +3,15 @@ name = "heronite-emulation"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
-description = "ROM scanning, emulator manager, disc ids, save states, Ludusavi backups, compatible with Heronited's data files"
+description = "ROM scanning, emulator manager, disc ids, save states, game save backups to a saves server, compatible with Heronited's data files"
 
 [dependencies]
 heronite-data = { path = "../data" }
 heronite-launch = { path = "../launch" }
 heronite-platform = { path = "../platform" }
 heronite-i18n = { path = "../i18n" }
+heronite-saves = { path = "../saves" }
+heronite-steam = { path = "../steam" }
 serde = { version = "1", features = ["derive"] }
 serde_json = { version = "1", features = ["preserve_order", "float_roundtrip"] }
 anyhow = "1"
@@ -18,6 +20,7 @@ chrono = { version = "0.4", default-features = false, features = ["std", "clock"
 regex = "1"
 uuid = { version = "1", features = ["v4"] }
 flate2 = "1"
+base64 = "0.23"
 indexmap = { version = "2", features = ["serde"] }
 # Windows' Documents and AppData folders (known folders, not variables).
 dirs = "7"

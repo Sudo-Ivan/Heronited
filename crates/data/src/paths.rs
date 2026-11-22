@@ -65,7 +65,7 @@ impl DataPaths {
     pub fn local_library(&self) -> PathBuf {
         self.j("local_library")
     }
-    /// Copies of the files a save restore replaced (Ludusavi restore undo).
+    /// Copies of the files a save restore replaced (save restore undo).
     pub fn save_restore_undo(&self) -> PathBuf {
         self.j("save-restore-undo")
     }

@@ -66,7 +66,7 @@ pub(crate) enum GameAction {
     Troubleshoot,
     Details,
     EditPlaytime,
-    Ludusavi,
+    Saves,
     /// The after-play save backup of this game (`on` = turn it on).
     AutoBackup {
         on: bool,
@@ -421,7 +421,7 @@ impl CollectionView {
             A::Troubleshoot => self.troubleshoot_launch(key, None, cx),
             A::Details => self.open_details(key, cx),
             A::EditPlaytime => self.open_playtime_settings(key, window, cx),
-            A::Ludusavi => self.open_ludusavi_backup(key, cx),
+            A::Saves => self.open_saves_backup(key, cx),
             A::AutoBackup { on } => self.set_auto_backup(key, *on, window, cx),
             A::SteamUninstall => self.open_steam_uninstall(key, window, cx),
             A::SteamPlay => self.play_with_steam(key, cx),

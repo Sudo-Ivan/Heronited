@@ -335,7 +335,7 @@ fn render_parts(d: &mut SettingsPage, cx: &mut Context<SettingsPage>) -> Div {
             div()
                 .mt(px(6.))
                 .mx(px(6.))
-                .child(meta_text(tr!("Game saves are backed up by Ludusavi (Settings → Saves). Installed games are not backed up."))),
+                .child(meta_text(tr!("Game saves go to a saves server (Settings → Saves). Installed games are not backed up."))),
         )
 }
 

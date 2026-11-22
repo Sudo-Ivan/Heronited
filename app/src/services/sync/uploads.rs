@@ -1,6 +1,6 @@
 //! The uploads to the cloud account besides the library sync
-//! (`heronite_sync::cloud`): the backups as they are made, Ludusavi's
-//! backups after each game, the screenshots once compressed (each only when
+//! (`heronite_sync::cloud`): the backups as they are made,
+//! the, the screenshots once compressed (each only when
 //! set to automatic), and "Send now" (asked by the user, `manual`: manual
 //! ones go too). One at a time, in a queue:
 //! - never while a game launched from here runs: a launch stops the current
@@ -43,7 +43,6 @@ pub enum Job {
     /// The newest backup of the backup folder, unless it went up already
     /// (at start: one a closed app did not finish).
     LatestBackup,
-    Saves,
     Captures,
 }
 
@@ -51,7 +50,6 @@ impl Job {
     pub fn upload(&self) -> Upload {
         match self {
             Job::Backup(_) | Job::LatestBackup => Upload::Backups,
-            Job::Saves => Upload::Saves,
             Job::Captures => Upload::Captures,
         }
     }
@@ -106,10 +104,9 @@ impl LibrarySync {
         self.pump(cx);
     }
 
-    /// The saves and the screenshots now (the backups go as they are made,
+    /// The screenshots now (the backups go as they are made,
     /// or with their own "Send now").
     pub fn upload_all(&mut self, manual: bool, cx: &mut Context<Self>) {
-        self.upload(Job::Saves, manual, cx);
         self.upload(Job::Captures, manual, cx);
     }
 
@@ -241,13 +238,6 @@ fn run_job(
                 return Err(SyncError::Off);
             };
             cloud::upload_backup(data, app, &path, s.backup.keep.unwrap_or(DEFAULT_BACKUP_KEEP), manual, cancel)
-        }
-        Job::Saves => {
-            // Where Ludusavi last put a game's backup: its backup folder,
-            // whether set here or in Ludusavi.
-            let root = s.ludusavi.last_backup_path.as_deref().and_then(|p| Path::new(p).parent()).map(Path::to_path_buf);
-            let Some(root) = root else { return Err(SyncError::Off) };
-            cloud::upload_saves(data, app, &root, manual, cancel, on_percent)
         }
         Job::Captures => {
             let Some(folder) = s.screenshots_folder().map(Path::to_path_buf).or_else(|| data.default_screenshots()) else {

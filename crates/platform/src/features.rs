@@ -41,7 +41,7 @@ pub enum Feature {
     HeroicMigration,
     /// Emulators, ROM folders and save states.
     Emulation,
-    /// Save backups through Ludusavi: after play, by hand and restoring
+    /// Save backups to a saves server: after play, by hand and restoring
     /// them (into Wine prefixes on Linux).
     SaveBackups,
     /// The in-game overlay.
