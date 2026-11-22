@@ -351,7 +351,8 @@ fn find_rule(rule: &Rule, os: &str, target: &Target, out: &mut HashMap<String, (
                 .chain(names.iter().map(|n| if n == USER_ID { n.clone() } else { escape_name(n) }))
                 .collect::<Vec<_>>()
                 .join("/");
-            out.entry(path.clone()).or_insert((Found { path, full }, uid));
+            // Two accounts name the same snapshot path: both are kept apart until the newest is picked.
+            out.entry(format!("{}\0{path}", uid.as_deref().unwrap_or(""))).or_insert((Found { path, full }, uid));
         }
     }
 }
@@ -421,6 +422,20 @@ pub fn place(path: &str, target: &Target) -> Result<PathBuf, Unplaced> {
     Ok(full)
 }
 
+/// The newest change of a file in `path` or below it (a few levels, so a big
+/// folder does not cost much). Folders' own times are left out: they only say
+/// when an entry was added.
+fn tree_mtime(path: &Path, depth: u32) -> SystemTime {
+    let Ok(md) = fs::symlink_metadata(path) else { return SystemTime::UNIX_EPOCH };
+    if md.is_file() {
+        return md.modified().unwrap_or(SystemTime::UNIX_EPOCH);
+    }
+    if depth == 0 || !md.is_dir() {
+        return SystemTime::UNIX_EPOCH;
+    }
+    fs::read_dir(path).into_iter().flatten().flatten().map(|e| tree_mtime(&e.path(), depth - 1)).max().unwrap_or(SystemTime::UNIX_EPOCH)
+}
+
 /// The numeric folder of `dir` changed last (the account that plays here).
 fn newest_account(dir: &Path) -> Option<String> {
     fs::read_dir(dir)
@@ -429,7 +444,7 @@ fn newest_account(dir: &Path) -> Option<String> {
         .filter(|e| e.path().is_dir())
         .map(|e| e.file_name().to_string_lossy().into_owned())
         .filter(|n| !n.is_empty() && n != "0" && n.bytes().all(|b| b.is_ascii_digit()))
-        .max_by_key(|n| mtime(&dir.join(n)))
+        .max_by_key(|n| tree_mtime(&dir.join(n), 5))
 }
 
 #[cfg(test)]
@@ -544,13 +559,9 @@ G:
         put(&steam.join("userdata/1001/42/remote/save.bin"), "old");
         put(&steam.join("userdata/2002/42/remote/save.bin"), "new");
         // File systems stamp times coarsely: set them, so "newest" is not a race.
-        let at = |dir: &str, secs: u64| {
-            let f = fs::File::open(steam.join(dir)).unwrap();
-            f.set_modified(SystemTime::UNIX_EPOCH + std::time::Duration::from_secs(secs)).unwrap();
-        };
         for (acct, secs) in [("userdata/1001", 1_000), ("userdata/2002", 2_000)] {
-            at(acct, secs);
-            at(&format!("{acct}/42/remote/save.bin"), secs);
+            let f = fs::File::options().write(true).open(steam.join(acct).join("42/remote/save.bin")).unwrap();
+            f.set_modified(SystemTime::UNIX_EPOCH + std::time::Duration::from_secs(secs)).unwrap();
         }
         let g = game("G:\n  files:\n    \"<root>/userdata/<storeUserId>/42/remote\": {}\n");
         let mut t = linux_target(d.path());
