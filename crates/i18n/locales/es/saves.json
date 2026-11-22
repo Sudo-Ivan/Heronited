@@ -99,5 +99,9 @@
   "That backup is not in the folder any more.": "Esa copia ya no está en la carpeta.",
   "The backup folder already has the current saves of {name}. Nothing needed to be copied.": "La carpeta de copias ya tiene las partidas actuales de {name}. No hizo falta copiar nada.",
   "The backup folder has to be a full path.": "La carpeta de copias debe ser una ruta completa.",
-  "in the backup folder": "en la carpeta de copias"
+  "in the backup folder": "en la carpeta de copias",
+  "Wine prefix data": "Datos del prefijo de Wine",
+  "The registry and the user folder of the prefix. Restoring them also rolls back the settings of other programs installed there, so they are not picked for you.": "El registro y la carpeta de usuario del prefijo. Restaurarlos también revierte los ajustes de otros programas instalados allí, por eso no vienen marcados.",
+  "Also back up the Wine prefix data": "Copiar también los datos del prefijo de Wine",
+  "The registry and user folder of a game's prefix go along with its saves. Restoring them is always your choice.": "El registro y la carpeta de usuario del prefijo de un juego se copian con sus partidas. Restaurarlos siempre lo decides tú."
 }

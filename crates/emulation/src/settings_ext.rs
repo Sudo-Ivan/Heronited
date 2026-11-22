@@ -18,6 +18,9 @@ pub struct SavesSettingsPatch {
     /// Stop sending saves to the server (they go to the local folder only).
     #[serde(default)]
     pub server_off: Option<bool>,
+    /// Also back up the Wine prefix data of games that have one.
+    #[serde(default)]
+    pub prefix_backup: Option<bool>,
     /// The folder of local backups; `Some("")` turns them off.
     #[serde(default)]
     pub local_folder: Option<String>,
@@ -61,6 +64,9 @@ pub fn set_saves_settings(paths: &DataPaths, patch: &SavesSettingsPatch) -> Resu
     }
     if let Some(v) = patch.server_off {
         next.server_off = v;
+    }
+    if let Some(v) = patch.prefix_backup {
+        next.prefix_backup = v;
     }
     if let Some(v) = &patch.local_folder {
         let v = v.trim();
@@ -146,15 +152,21 @@ mod tests {
 
     #[test]
     fn the_local_folder_is_kept_and_has_to_be_a_full_path() {
-        let (_d, paths) = setup(r#"{"saves":{"enabled":true}}"#);
+        let (d, paths) = setup(r#"{"saves":{"enabled":true}}"#);
+        let folder = d.path().join("saves").to_string_lossy().into_owned();
         let eff = set_saves_settings(
             &paths,
-            &SavesSettingsPatch { local_folder: Some(" /tmp/saves ".into()), server_off: Some(true), ..Default::default() },
+            &SavesSettingsPatch {
+                local_folder: Some(format!(" {folder} ")),
+                server_off: Some(true),
+                prefix_backup: Some(true),
+                ..Default::default()
+            },
         )
         .unwrap();
-        assert_eq!((eff.saves.local_folder.as_str(), eff.saves.server_off), ("/tmp/saves", true));
+        assert_eq!((eff.saves.local_folder.as_str(), eff.saves.server_off, eff.saves.prefix_backup), (folder.as_str(), true, true));
         assert!(set_saves_settings(&paths, &SavesSettingsPatch { local_folder: Some("relative/x".into()), ..Default::default() }).is_err());
-        assert_eq!(settings::load(&paths).unwrap().saves.local_folder, "/tmp/saves");
+        assert_eq!(settings::load(&paths).unwrap().saves.local_folder, folder);
         let eff = set_saves_settings(&paths, &SavesSettingsPatch { local_folder: Some(String::new()), ..Default::default() }).unwrap();
         assert!(eff.saves.local_folder.is_empty());
     }

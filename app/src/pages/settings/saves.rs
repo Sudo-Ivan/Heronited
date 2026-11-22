@@ -140,6 +140,18 @@ pub fn render(d: &mut SettingsPage, _window: &mut Window, cx: &mut Context<Setti
         .child(div().when(!server_on, |d| d.opacity(0.5)).child(text_field(tr!("Saves server"), &d.saves.server)))
         .child(help_text(tr!("Backups go to saves.quad4.io unless you run a server of your own. They are sent over https.")));
 
+    let prefix = card([toggle_row(
+        "saves-prefix",
+        tr!("Also back up the Wine prefix data"),
+        Some(tr!("The registry and user folder of a game's prefix go along with its saves. Restoring them is always your choice.")),
+        l.prefix_backup,
+    )
+    .on_click(cx.listener(|d, _, _, cx| {
+        let on = !d.settings.saves.prefix_backup;
+        save(d, SavesSettingsPatch { prefix_backup: Some(on), ..Default::default() }, cx);
+    }))
+    .into_any_element()]);
+
     let has_folder = !l.local_folder.is_empty();
     let folder = card_box().py(px(12.)).gap(px(8.)).child(path_field(
         "saves-folder-pick",
@@ -174,6 +186,7 @@ pub fn render(d: &mut SettingsPage, _window: &mut Window, cx: &mut Context<Setti
         .child(div().mt(px(10.)).child(interval))
         .child(div().mt(px(10.)).child(server))
         .child(div().mt(px(10.)).child(folder))
+        .child(div().mt(px(10.)).child(prefix))
         .child(div().mt(px(12.)).mx(px(6.)).child(meta_text(last_line(d))))
         .children(l.last_error.clone().map(|e| div().mt(px(8.)).mx(px(6.)).text_color(theme::danger_text()).text_size(px(13.)).child(e)))
         .into_any_element()
@@ -199,6 +212,7 @@ pub(super) fn console_rows(d: &SettingsPage, cx: &App) -> Vec<crate::console::li
         Row::text("sv-server", tr!("Saves server"), d.saves.server.read(cx).value().to_string())
             .icon(Icon::CloudSync)
             .enabled(!l.server_off),
+        Row::toggle("sv-prefix", tr!("Also back up the Wine prefix data"), l.prefix_backup),
         Row::text("sv-folder", tr!("Backup folder on this PC"), d.saves.folder.read(cx).value().to_string()).icon(Icon::FolderOpen),
         Row::info("sv-last", last_line(d), ""),
     ];
@@ -218,6 +232,9 @@ pub(super) fn console_apply(
     use crate::console::list::{Outcome, Value};
     match &outcome {
         Outcome::Changed(id, Value::Toggle(on)) if id.as_ref() == "sv-enabled" => set_enabled(d, *on, cx),
+        Outcome::Changed(id, Value::Toggle(on)) if id.as_ref() == "sv-prefix" => {
+            save(d, SavesSettingsPatch { prefix_backup: Some(*on), ..Default::default() }, cx)
+        }
         Outcome::Changed(id, Value::Toggle(on)) if id.as_ref() == "sv-server-on" => {
             save(d, SavesSettingsPatch { server_off: Some(!*on), ..Default::default() }, cx)
         }

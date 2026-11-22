@@ -148,7 +148,7 @@ fn folders(paths: &[String]) -> Vec<(String, usize)> {
 
 /// The groups of a preview: saves first, empty kinds left out.
 pub(super) fn groups(plan: &RestorePlan, target: &Target) -> Vec<Group> {
-    [FileKind::Save, FileKind::Unmapped]
+    [FileKind::Save, FileKind::Prefix, FileKind::Unmapped]
         .into_iter()
         .filter_map(|kind| {
             let files: Vec<&PlannedFile> = plan.files.iter().filter(|f| f.kind == kind).collect();
@@ -176,6 +176,7 @@ pub(super) fn groups(plan: &RestorePlan, target: &Target) -> Vec<Group> {
 pub(super) fn group_title(kind: FileKind) -> &'static str {
     match kind {
         FileKind::Save => tr!("Game saves"),
+        FileKind::Prefix => tr!("Wine prefix data"),
         FileKind::Unmapped if cfg!(windows) => tr!("No place on this PC"),
         FileKind::Unmapped => tr!("No place on Linux"),
     }
@@ -193,6 +194,9 @@ pub(super) fn group_facts(g: &Group) -> String {
 pub(super) fn group_help(kind: FileKind) -> Option<&'static str> {
     match kind {
         FileKind::Save => None,
+        FileKind::Prefix => Some(tr!(
+            "The registry and the user folder of the prefix. Restoring them also rolls back the settings of other programs installed there, so they are not picked for you."
+        )),
         FileKind::Unmapped => Some(tr!(
             "These files need a Wine prefix, a Windows folder or a Steam account that this PC does not have yet. Start the game once, then restore."
         )),

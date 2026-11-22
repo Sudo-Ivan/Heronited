@@ -108,6 +108,7 @@ impl Target {
             "winDocuments" => one(win().documents),
             "winPublic" => one(win().public),
             "winProgramData" => one(win().program_data),
+            "winPrefix" if !self.windows_host => one(self.prefix.clone()),
             _ => Vec::new(),
         }
     }
@@ -262,6 +263,50 @@ fn collect(path: &Path, rel: &[String], uid: Option<String>, walk: &mut Walk) {
     }
 }
 
+/// The first name of the paths [`find_prefix`] gives.
+pub const PREFIX_KEY: &str = "winPrefix";
+
+/// Folders of a prefix that only hold caches and temporary files.
+const PREFIX_SKIP: [&str; 8] = ["temp", "tmp", "cache", "gpucache", "shadercache", "dawncache", "crashpad", "crashdumps"];
+
+fn walk_prefix(dir: &Path, rel: &mut Vec<String>, out: &mut Vec<Found>, seen: &mut usize) {
+    let mut entries: Vec<_> = fs::read_dir(dir).into_iter().flatten().flatten().collect();
+    entries.sort_by_key(|e| e.file_name());
+    for e in entries {
+        *seen += 1;
+        if *seen > MAX_WALK || out.len() >= MAX_FILES {
+            return;
+        }
+        let name = e.file_name().to_string_lossy().into_owned();
+        let Ok(md) = fs::symlink_metadata(e.path()) else { continue };
+        rel.push(escape_name(&name));
+        if md.is_file() {
+            out.push(Found { path: format!("{PREFIX_KEY}/{}", rel.join("/")), full: e.path() });
+        } else if md.is_dir() && !PREFIX_SKIP.contains(&name.to_lowercase().as_str()) {
+            walk_prefix(&e.path(), rel, out, seen);
+        }
+        rel.pop();
+    }
+}
+
+/// The data of the game's Wine prefix worth keeping: its registry files and
+/// the user folder (no Windows system files, no caches), under
+/// [`PREFIX_KEY`]. Empty without a prefix, and on Windows.
+pub fn find_prefix(target: &Target) -> Vec<Found> {
+    let Some(prefix) = target.prefix.as_ref().filter(|_| !target.windows_host) else { return Vec::new() };
+    let mut out = Vec::new();
+    for reg in ["system.reg", "user.reg", "userdef.reg"] {
+        if prefix.join(reg).is_file() {
+            out.push(Found { path: format!("{PREFIX_KEY}/{reg}"), full: prefix.join(reg) });
+        }
+    }
+    let users = prefix.join("drive_c/users");
+    let user = users.join(target.user());
+    let mut seen = 0;
+    walk_prefix(&user, &mut vec!["drive_c".into(), "users".into(), escape_name(target.user())], &mut out, &mut seen);
+    out
+}
+
 /// The save files of `game` on this PC, as the snapshot names them. Files
 /// of several account folders keep the newest account only.
 pub fn find(game: &Game, target: &Target) -> Vec<Found> {
@@ -336,7 +381,7 @@ pub fn place(path: &str, target: &Target) -> Result<PathBuf, Unplaced> {
     if anchors.is_empty() {
         return Err(Unplaced::NoFolder(key.to_string()));
     }
-    let mut converted = Vec::with_capacity(rest.len());
+    let mut converted: Vec<String> = Vec::with_capacity(rest.len());
     for n in &rest {
         converted.push(if *n == USER_ID { USER_ID.to_string() } else { plain_name(n).ok_or(Unplaced::Unsafe)? });
     }
@@ -347,6 +392,10 @@ pub fn place(path: &str, target: &Target) -> Result<PathBuf, Unplaced> {
             converted.first().is_some_and(|f| *f != USER_ID && child_ci(a, f).is_some() || *f == USER_ID && a.join("userdata").is_dir())
         })
         .unwrap_or(&anchors[0]);
+    // A prefix backed up under another Wine user goes into this PC's user folder.
+    if key == PREFIX_KEY && converted.len() > 2 && converted[0] == "drive_c" && converted[1] == "users" && converted[2] != "Public" {
+        converted[2] = target.user().to_string();
+    }
     let mut full = anchor.clone();
     for (i, name) in converted.iter().enumerate() {
         if name == USER_ID {
@@ -530,6 +579,27 @@ G:
         assert_eq!(find(&g, &t).len(), 1);
         t.store = None;
         assert_eq!(find(&g, &t).len(), 1);
+    }
+
+    #[test]
+    fn the_prefix_keeps_registry_and_user_data_and_restores_under_another_user() {
+        let d = tempfile::tempdir().unwrap();
+        let p1 = d.path().join("pfx1");
+        put(&p1.join("user.reg"), "reg");
+        put(&p1.join("drive_c/windows/system32/big.dll"), "no");
+        put(&p1.join("drive_c/users/steamuser/Documents/My Games/G/a.cfg"), "cfg");
+        put(&p1.join("drive_c/users/steamuser/AppData/Local/Temp/junk.tmp"), "no");
+        put(&p1.join("drive_c/users/steamuser/AppData/Local/G/ShaderCache/x"), "no");
+        let mut t = linux_target(d.path());
+        t.prefix = Some(p1);
+        t.wine_user = Some("steamuser".into());
+        let paths: Vec<_> = find_prefix(&t).into_iter().map(|f| f.path).collect();
+        assert_eq!(paths, ["winPrefix/user.reg", "winPrefix/drive_c/users/steamuser/Documents/My Games/G/a.cfg"]);
+        let mut other = linux_target(d.path());
+        other.prefix = Some(d.path().join("pfx2"));
+        other.wine_user = Some("me".into());
+        assert_eq!(place(&paths[1], &other).unwrap(), d.path().join("pfx2/drive_c/users/me/Documents/My Games/G/a.cfg"));
+        assert!(find_prefix(&linux_target(d.path())).is_empty(), "no prefix, nothing");
     }
 
     #[test]

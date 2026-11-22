@@ -78,6 +78,9 @@ pub struct SavesSettings {
     /// Saves are not sent to the server (only to the local folder, if set).
     #[serde(default, skip_serializing_if = "std::ops::Not::not")]
     pub server_off: bool,
+    /// Also back up the registry and the user folder of the game's Wine prefix.
+    #[serde(default, skip_serializing_if = "std::ops::Not::not")]
+    pub prefix_backup: bool,
     /// A folder on this PC that every backup is also copied to (empty: none).
     #[serde(default, skip_serializing_if = "String::is_empty")]
     pub local_folder: String,

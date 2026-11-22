@@ -4250,7 +4250,7 @@ dependencies = [
 
 [[package]]
 name = "heronite-saves"
-version = "1.7.4"
+version = "1.7.5"
 dependencies = [
  "anyhow",
  "base64 0.23.1",

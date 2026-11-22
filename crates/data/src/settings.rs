@@ -247,6 +247,7 @@ impl EffectiveSettings {
                 enabled: saves.enabled,
                 server: saves.server.trim().to_owned(),
                 server_off: saves.server_off,
+                prefix_backup: saves.prefix_backup,
                 local_folder: saves.local_folder.trim().to_owned(),
                 auto_backup_off: saves.auto_backup_off,
                 interval_minutes: as_saves_interval(saves.interval_minutes),

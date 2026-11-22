@@ -164,7 +164,7 @@ impl SaveBackupsView {
                 let kind = id
                     .strip_prefix("sb-g-")
                     .and_then(|n| n.parse::<u8>().ok())
-                    .and_then(|n| [FileKind::Save, FileKind::Unmapped].into_iter().find(|k| *k as u8 == n));
+                    .and_then(|n| [FileKind::Save, FileKind::Prefix, FileKind::Unmapped].into_iter().find(|k| *k as u8 == n));
                 if let Some(kind) = kind {
                     self.toggle_kind(kind, cx);
                 }

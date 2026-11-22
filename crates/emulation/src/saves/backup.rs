@@ -199,13 +199,17 @@ fn backup_inner(env: &SavesEnv, game: &SavesGame, reason: BackupReason) -> Resul
         return Ok(skipped("no-match", None, Some(error)));
     };
     let target = target_for(env, game);
-    let found = locations::find(entry, &target);
+    let mut found = locations::find(entry, &target);
     if found.is_empty() {
         let error = tr!("No save files of {title} were found on this PC.", title = game.title).to_string();
         record_error(env.paths, &error);
         return Ok(skipped("no-saves", Some(entry.title.clone()), Some(error)));
     }
 
+    // The prefix goes along with saves, never alone.
+    if cfg.prefix_backup {
+        found.extend(locations::find_prefix(&target));
+    }
     let use_server = !cfg.server_off;
     let local_root = Some(cfg.local_folder.trim()).filter(|f| !f.is_empty()).map(std::path::PathBuf::from);
     if !use_server && local_root.is_none() {
@@ -215,7 +219,13 @@ fn backup_inner(env: &SavesEnv, game: &SavesGame, reason: BackupReason) -> Resul
         return Ok(skipped("no-destination", None, Some(error)));
     }
     let app = game.app_id();
-    let files = || -> Vec<snapshot::LocalFile> { locations::find(entry, &target).into_iter().map(Into::into).collect() };
+    let files = || -> Vec<snapshot::LocalFile> {
+        let mut all = locations::find(entry, &target);
+        if cfg.prefix_backup {
+            all.extend(locations::find_prefix(&target));
+        }
+        all.into_iter().map(Into::into).collect()
+    };
     let mut conn = if use_server { Some(account::connect(env.paths)?) } else { None };
     let limits = |c: &Option<account::Connection>| {
         c.as_ref().map_or_else(|| heronite_saves::Me::default().effective_limits(), |c| c.me.effective_limits())

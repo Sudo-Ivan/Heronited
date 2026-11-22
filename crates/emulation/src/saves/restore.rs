@@ -37,6 +37,8 @@ pub enum Change {
 pub enum FileKind {
     /// Goes to a folder of this PC.
     Save,
+    /// The registry and user folder of the game's Wine prefix.
+    Prefix,
     /// Has no place here (no prefix, no Windows side, no Steam account).
     Unmapped,
 }
@@ -168,7 +170,8 @@ pub fn plan_files(manifest: &Manifest, target: &Target) -> Vec<PlannedFile> {
                     } else {
                         Change::New
                     };
-                    (Some(p.to_string_lossy().into_owned()), change, FileKind::Save)
+                    let kind = if entry.path.starts_with("winPrefix/") { FileKind::Prefix } else { FileKind::Save };
+                    (Some(p.to_string_lossy().into_owned()), change, kind)
                 }
                 Err(_) => (None, Change::New, FileKind::Unmapped),
             };

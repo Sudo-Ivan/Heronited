@@ -99,5 +99,9 @@
   "That backup is not in the folder any more.": "Esse backup não está mais na pasta.",
   "The backup folder already has the current saves of {name}. Nothing needed to be copied.": "A pasta de backup já tem os saves atuais de {name}. Não foi preciso copiar nada.",
   "The backup folder has to be a full path.": "A pasta de backup precisa ser um caminho completo.",
-  "in the backup folder": "na pasta de backup"
+  "in the backup folder": "na pasta de backup",
+  "Wine prefix data": "Dados do prefixo do Wine",
+  "The registry and the user folder of the prefix. Restoring them also rolls back the settings of other programs installed there, so they are not picked for you.": "O registro e a pasta de usuário do prefixo. Restaurá-los também desfaz as configurações de outros programas instalados ali, por isso não vêm marcados.",
+  "Also back up the Wine prefix data": "Fazer backup também dos dados do prefixo do Wine",
+  "The registry and user folder of a game's prefix go along with its saves. Restoring them is always your choice.": "O registro e a pasta de usuário do prefixo de um jogo vão junto com seus saves. Restaurá-los é sempre uma escolha sua."
 }
