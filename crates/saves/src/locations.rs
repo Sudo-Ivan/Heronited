@@ -184,6 +184,11 @@ fn child_ci(dir: &Path, name: &str) -> Option<PathBuf> {
     fs::read_dir(dir).ok()?.flatten().find(|e| e.file_name().to_string_lossy().to_lowercase() == lower).map(|e| e.path())
 }
 
+fn real_name(dir: &Path, name: &str) -> Option<String> {
+    let lower = name.to_lowercase();
+    fs::read_dir(dir).ok()?.flatten().map(|e| e.file_name().to_string_lossy().into_owned()).find(|n| n.to_lowercase() == lower)
+}
+
 fn mtime(p: &Path) -> SystemTime {
     fs::metadata(p).and_then(|m| m.modified()).unwrap_or(SystemTime::UNIX_EPOCH)
 }
@@ -211,7 +216,9 @@ fn expand(dir: &Path, rel: &[String], segs: &[(Seg, Option<String>)], ci: bool, 
     let literal = filled.clone().or_else(|| if let Seg::Literal(n) = seg { Some(n.to_string()) } else { None });
     if let Some(name) = literal {
         if let Some(p) = if ci { child_ci(dir, &name) } else { Some(dir.join(&name)).filter(|p| p.symlink_metadata().is_ok()) } {
-            let shown = p.file_name().map(|n| n.to_string_lossy().into_owned()).unwrap_or(name);
+            // A case-insensitive folder answers to any spelling: keep the real one.
+            let real = if ci || cfg!(windows) { real_name(dir, &name) } else { None };
+            let shown = real.or_else(|| p.file_name().map(|n| n.to_string_lossy().into_owned())).unwrap_or(name);
             next(p, shown, uid, walk);
         }
         return;
@@ -353,7 +360,8 @@ fn find_rule(rule: &Rule, os: &str, target: &Target, out: &mut HashMap<String, (
 /// file name (a separator, `.` or `..` that the escaping hid).
 pub fn plain_name(escaped: &str) -> Option<String> {
     let name = unescape_name(escaped);
-    (!name.is_empty() && name != "." && name != ".." && !name.contains(['/', '\\', '\0'])).then_some(name)
+    (!name.is_empty() && name != "." && name != ".." && !name.contains(['/', '\\', '\0']) && !(cfg!(windows) && name.contains(':')))
+        .then_some(name)
 }
 
 /// Why a path of a snapshot cannot be put back on this PC.
@@ -534,8 +542,16 @@ G:
         let d = tempfile::tempdir().unwrap();
         let steam = d.path().join("steam");
         put(&steam.join("userdata/1001/42/remote/save.bin"), "old");
-        std::thread::sleep(std::time::Duration::from_millis(20));
         put(&steam.join("userdata/2002/42/remote/save.bin"), "new");
+        // File systems stamp times coarsely: set them, so "newest" is not a race.
+        let at = |dir: &str, secs: u64| {
+            let f = fs::File::open(steam.join(dir)).unwrap();
+            f.set_modified(SystemTime::UNIX_EPOCH + std::time::Duration::from_secs(secs)).unwrap();
+        };
+        for (acct, secs) in [("userdata/1001", 1_000), ("userdata/2002", 2_000)] {
+            at(acct, secs);
+            at(&format!("{acct}/42/remote/save.bin"), secs);
+        }
         let g = game("G:\n  files:\n    \"<root>/userdata/<storeUserId>/42/remote\": {}\n");
         let mut t = linux_target(d.path());
         t.roots = vec![steam.clone()];
@@ -556,7 +572,10 @@ G:
         {
             assert!(place(bad, &t).is_err(), "{bad}");
         }
+        #[cfg(unix)]
         assert_eq!(place("base/sub/a%3Ab.sav", &t).unwrap(), d.path().join("install/sub/a:b.sav"));
+        #[cfg(windows)]
+        assert!(place("base/sub/a%3Ab.sav", &t).is_err(), "a colon is never part of a Windows name");
     }
 
     #[test]
@@ -602,6 +621,7 @@ G:
         assert!(find_prefix(&linux_target(d.path())).is_empty(), "no prefix, nothing");
     }
 
+    #[cfg(unix)]
     #[test]
     fn odd_names_are_escaped_and_come_back() {
         let d = tempfile::tempdir().unwrap();
