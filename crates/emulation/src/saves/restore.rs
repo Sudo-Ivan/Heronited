@@ -148,10 +148,17 @@ pub fn list_snapshots(env: &SavesEnv, game: &SavesGame) -> Listing {
     let root = local_root(env);
     if let Some(root) = &root {
         out.snapshots.extend(heronite_saves::local::list(root, &app).into_iter().map(as_info));
-        out.snapshots.sort_by(|a, b| b.created_at.cmp(&a.created_at));
     }
+    // By time, not by the text of it: two stamps of the same second can be
+    // spelled differently (`…:00Z` and `…:00.000Z`) and still order wrong.
+    out.snapshots.sort_by(|a, b| stamp(&b.created_at).cmp(&stamp(&a.created_at)).then_with(|| b.created_at.cmp(&a.created_at)));
     out.off = !asks_server && root.is_none();
     out
+}
+
+/// The time a stamp names, in milliseconds; unparseable sorts oldest.
+fn stamp(s: &str) -> i64 {
+    chrono::DateTime::parse_from_rfc3339(s).map(|d| d.timestamp_millis()).unwrap_or(0)
 }
 
 /// Where each file of `manifest` goes on this PC and what it would change.
@@ -280,6 +287,17 @@ pub fn apply_restore(env: &SavesEnv, plan: &RestorePlan, undo_root: &Path, app_n
             if !heronite_saves::snapshot::file_matches(&tmp, &f.entry) {
                 return Err(tr!("The saves server sent a damaged file.").to_string());
             }
+            // The time the save had when it was backed up; a new file also
+            // gets the mode it had (a replaced one keeps this PC's).
+            if f.entry.mtime_ns > 0 {
+                let t = std::time::SystemTime::UNIX_EPOCH + std::time::Duration::from_nanos(f.entry.mtime_ns as u64);
+                drop(out.set_modified(t));
+            }
+            #[cfg(unix)]
+            if fs::metadata(&target).is_err() && f.entry.mode > 0 {
+                use std::os::unix::fs::PermissionsExt;
+                drop(fs::set_permissions(&tmp, fs::Permissions::from_mode(f.entry.mode as u32)));
+            }
             if let Ok(md) = fs::metadata(&target) {
                 drop(fs::set_permissions(&tmp, md.permissions()));
             }
@@ -400,5 +418,65 @@ mod tests {
         assert_eq!(t.parent(), Some(Path::new("/a/b")));
         let name = t.file_name().unwrap().to_string_lossy().into_owned();
         assert!(name.starts_with(".save.dat.heronited-") && name.ends_with("-3.tmp"));
+    }
+
+    #[test]
+    fn stamps_of_one_second_order_by_time_not_text() {
+        assert!(stamp("2026-01-01T00:00:00.500Z") > stamp("2026-01-01T00:00:00Z"));
+        assert!(stamp("2026-01-01T00:00:01Z") > stamp("2026-01-01T00:00:00.999Z"));
+        assert_eq!(stamp("not a time"), 0);
+    }
+
+    #[test]
+    fn a_restored_file_keeps_its_time_and_mode() {
+        use base64::Engine;
+        use heronite_data::DataPaths;
+
+        let _l = crate::saves::backup::test_lock();
+        let d = tempfile::tempdir().unwrap();
+        let paths = DataPaths::at(d.path());
+        let probe = heronite_launch::probe::FakeProbe::new("/h");
+        let env = SavesEnv { paths: &paths, probe: &probe };
+        // The backup's copy of the file, beside its manifest entry.
+        let files = d.path().join("backup/files");
+        fs::create_dir_all(files.join("base")).unwrap();
+        fs::write(files.join("base/x.sav"), "new").unwrap();
+        let when = 1_600_000_000_000_000_000i64;
+        let target = d.path().join("install/x.sav");
+        fs::create_dir_all(target.parent().unwrap()).unwrap();
+        let entry = FileEntry {
+            path: "base/x.sav".into(),
+            size: 3,
+            mode: 0o600,
+            mtime_ns: when,
+            inline: Some(base64::engine::general_purpose::STANDARD.encode(b"new")),
+            ..Default::default()
+        };
+        let plan = RestorePlan {
+            app: "a".into(),
+            source: Source::Local(files),
+            snapshot: SnapshotInfo { id: "local:1".into(), ..Default::default() },
+            files: vec![PlannedFile {
+                path: "base/x.sav".into(),
+                target: Some(target.to_string_lossy().into_owned()),
+                bytes: 3,
+                change: Change::New,
+                kind: FileKind::Save,
+                selected: true,
+                entry,
+            }],
+            target: Target::default(),
+        };
+        let out = apply_restore(&env, &plan, &d.path().join("undo"), "app").unwrap();
+        assert_eq!(out.written, 1);
+        assert_eq!(fs::read_to_string(&target).unwrap(), "new");
+        let md = fs::metadata(&target).unwrap();
+        let back = md.modified().unwrap().duration_since(std::time::UNIX_EPOCH).unwrap().as_nanos() as i64;
+        assert!((back - when).abs() < 2_000_000_000, "mtime is {back}, wanted {when}");
+        #[cfg(unix)]
+        {
+            use std::os::unix::fs::PermissionsExt;
+            assert_eq!(md.permissions().mode() & 0o777, 0o600);
+        }
     }
 }

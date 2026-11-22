@@ -145,7 +145,7 @@ A controller-first layout for the couch or a TV. Turn it on from the ☰ menu, t
 <table>
   <tr>
     <td width="50%" align="center"><a href="assets/screenshots/console-home.webp"><img src="assets/screenshots/console-home.webp" width="100%" alt="Console home with SP Football Life 2026 large over its art and a Continue playing shelf of covers" /></a><br /><sub><b>Home</b></sub></td>
-    <td width="50%" align="center"><a href="assets/screenshots/console-game.webp"><img src="assets/screenshots/console-game.webp" width="100%" alt="Console game page for ELDEN RING with Play, Status, Favourite, Game settings, Playtime, and Ludusavi backup rows next to its details" /></a><br /><sub><b>Game page</b></sub></td>
+    <td width="50%" align="center"><a href="assets/screenshots/console-game.webp"><img src="assets/screenshots/console-game.webp" width="100%" alt="Console game page for ELDEN RING with Play, Status, Favourite, Game settings, Playtime, and save backup rows next to its details" /></a><br /><sub><b>Game page</b></sub></td>
   </tr>
 </table>
 
@@ -184,7 +184,7 @@ A single native process drawn on the GPU, with no bundled browser like Electron-
 
 <br>
 
-You need stable Rust. On Linux, also `clang` and `lld`, a Vulkan driver, and GTK/WebKitGTK; on Windows, the Visual Studio Build Tools ("Desktop development with C++") and [CMake](https://cmake.org) on the `PATH` (it builds SDL, which reads the controllers in console mode). Heronited downloads legendary, gogdl, and nile itself; [Ludusavi](https://github.com/mtkennerly/ludusavi) is optional.
+You need stable Rust. On Linux, also `clang` and `lld`, a Vulkan driver, and GTK/WebKitGTK; on Windows, the Visual Studio Build Tools ("Desktop development with C++") and [CMake](https://cmake.org) on the `PATH` (it builds SDL, which reads the controllers in console mode). Heronited downloads legendary, gogdl, and nile itself.
 
 ```bash
 # quick build (the login window is its own binary, so build it too)

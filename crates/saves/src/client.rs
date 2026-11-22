@@ -24,9 +24,11 @@ pub const DEFAULT_SERVER: &str = "https://saves.quad4.io";
 
 const RETRIES: u32 = 3;
 const MAX_WAIT: Duration = Duration::from_secs(10);
-/// Most a single answer may hold: a chunk is at most the server's
-/// `max_chunk_bytes` (a few MiB), so this only stops a runaway body.
-const BODY_CAP: u64 = 64 << 20;
+/// Most a single answer may hold. A chunk is at most the server's
+/// `max_chunk_bytes` (a few MiB); a manifest of a game with many small
+/// files can be tens of MB of base64, so the cap leaves room for that and
+/// only stops a runaway body.
+const BODY_CAP: u64 = 256 << 20;
 
 /// `server` as the base URL requests go to: `https://` is assumed without a
 /// scheme, a trailing slash goes, and anything but a plain origin is refused
@@ -517,8 +519,13 @@ impl Client {
         Ok(())
     }
 
-    /// A chunk by hash, checked against it.
+    /// A chunk by hash, checked against it. `hash` comes from a manifest,
+    /// so it is checked to be a sha256 hex before it becomes part of a URL.
     pub fn chunk(&self, app: &str, hash: &str) -> Result<Vec<u8>> {
+        let damaged = || SavesError::local(heronite_i18n::tr!("The saves server sent a damaged file."));
+        if hash.len() != 64 || !hash.bytes().all(|b| b.is_ascii_hexdigit()) {
+            return Err(damaged());
+        }
         let body = self.get(&format!("/v1/apps/{}/chunks/{}", enc(app), hash))?.body;
         if sha256_hex(&body) != hash {
             return Err(SavesError::local(heronite_i18n::tr!(

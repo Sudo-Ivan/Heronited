@@ -48,6 +48,7 @@ pub fn set_saves_settings(paths: &DataPaths, patch: &SavesSettingsPatch) -> Resu
         next.enabled = v;
     }
     if let Some(v) = &patch.server {
+        let before = next.server.clone();
         let v = v.trim();
         // The default is kept as no address at all, so it follows the app.
         next.server = if v.is_empty() {
@@ -60,7 +61,11 @@ pub fn set_saves_settings(paths: &DataPaths, patch: &SavesSettingsPatch) -> Resu
                 norm
             }
         };
-        crate::saves::account::forget_session();
+        // Only a real change drops the session; re-saving the same address
+        // must not sign the account out.
+        if next.server != before {
+            crate::saves::account::forget_session();
+        }
     }
     if let Some(v) = patch.server_off {
         next.server_off = v;

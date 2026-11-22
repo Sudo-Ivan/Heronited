@@ -12,8 +12,13 @@ use heronite_emulation::saves::{backup_for_game, BackupReason, SavesEnv, SavesGa
 use heronite_launch::SystemProbe;
 use heronite_saves::manifest::{self, Game, Rule};
 
+/// Backup and restore take one in-flight guard for the whole process, so the
+/// tests cannot overlap.
+static ONE_AT_A_TIME: std::sync::Mutex<()> = std::sync::Mutex::new(());
+
 #[test]
 fn backup_list_restore_and_undo() {
+    let _one = ONE_AT_A_TIME.lock().unwrap_or_else(|e| e.into_inner());
     let Ok(server) = std::env::var("SAVES_E2E_SERVER") else { return };
     let tmp = tempfile::tempdir().unwrap();
     let paths = DataPaths::at(tmp.path().join("data"));
@@ -87,6 +92,7 @@ fn backup_list_restore_and_undo() {
 
 #[test]
 fn local_folder_backup_and_restore_without_a_server() {
+    let _one = ONE_AT_A_TIME.lock().unwrap_or_else(|e| e.into_inner());
     let tmp = tempfile::tempdir().unwrap();
     let paths = DataPaths::at(tmp.path().join("data"));
     fs::create_dir_all(paths.local_library()).unwrap();

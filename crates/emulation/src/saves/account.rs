@@ -39,7 +39,10 @@ fn write_private(path: &Path, bytes: &[u8]) -> std::io::Result<()> {
     if let Some(dir) = path.parent() {
         fs::create_dir_all(dir)?;
     }
-    let tmp = path.with_extension("tmp");
+    // A name of its own per write: two writers never share a half-written tmp.
+    static TMP_N: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(0);
+    let n = TMP_N.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
+    let tmp = path.with_extension(format!("tmp-{}-{n}", std::process::id()));
     #[cfg(unix)]
     {
         use std::io::Write;
@@ -87,8 +90,17 @@ pub fn load_key(paths: &DataPaths) -> Result<Option<SecureKey>, String> {
     }
 }
 
+/// Making the key is a check and a write that must not interleave: two
+/// callers at once would each make a key, and the one that lost the write
+/// would sign in to a different, empty account.
+fn key_lock() -> &'static Mutex<()> {
+    static L: Mutex<()> = Mutex::new(());
+    &L
+}
+
 /// The key, made on the first call.
 pub fn ensure_key(paths: &DataPaths) -> Result<SecureKey, String> {
+    let _guard = key_lock().lock().unwrap_or_else(|e| e.into_inner());
     if let Some(key) = load_key(paths)? {
         return Ok(key);
     }
@@ -99,6 +111,7 @@ pub fn ensure_key(paths: &DataPaths) -> Result<SecureKey, String> {
 
 /// Makes `key` this PC's key, keeping the one it replaces as `saves-key.previous.json`.
 pub fn replace_key(paths: &DataPaths, key: &SecureKey) -> Result<(), String> {
+    let _guard = key_lock().lock().unwrap_or_else(|e| e.into_inner());
     let path = key_path(paths);
     if path.is_file() {
         fs::copy(&path, paths.root.join(PREVIOUS_FILE)).map_err(|e| e.to_string())?;

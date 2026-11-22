@@ -7,21 +7,21 @@
 //! Windows PC and the other way round, into whichever prefix, Steam library or
 //! user the game has on the PC that restores.
 
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use std::fs;
 use std::path::{Path, PathBuf};
 use std::time::SystemTime;
 
 use crate::manifest::{Game, Rule};
-use crate::snapshot::{escape_name, is_safe_path, unescape_name, LocalFile};
+use crate::snapshot::{escape_name, is_safe_path, unescape_name, LocalFile, USER_ID};
 
 /// Most files one game may list, and entries a walk looks at, so a rule that
 /// names a huge folder (the whole install, the home folder) cannot run away.
 pub const MAX_FILES: usize = 50_000;
 const MAX_WALK: usize = 200_000;
-
-/// The snapshot's stand-in for the account folder of Steam (`userdata/<id>`).
-const USER_ID: &str = "~storeUserId";
+/// How deep below its anchor a walk goes; the snapshot refuses deeper paths
+/// anyway, and a link loop would otherwise recurse until the walk limit.
+const MAX_DEPTH: usize = 64;
 
 /// The folders of a Windows user, on a Windows PC.
 #[derive(Debug, Clone, Default)]
@@ -196,6 +196,17 @@ fn mtime(p: &Path) -> SystemTime {
 struct Walk {
     seen: usize,
     out: Vec<(PathBuf, Vec<String>, Option<String>)>,
+    /// Canonical folders already walked: a link back to one would walk it
+    /// again, deeper each time.
+    dirs: HashSet<PathBuf>,
+}
+
+/// Entries of `dir` sorted by name, links last so a real folder is walked
+/// before a link to it (the real path is the one the snapshot keeps).
+fn entries(dir: &Path) -> Vec<fs::DirEntry> {
+    let mut entries: Vec<_> = fs::read_dir(dir).into_iter().flatten().flatten().collect();
+    entries.sort_by_key(|e| (e.file_type().map(|t| t.is_symlink()).unwrap_or(false), e.file_name()));
+    entries
 }
 
 /// Expands `segs` below `dir`: each entry is the file, its names relative to
@@ -219,7 +230,7 @@ fn expand(dir: &Path, rel: &[String], segs: &[(Seg, Option<String>)], ci: bool, 
             // A case-insensitive folder answers to any spelling: keep the real one.
             let real = if ci || cfg!(windows) { real_name(dir, &name) } else { None };
             let shown = real.or_else(|| p.file_name().map(|n| n.to_string_lossy().into_owned())).unwrap_or(name);
-            next(p, shown, uid, walk);
+            next(p, escape_name(&shown), uid, walk);
         }
         return;
     }
@@ -227,21 +238,21 @@ fn expand(dir: &Path, rel: &[String], segs: &[(Seg, Option<String>)], ci: bool, 
         Seg::Glob(pattern) => {
             let opts = glob::MatchOptions { case_sensitive: !ci, require_literal_separator: true, require_literal_leading_dot: false };
             let Ok(pat) = glob::Pattern::new(pattern) else { return };
-            let mut names: Vec<_> = fs::read_dir(dir).into_iter().flatten().flatten().collect();
-            names.sort_by_key(|e| e.file_name());
+            let names = entries(dir);
             for e in names {
                 walk.seen += 1;
                 let name = e.file_name().to_string_lossy().into_owned();
                 if pat.matches_with(&name, opts) {
-                    next(e.path(), name, uid.clone(), walk);
+                    next(e.path(), escape_name(&name), uid.clone(), walk);
                 }
             }
         }
         Seg::UserId => {
-            for e in fs::read_dir(dir).into_iter().flatten().flatten() {
+            for e in entries(dir) {
                 walk.seen += 1;
                 let name = e.file_name().to_string_lossy().into_owned();
                 if e.path().is_dir() && name.bytes().all(|b| b.is_ascii_digit()) && name != "0" {
+                    // The token stays bare: it is what `place` looks for.
                     next(e.path(), USER_ID.to_string(), Some(name), walk);
                 }
             }
@@ -250,21 +261,28 @@ fn expand(dir: &Path, rel: &[String], segs: &[(Seg, Option<String>)], ci: bool, 
     }
 }
 
-/// A file, or every file below a folder (no symlinks).
+/// A file, or every file below a folder. Links are followed (a save behind
+/// one is still a save); a link that loops or is broken finds nothing, and a
+/// folder is walked once however many links reach it.
 fn collect(path: &Path, rel: &[String], uid: Option<String>, walk: &mut Walk) {
     walk.seen += 1;
-    let Ok(md) = fs::symlink_metadata(path) else { return };
+    let Ok(md) = fs::metadata(path) else { return };
     if md.is_file() {
         walk.out.push((path.to_path_buf(), rel.to_vec(), uid));
     } else if md.is_dir() {
-        let mut entries: Vec<_> = fs::read_dir(path).into_iter().flatten().flatten().collect();
-        entries.sort_by_key(|e| e.file_name());
-        for e in entries {
+        if rel.len() >= MAX_DEPTH {
+            return;
+        }
+        let canon = fs::canonicalize(path).unwrap_or_else(|_| path.to_path_buf());
+        if !walk.dirs.insert(canon) {
+            return;
+        }
+        for e in entries(path) {
             if walk.seen > MAX_WALK || walk.out.len() >= MAX_FILES {
                 return;
             }
             let mut r = rel.to_vec();
-            r.push(e.file_name().to_string_lossy().into_owned());
+            r.push(escape_name(&e.file_name().to_string_lossy()));
             collect(&e.path(), &r, uid.clone(), walk);
         }
     }
@@ -276,21 +294,24 @@ pub const PREFIX_KEY: &str = "winPrefix";
 /// Folders of a prefix that only hold caches and temporary files.
 const PREFIX_SKIP: [&str; 8] = ["temp", "tmp", "cache", "gpucache", "shadercache", "dawncache", "crashpad", "crashdumps"];
 
-fn walk_prefix(dir: &Path, rel: &mut Vec<String>, out: &mut Vec<Found>, seen: &mut usize) {
-    let mut entries: Vec<_> = fs::read_dir(dir).into_iter().flatten().flatten().collect();
-    entries.sort_by_key(|e| e.file_name());
-    for e in entries {
+fn walk_prefix(dir: &Path, rel: &mut Vec<String>, out: &mut Vec<Found>, seen: &mut usize, dirs: &mut HashSet<PathBuf>) {
+    for e in entries(dir) {
         *seen += 1;
-        if *seen > MAX_WALK || out.len() >= MAX_FILES {
+        if *seen > MAX_WALK || out.len() >= MAX_FILES || rel.len() >= MAX_DEPTH {
             return;
         }
         let name = e.file_name().to_string_lossy().into_owned();
-        let Ok(md) = fs::symlink_metadata(e.path()) else { continue };
+        // Followed, not inspected: a file behind a link is still a file, and
+        // a folder is walked once however many links reach it.
+        let Ok(md) = fs::metadata(e.path()) else { continue };
         rel.push(escape_name(&name));
         if md.is_file() {
             out.push(Found { path: format!("{PREFIX_KEY}/{}", rel.join("/")), full: e.path() });
         } else if md.is_dir() && !PREFIX_SKIP.contains(&name.to_lowercase().as_str()) {
-            walk_prefix(&e.path(), rel, out, seen);
+            let canon = fs::canonicalize(e.path()).unwrap_or_else(|_| e.path());
+            if dirs.insert(canon) {
+                walk_prefix(&e.path(), rel, out, seen, dirs);
+            }
         }
         rel.pop();
     }
@@ -310,7 +331,9 @@ pub fn find_prefix(target: &Target) -> Vec<Found> {
     let users = prefix.join("drive_c/users");
     let user = users.join(target.user());
     let mut seen = 0;
-    walk_prefix(&user, &mut vec!["drive_c".into(), "users".into(), escape_name(target.user())], &mut out, &mut seen);
+    let mut dirs = HashSet::new();
+    dirs.insert(fs::canonicalize(&user).unwrap_or_else(|_| user.clone()));
+    walk_prefix(&user, &mut vec!["drive_c".into(), "users".into(), escape_name(target.user())], &mut out, &mut seen, &mut dirs);
     out
 }
 
@@ -344,13 +367,13 @@ fn find_rule(rule: &Rule, os: &str, target: &Target, out: &mut HashMap<String, (
     let Some(segs) = raw.iter().map(|s| segment(s, &user)).collect::<Option<Vec<_>>>() else { return };
     let ci = os == "windows" && !target.windows_host;
     for anchor in target.anchors(key) {
-        let mut walk = Walk { seen: 0, out: Vec::new() };
+        let mut walk = Walk { seen: 0, out: Vec::new(), dirs: HashSet::new() };
         expand(&anchor, &[], &segs, ci, None, &mut walk);
         for (full, names, uid) in walk.out {
-            let path = std::iter::once(key.to_string())
-                .chain(names.iter().map(|n| if n == USER_ID { n.clone() } else { escape_name(n) }))
-                .collect::<Vec<_>>()
-                .join("/");
+            // The names are final already: real ones escaped at the push, the
+            // account token bare — a real file of the token's name cannot be
+            // mistaken for it.
+            let path = std::iter::once(key.to_string()).chain(names).collect::<Vec<_>>().join("/");
             // Two accounts name the same snapshot path: both are kept apart until the newest is picked.
             out.entry(format!("{}\0{path}", uid.as_deref().unwrap_or(""))).or_insert((Found { path, full }, uid));
         }
@@ -390,15 +413,27 @@ pub fn place(path: &str, target: &Target) -> Result<PathBuf, Unplaced> {
     if anchors.is_empty() {
         return Err(Unplaced::NoFolder(key.to_string()));
     }
+    // The token is matched on the escaped name only: an escaped real file of
+    // the token's name unescapes to the same text and must stay a file.
     let mut converted: Vec<String> = Vec::with_capacity(rest.len());
+    let mut tokens: Vec<bool> = Vec::with_capacity(rest.len());
     for n in &rest {
-        converted.push(if *n == USER_ID { USER_ID.to_string() } else { plain_name(n).ok_or(Unplaced::Unsafe)? });
+        if *n == USER_ID {
+            converted.push(USER_ID.to_string());
+            tokens.push(true);
+        } else {
+            converted.push(plain_name(n).ok_or(Unplaced::Unsafe)?);
+            tokens.push(false);
+        }
     }
     // The anchor that already holds the first folder of the path, else the first.
     let anchor = anchors
         .iter()
         .find(|a| {
-            converted.first().is_some_and(|f| *f != USER_ID && child_ci(a, f).is_some() || *f == USER_ID && a.join("userdata").is_dir())
+            converted
+                .first()
+                .zip(tokens.first())
+                .is_some_and(|(f, tok)| !tok && child_ci(a, f).is_some() || *tok && a.join("userdata").is_dir())
         })
         .unwrap_or(&anchors[0]);
     // A prefix backed up under another Wine user goes into this PC's user folder.
@@ -407,7 +442,7 @@ pub fn place(path: &str, target: &Target) -> Result<PathBuf, Unplaced> {
     }
     let mut full = anchor.clone();
     for (i, name) in converted.iter().enumerate() {
-        if name == USER_ID {
+        if tokens[i] {
             let Some(id) = newest_account(&full) else { return Err(Unplaced::NoFolder(full.display().to_string())) };
             full.push(id);
         } else if i + 1 < converted.len() && target.windows_ok() && !target.windows_host {
@@ -643,5 +678,49 @@ G:
         let found = find(&g, &t);
         assert_eq!(found[0].path, "base/slot%3A 1.sav");
         assert_eq!(place(&found[0].path, &t).unwrap(), d.path().join("install/slot: 1.sav"));
+    }
+
+    #[test]
+    fn the_account_token_and_a_real_folder_of_its_name_stay_apart() {
+        let d = tempfile::tempdir().unwrap();
+        put(&d.path().join("root/userdata/~storeUserId/config.sav"), "mine");
+        put(&d.path().join("root/userdata/123456/config.sav"), "theirs");
+        let g = game(
+            r#"
+G:
+  files:
+    "<root>/userdata/<storeUserId>/config.sav": {}
+    "<root>/userdata/~storeUserId/config.sav": {}
+"#,
+        );
+        let t = Target { roots: vec![d.path().join("root")], ..Default::default() };
+        let mut paths: Vec<_> = find(&g, &t).into_iter().map(|f| f.path).collect();
+        paths.sort();
+        assert_eq!(paths, ["root/userdata/%7EstoreUserId/config.sav", "root/userdata/~storeUserId/config.sav"]);
+        // Each goes back where it came from: the token to the account, the
+        // escaped name to the real folder of that name.
+        assert_eq!(place("root/userdata/~storeUserId/config.sav", &t).unwrap(), d.path().join("root/userdata/123456/config.sav"));
+        assert_eq!(place("root/userdata/%7EstoreUserId/config.sav", &t).unwrap(), d.path().join("root/userdata/~storeUserId/config.sav"));
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn saves_behind_links_are_found_and_a_loop_ends() {
+        let d = tempfile::tempdir().unwrap();
+        let real = d.path().join("real");
+        put(&real.join("deep/s1.sav"), "1");
+        // The save folder itself is a link, a save file is a link, and a
+        // folder inside links back to the top.
+        std::os::unix::fs::symlink(&real, d.path().join("saves")).unwrap();
+        std::os::unix::fs::symlink(real.join("deep/s1.sav"), real.join("linked.sav")).unwrap();
+        std::os::unix::fs::symlink(d.path(), real.join("loop")).unwrap();
+        let g = game("G:\n  files:\n    \"<xdgData>/saves\": {}\n");
+        let mut t = linux_target(d.path());
+        t.xdg_data = Some(d.path().to_path_buf());
+        let found = find(&g, &t);
+        let paths: Vec<_> = found.iter().map(|f| f.path.as_str()).collect();
+        assert!(paths.contains(&"xdgData/saves/deep/s1.sav"), "{paths:?}");
+        assert!(paths.contains(&"xdgData/saves/linked.sav"), "{paths:?}");
+        assert!(paths.iter().all(|p| !p.contains("loop")), "a link loop does not recurse: {paths:?}");
     }
 }

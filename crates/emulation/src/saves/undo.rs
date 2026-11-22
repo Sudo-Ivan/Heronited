@@ -81,7 +81,15 @@ fn write_snapshot(dir: &Path, targets: &[String]) -> Result<Vec<UndoEntry>> {
         let src = Path::new(target);
         let stored = if src.is_file() {
             let name = i.to_string();
-            fs::copy(src, files.join(&name)).with_context(|| format!("copying {target}"))?;
+            let copy = files.join(&name);
+            fs::copy(src, &copy).with_context(|| format!("copying {target}"))?;
+            // `fs::copy` keeps the permissions but not the time, and a save's
+            // time is part of it.
+            if let Ok(m) = fs::metadata(src).and_then(|m| m.modified()) {
+                if let Ok(f) = fs::File::options().write(true).open(&copy) {
+                    drop(f.set_modified(m));
+                }
+            }
             Some(name)
         } else {
             None
@@ -127,7 +135,13 @@ pub fn undo(record: &UndoRecord) -> Result<usize> {
                 if let Some(parent) = target.parent() {
                     fs::create_dir_all(parent)?;
                 }
-                fs::copy(record.dir.join("files").join(name), target).with_context(|| format!("restoring {}", e.target))?;
+                let copy = record.dir.join("files").join(name);
+                fs::copy(&copy, target).with_context(|| format!("restoring {}", e.target))?;
+                if let Ok(m) = fs::metadata(&copy).and_then(|m| m.modified()) {
+                    if let Ok(f) = fs::File::options().write(true).open(target) {
+                        drop(f.set_modified(m));
+                    }
+                }
                 done += 1;
             }
             None if target.is_file() => {
@@ -177,6 +191,28 @@ mod tests {
         assert_eq!(fs::read_to_string(&old).unwrap(), "old");
         assert!(!new.exists());
         assert!(latest(&root, "app/1").is_none());
+    }
+
+    #[test]
+    #[cfg(unix)]
+    fn undo_keeps_the_time_of_the_file() {
+        let d = tempfile::tempdir().unwrap();
+        let root = d.path().join("undo");
+        let saves = d.path().join("saves");
+        fs::create_dir_all(&saves).unwrap();
+        let f = saves.join("slot.sav");
+        fs::write(&f, "old").unwrap();
+        let when = std::time::SystemTime::UNIX_EPOCH + std::time::Duration::from_secs(1_600_000_000);
+        fs::File::options().write(true).open(&f).unwrap().set_modified(when).unwrap();
+        let targets = vec![f.to_string_lossy().into_owned()];
+        snapshot(&root, "g", "G", "b", &targets).unwrap();
+
+        fs::write(&f, "restored").unwrap();
+        undo(&latest(&root, "g").unwrap()).unwrap();
+        let back = fs::metadata(&f).unwrap().modified().unwrap();
+        let diff = back.duration_since(when).map(|d| d.as_secs()).unwrap_or_else(|e| e.duration().as_secs());
+        assert!(diff < 2, "mtime is {back:?}, wanted {when:?}");
+        assert_eq!(fs::read_to_string(&f).unwrap(), "old");
     }
 
     #[test]

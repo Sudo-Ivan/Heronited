@@ -199,16 +199,11 @@ fn backup_inner(env: &SavesEnv, game: &SavesGame, reason: BackupReason) -> Resul
         return Ok(skipped("no-match", None, Some(error)));
     };
     let target = target_for(env, game);
-    let mut found = locations::find(entry, &target);
-    if found.is_empty() {
+    // Saves only: prefix data goes along when there are saves, never alone.
+    if locations::find(entry, &target).is_empty() {
         let error = tr!("No save files of {title} were found on this PC.", title = game.title).to_string();
         record_error(env.paths, &error);
         return Ok(skipped("no-saves", Some(entry.title.clone()), Some(error)));
-    }
-
-    // The prefix goes along with saves, never alone.
-    if cfg.prefix_backup {
-        found.extend(locations::find_prefix(&target));
     }
     let use_server = !cfg.server_off;
     let local_root = Some(cfg.local_folder.trim()).filter(|f| !f.is_empty()).map(std::path::PathBuf::from);
@@ -252,6 +247,12 @@ fn backup_inner(env: &SavesEnv, game: &SavesGame, reason: BackupReason) -> Resul
         }
     }
     let (files_n, bytes_n) = (prepared.files(), prepared.total_bytes);
+    // Files left out count whichever destination took the rest: the server's
+    // outcome only exists when there is one.
+    let left_out = prepared.skipped.iter().filter(|s| !matches!(s.reason, SkipReason::CaseCollision)).count();
+    if left_out > 0 {
+        log::warn!("{left_out} files of {} were left out of the backup", game.title);
+    }
     let mut server_out = None;
     if let Some(c) = conn.take() {
         let outcome = snapshot::push(&c.client, &c.me, &app, SLOT, prepared, &|_, _| {}).or_else(|e| {
@@ -264,10 +265,6 @@ fn backup_inner(env: &SavesEnv, game: &SavesGame, reason: BackupReason) -> Resul
             snapshot::push(&c.client, &c.me, &app, SLOT, again, &|_, _| {})
         })?;
         server_out = Some(outcome);
-    }
-    let left_out = server_out.as_ref().map_or(0, |o| o.skipped.iter().filter(|s| !matches!(s.reason, SkipReason::CaseCollision)).count());
-    if left_out > 0 {
-        log::warn!("{left_out} files of {} were left out of the backup", game.title);
     }
     let snapshot_id = server_out.as_ref().and_then(|o| o.snapshot.clone()).or(local_id.clone());
     if let Some(id) = &snapshot_id {

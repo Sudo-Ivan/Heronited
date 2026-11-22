@@ -28,6 +28,13 @@ const MAX_PATH_BYTES: usize = 1024;
 const MAX_NAME_BYTES: usize = 255;
 const MAX_DEPTH: usize = 64;
 
+/// The stand-in for the account folder of a store's user data
+/// (`userdata/<id>/...`): the snapshot path keeps the token instead of the
+/// id of this PC, and [`locations`](crate::locations) turns it back into
+/// whichever account is newest here. A real file of that name is escaped by
+/// [`escape_name`] so it cannot be taken for the token.
+pub const USER_ID: &str = "~storeUserId";
+
 /// A file to send: `path` is where it lives in the snapshot (`/` between
 /// names, each name already [`escape_name`]d), `full` where it is on this PC.
 #[derive(Debug, Clone)]
@@ -80,6 +87,11 @@ impl Prepared {
 /// name are written as `%XX`, so a file with such a name on Linux is still
 /// saved and comes back under its own name. [`unescape_name`] reverses it.
 pub fn escape_name(name: &str) -> String {
+    if name == USER_ID {
+        // The account token is written bare; a real file of that name must
+        // not look like it, so its tilde is escaped.
+        return name.replacen('~', "%7E", 1);
+    }
     let reserved = {
         let base = name.split('.').next().unwrap_or("").to_ascii_uppercase();
         matches!(base.as_str(), "CON" | "PRN" | "AUX" | "NUL")
@@ -302,9 +314,11 @@ pub fn file_matches(local: &Path, entry: &FileEntry) -> bool {
 }
 
 /// Whether two manifests hold the same bytes under the same paths (modes,
-/// times, labels and parents do not count).
+/// times, labels, parents and the encryption marker do not count — an
+/// encrypted head is never "the same" as a plain one, though).
 pub fn same_content(a: &Manifest, b: &Manifest) -> bool {
-    a.files.len() == b.files.len()
+    a.enc == b.enc
+        && a.files.len() == b.files.len()
         && a.files.iter().zip(&b.files).all(|(x, y)| x.path == y.path && x.size == y.size && x.chunks == y.chunks && x.inline == y.inline)
 }
 
@@ -353,68 +367,88 @@ pub fn push(client: &Client, me: &Me, app: &str, slot: &str, mut prepared: Prepa
             }
             Err(e) => return Err(e),
         };
-        let missing: HashSet<&str> = begun.missing.iter().map(String::as_str).collect();
-        let mut sizes: HashMap<&str, u64> = HashMap::new();
-        for f in &prepared.manifest.files {
-            for c in f.chunks.iter().flatten() {
-                if missing.contains(c.h.as_str()) {
-                    sizes.insert(&c.h, u64::from(c.n));
+        // Whatever happens from here on, the begun snapshot does not stay:
+        // an uncommitted one only holds space on the server until it expires.
+        match upload_and_commit(client, app, slot, head.as_deref(), &begun, &prepared, me, limit, progress, &mut outcome) {
+            Ok(()) => return Ok(outcome),
+            Err(e) => {
+                let _ = client.delete_snapshot(app, slot, &begun.id);
+                if e.is_conflict() {
+                    last_conflict = Some(e);
+                    continue;
                 }
+                return Err(e);
             }
-        }
-        // The server counts a small file by the length of its base64 text.
-        let inline: u64 = prepared.manifest.files.iter().filter_map(|f| f.inline.as_ref()).map(|i| i.len() as u64).sum();
-        let upload: u64 = sizes.values().sum();
-        outcome.uploaded = upload + inline;
-        let held = me.held();
-        if held + upload + inline > limit {
-            let _ = client.delete_snapshot(app, slot, &begun.id);
-            return Err(SavesError::local(tr!(
-                "Not enough space on the saves server: {used} MB of {limit} MB are used and this backup needs {need} MB more.",
-                used = held / 1_000_000,
-                limit = limit / 1_000_000,
-                need = (upload + inline) / 1_000_000
-            )));
-        }
-        let mut sent: HashSet<&str> = HashSet::new();
-        let mut done = 0u64;
-        progress(0, upload);
-        for (file, source) in prepared.manifest.files.iter().zip(&prepared.sources) {
-            let Some(chunks) = &file.chunks else { continue };
-            if !chunks.iter().any(|c| missing.contains(c.h.as_str()) && !sent.contains(c.h.as_str())) {
-                continue;
-            }
-            let mut f = fs::File::open(source)?;
-            let mut offset = 0u64;
-            for c in chunks {
-                if missing.contains(c.h.as_str()) && sent.insert(&c.h) {
-                    f.seek(SeekFrom::Start(offset))?;
-                    let mut buf = vec![0u8; c.n as usize];
-                    f.read_exact(&mut buf).map_err(|_| changed(&file.path))?;
-                    if sha256_hex(&buf) != c.h {
-                        let _ = client.delete_snapshot(app, slot, &begun.id);
-                        return Err(changed(&file.path));
-                    }
-                    client.put_chunk(app, slot, &begun.id, &c.h, &buf)?;
-                    done += u64::from(c.n);
-                    progress(done, upload);
-                }
-                offset += u64::from(c.n);
-            }
-        }
-        match client.commit(app, slot, &begun.id, head.as_deref()) {
-            Ok(id) => {
-                outcome.snapshot = Some(id);
-                return Ok(outcome);
-            }
-            Err(e) if e.is_conflict() => {
-                last_conflict = Some(e);
-                continue;
-            }
-            Err(e) => return Err(e),
         }
     }
     Err(last_conflict.unwrap_or_else(|| SavesError::local(tr!("Another device saved first."))))
+}
+
+/// The part of [`push`] after the snapshot was begun: quota check, chunk
+/// uploads and the commit. `Ok` means the snapshot is the new head
+/// (`outcome.snapshot` set); an error means nothing was committed.
+#[allow(clippy::too_many_arguments)]
+fn upload_and_commit(
+    client: &Client,
+    app: &str,
+    slot: &str,
+    head: Option<&str>,
+    begun: &crate::client::Begun,
+    prepared: &Prepared,
+    me: &Me,
+    limit: u64,
+    progress: &dyn Fn(u64, u64),
+    outcome: &mut PushOutcome,
+) -> Result<()> {
+    let missing: HashSet<&str> = begun.missing.iter().map(String::as_str).collect();
+    let mut sizes: HashMap<&str, u64> = HashMap::new();
+    for f in &prepared.manifest.files {
+        for c in f.chunks.iter().flatten() {
+            if missing.contains(c.h.as_str()) {
+                sizes.insert(&c.h, u64::from(c.n));
+            }
+        }
+    }
+    // The server counts a small file by the length of its base64 text.
+    let inline: u64 = prepared.manifest.files.iter().filter_map(|f| f.inline.as_ref()).map(|i| i.len() as u64).sum();
+    let upload: u64 = sizes.values().sum();
+    outcome.uploaded = upload + inline;
+    let held = me.held();
+    if held + upload + inline > limit {
+        return Err(SavesError::local(tr!(
+            "Not enough space on the saves server: {used} MB of {limit} MB are used and this backup needs {need} MB more.",
+            used = held / 1_000_000,
+            limit = limit / 1_000_000,
+            need = (upload + inline) / 1_000_000
+        )));
+    }
+    let mut sent: HashSet<&str> = HashSet::new();
+    let mut done = 0u64;
+    progress(0, upload);
+    for (file, source) in prepared.manifest.files.iter().zip(prepared.sources()) {
+        let Some(chunks) = &file.chunks else { continue };
+        if !chunks.iter().any(|c| missing.contains(c.h.as_str()) && !sent.contains(c.h.as_str())) {
+            continue;
+        }
+        let mut f = fs::File::open(source)?;
+        let mut offset = 0u64;
+        for c in chunks {
+            if missing.contains(c.h.as_str()) && sent.insert(&c.h) {
+                f.seek(SeekFrom::Start(offset))?;
+                let mut buf = vec![0u8; c.n as usize];
+                f.read_exact(&mut buf).map_err(|_| changed(&file.path))?;
+                if sha256_hex(&buf) != c.h {
+                    return Err(changed(&file.path));
+                }
+                client.put_chunk(app, slot, &begun.id, &c.h, &buf)?;
+                done += u64::from(c.n);
+                progress(done, upload);
+            }
+            offset += u64::from(c.n);
+        }
+    }
+    outcome.snapshot = Some(client.commit(app, slot, &begun.id, head)?);
+    Ok(())
 }
 
 pub(crate) fn changed(path: &str) -> SavesError {
@@ -447,6 +481,15 @@ mod tests {
         assert_eq!(escape_name("save.dat"), "save.dat");
         assert_eq!(escape_name("aux"), "%61ux");
         assert_eq!(escape_name("a:b"), "a%3Ab");
+    }
+
+    #[test]
+    fn a_file_named_like_the_account_token_is_escaped() {
+        // `~storeUserId` is the account token of a snapshot path; a real file
+        // of that name must not look like it.
+        assert_eq!(escape_name(USER_ID), "%7EstoreUserId");
+        assert_eq!(unescape_name("%7EstoreUserId"), USER_ID);
+        assert_eq!(escape_name("~other"), "~other");
     }
 
     #[test]
