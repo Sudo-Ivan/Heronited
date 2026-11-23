@@ -311,7 +311,7 @@
   "Remove {n} games": "Retirer {n} jeux",
   "Could not remove {n} game: {err}": "Impossible de retirer {n} jeu : {err}",
   "Could not remove {n} games: {err}": "Impossible de retirer {n} jeux : {err}",
-  "This desktop has no global shortcuts service": "Ce bureau n’a pas de service de raccourcis globaux",
+  "This desktop has no global shortcuts service. Install or enable a portal backend that supports global shortcuts.": "Ce bureau n’a pas de service de raccourcis globaux. Installez ou activez un backend de portail qui prend en charge les raccourcis globaux.",
   "The desktop refused the shortcut: it could not tell that Heronited asked for it": "Le bureau a refusé le raccourci : il n’a pas pu vérifier que la demande venait d’Heronited",
   "The shortcut was not approved in the desktop's dialog": "Le raccourci n’a pas été approuvé dans la boîte de dialogue du bureau",
   "The desktop did not answer in time (it may be asking for permission in a dialog)": "Le bureau n’a pas répondu à temps (une boîte de dialogue demande peut-être une autorisation)",

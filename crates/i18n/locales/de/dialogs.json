@@ -311,7 +311,7 @@
   "Remove {n} games": "{n} Spiele entfernen",
   "Could not remove {n} game: {err}": "{n} Spiel konnte nicht entfernt werden: {err}",
   "Could not remove {n} games: {err}": "{n} Spiele konnten nicht entfernt werden: {err}",
-  "This desktop has no global shortcuts service": "Diese Desktop-Umgebung hat keinen Dienst für globale Tastenkürzel",
+  "This desktop has no global shortcuts service. Install or enable a portal backend that supports global shortcuts.": "Diese Desktop-Umgebung hat keinen Dienst für globale Tastenkürzel. Installiere oder aktiviere ein Portal-Backend, das globale Tastenkürzel unterstützt.",
   "The desktop refused the shortcut: it could not tell that Heronited asked for it": "Die Desktop-Umgebung hat das Tastenkürzel abgelehnt: Sie konnte nicht erkennen, dass Heronited es angefordert hat",
   "The shortcut was not approved in the desktop's dialog": "Das Tastenkürzel wurde im Dialog der Desktop-Umgebung nicht bestätigt",
   "The desktop did not answer in time (it may be asking for permission in a dialog)": "Die Desktop-Umgebung hat nicht rechtzeitig geantwortet (vielleicht fragt sie in einem Dialog nach der Erlaubnis)",

@@ -114,6 +114,12 @@ fn start_hyprland(shared: &Arc<Shared>, spec: HotkeySpec, on_press: Arc<dyn Fn()
                     // Hyprland's reason first: that is the session's own way.
                     Box::new(move |r| on_ready(r.map(|_| ShortcutBackend::Portal).map_err(|_| e))),
                 ));
+                // `Drop` sets `stopped` before it takes this slot; if it ran
+                // between the check above and the store, take it back here
+                // (joining the portal thread outside the lock).
+                let stale = if shared.stopped.load(Ordering::SeqCst) { portal.take() } else { None };
+                drop(portal);
+                drop(stale);
             }
         }
     });

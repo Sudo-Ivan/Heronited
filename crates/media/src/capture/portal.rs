@@ -102,13 +102,76 @@ fn shortcut_error(error: &ashpd::Error) -> String {
     use ashpd::desktop::ResponseError;
     use ashpd::PortalError;
     match error {
-        ashpd::Error::PortalNotFound(_) => tr!("This desktop has no global shortcuts service").into(),
+        e if no_shortcuts_service(e) => {
+            tr!("This desktop has no global shortcuts service. Install or enable a portal backend that supports global shortcuts.").into()
+        }
         ashpd::Error::Portal(PortalError::NotAllowed(reason)) if is_missing_app_id(reason) => {
             tr!("The desktop refused the shortcut: it could not tell that Heronited asked for it").into()
         }
         ashpd::Error::Response(ResponseError::Cancelled) => tr!("The shortcut was not approved in the desktop's dialog").into(),
         other => other.to_string(),
     }
+}
+
+/// Whether the error means this desktop cannot do global shortcuts at all:
+/// no portal frontend, or one without the interface or a backend for it.
+/// Everything else (a refused bind, a cancelled dialog, a timeout) keeps the
+/// portal's own words.
+fn no_shortcuts_service(error: &ashpd::Error) -> bool {
+    match error {
+        ashpd::Error::PortalNotFound(_) => true,
+        ashpd::Error::Zbus(e) => zbus_no_shortcuts(e),
+        _ => false,
+    }
+}
+
+fn zbus_no_shortcuts(e: &zbus::Error) -> bool {
+    use zbus::fdo::Error as Fdo;
+    match e {
+        zbus::Error::InterfaceNotFound => true,
+        zbus::Error::FDO(fdo) => match &**fdo {
+            Fdo::UnknownInterface(_) | Fdo::UnknownMethod(_) | Fdo::UnknownObject(_) | Fdo::ServiceUnknown(_) | Fdo::NameHasNoOwner(_) => {
+                true
+            }
+            // The same reply ashpd maps to `PortalNotFound` when the details
+            // name the interface; the probe sees it raw.
+            Fdo::InvalidArgs(d) => missing_interface(d),
+            _ => false,
+        },
+        // Error names outside the D-Bus core set arrive as `MethodError`;
+        // the ones a portal without the interface or its backend answers.
+        zbus::Error::MethodError(name, detail, _) => {
+            matches!(
+                name.as_str(),
+                "org.freedesktop.portal.Error.NotFound"
+                    | "org.freedesktop.DBus.Error.UnknownInterface"
+                    | "org.freedesktop.DBus.Error.UnknownMethod"
+                    | "org.freedesktop.DBus.Error.ServiceUnknown"
+            ) || detail.as_deref().is_some_and(missing_interface)
+        }
+        _ => false,
+    }
+}
+
+/// The portal's "No such interface" reply, however it is phrased.
+fn missing_interface(detail: &str) -> bool {
+    detail.contains("org.freedesktop.portal.GlobalShortcuts") || detail.to_ascii_lowercase().contains("no such interface")
+}
+
+/// The `version` property of `org.freedesktop.portal.GlobalShortcuts` on the
+/// portal's object. ashpd reads it too but shrugs off every failure but one,
+/// so without this probe a missing interface only surfaces at `CreateSession`,
+/// further from the cause. `CacheProperties::No`: nothing to keep updated.
+async fn shortcuts_served(connection: &zbus::Connection) -> Result<(), ashpd::Error> {
+    let proxy = zbus::proxy::Builder::<zbus::Proxy>::new(connection)
+        .destination("org.freedesktop.portal.Desktop")
+        .path("/org/freedesktop/portal/desktop")
+        .interface("org.freedesktop.portal.GlobalShortcuts")
+        .cache_properties(zbus::proxy::CacheProperties::No)
+        .build()
+        .await?;
+    proxy.get_property::<u32>("version").await?;
+    Ok(())
 }
 
 /// The portal's "An app id is required".
@@ -195,6 +258,7 @@ async fn run(
     mut stop: futures_channel::oneshot::Receiver<()>,
 ) {
     let setup = async {
+        shortcuts_served(&connection).await?;
         let shortcuts = GlobalShortcuts::with_connection(connection).await?;
         let session = shortcuts.create_session(Default::default()).await?;
         Ok::<_, ashpd::Error>((shortcuts, session))
@@ -342,10 +406,22 @@ mod tests {
         assert_eq!(pollster::block_on(unless(async { 7 }, async_io::Timer::after(Duration::from_secs(30)))), Some(7));
     }
 
+    /// The `zbus::Error` a D-Bus error reply named `name`, with a text body,
+    /// becomes: core names land in `fdo::Error`, the rest in `MethodError`.
+    fn error_reply(name: &str) -> zbus::Error {
+        error_reply_with(name, "no backend")
+    }
+
+    fn error_reply_with(name: &str, body: &str) -> zbus::Error {
+        let serial = std::num::NonZeroU32::new(1).unwrap();
+        zbus::Message::error_for_serial(":1.1", serial, name).build(&body).unwrap().into()
+    }
+
     #[test]
     fn portal_refusals_are_explained() {
         use ashpd::desktop::ResponseError;
         use ashpd::PortalError;
+        let friendly = "This desktop has no global shortcuts service. Install or enable a portal backend that supports global shortcuts.";
         let missing = ashpd::Error::Portal(PortalError::NotAllowed("An app id is required".into()));
         assert_eq!(shortcut_error(&missing), "The desktop refused the shortcut: it could not tell that Heronited asked for it");
         // Another refusal keeps the portal's own words.
@@ -356,6 +432,74 @@ mod tests {
             "The shortcut was not approved in the desktop's dialog"
         );
         let name = zbus::names::OwnedInterfaceName::try_from("org.freedesktop.portal.GlobalShortcuts").unwrap();
-        assert_eq!(shortcut_error(&ashpd::Error::PortalNotFound(name)), "This desktop has no global shortcuts service");
+        assert_eq!(shortcut_error(&ashpd::Error::PortalNotFound(name)), friendly);
+    }
+
+    #[test]
+    fn a_desktop_without_shortcuts_is_explained() {
+        let friendly = "This desktop has no global shortcuts service. Install or enable a portal backend that supports global shortcuts.";
+        for e in [
+            ashpd::Error::Zbus(zbus::Error::InterfaceNotFound),
+            ashpd::Error::Zbus(error_reply("org.freedesktop.DBus.Error.UnknownInterface")),
+            ashpd::Error::Zbus(error_reply("org.freedesktop.DBus.Error.UnknownMethod")),
+            ashpd::Error::Zbus(error_reply("org.freedesktop.DBus.Error.UnknownObject")),
+            ashpd::Error::Zbus(error_reply("org.freedesktop.DBus.Error.ServiceUnknown")),
+            ashpd::Error::Zbus(error_reply("org.freedesktop.DBus.Error.NameHasNoOwner")),
+            ashpd::Error::Zbus(error_reply_with(
+                "org.freedesktop.DBus.Error.InvalidArgs",
+                "No such interface “org.freedesktop.portal.GlobalShortcuts”",
+            )),
+            ashpd::Error::Zbus(error_reply("org.freedesktop.portal.Error.NotFound")),
+        ] {
+            assert_eq!(shortcut_error(&e), friendly, "{e}");
+        }
+        // A failure that is not "no service" keeps the portal's own words.
+        let failed = ashpd::Error::Zbus(error_reply("org.freedesktop.portal.Error.Failed"));
+        assert!(shortcut_error(&failed).contains("Failed"), "{}", shortcut_error(&failed));
+    }
+
+    /// A private session bus with no portal on it: the probe must end in the
+    /// friendly error, not raw zbus text. Runs its own `dbus-daemon` and
+    /// points the process at it, so it runs alone (`--ignored`) and needs
+    /// `dbus-daemon` installed.
+    #[test]
+    #[ignore = "starts its own session bus"]
+    fn a_bus_without_the_portal_is_explained() {
+        use std::io::{BufRead, BufReader};
+        let mut daemon = match std::process::Command::new("dbus-daemon")
+            .args(["--session", "--nofork", "--print-address=1"])
+            .stdout(std::process::Stdio::piped())
+            .stderr(std::process::Stdio::null())
+            .spawn()
+        {
+            Ok(d) => d,
+            Err(e) => return eprintln!("dbus-daemon not installed, skipped: {e}"),
+        };
+        let stdout = daemon.stdout.take().unwrap();
+        let address = BufReader::new(stdout).lines().next().unwrap().unwrap();
+        let old = std::env::var_os("DBUS_SESSION_BUS_ADDRESS");
+        std::env::set_var("DBUS_SESSION_BUS_ADDRESS", &address);
+
+        let (tx, rx) = std::sync::mpsc::channel();
+        let mut shortcut = PortalShortcut::start(
+            None,
+            ("heronite-bus-test", "Heronited bus test"),
+            "CTRL+ALT+F12".into(),
+            Arc::new(|| {}),
+            Box::new(move |result| {
+                let _ = tx.send(result);
+            }),
+        );
+        let result = rx.recv_timeout(std::time::Duration::from_secs(30));
+        shortcut.stop();
+        match old {
+            Some(v) => std::env::set_var("DBUS_SESSION_BUS_ADDRESS", v),
+            None => std::env::remove_var("DBUS_SESSION_BUS_ADDRESS"),
+        }
+        let _ = daemon.kill();
+        let _ = daemon.wait();
+
+        let err = result.expect("the bus answers").expect_err("a bus without the portal refuses the shortcut");
+        assert!(err.contains("no global shortcuts service"), "{err}");
     }
 }
