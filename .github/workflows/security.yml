@@ -20,16 +20,20 @@ jobs:
   zizmor:
     name: zizmor (workflow lint)
     runs-on: ubuntu-24.04
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           persist-credentials: false
       - name: zizmor
         run: pipx run --spec zizmor==1.31.1 zizmor .github/workflows/
+      - name: Job timeouts
+        run: python3 scripts/check-workflow-timeouts.py
 
   audit:
     name: cargo audit (RustSec advisories)
     runs-on: ubuntu-24.04
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
