@@ -243,12 +243,11 @@ mod tests {
         // that has none, so the download is what is asked for.
         let old_path = std::env::var_os("PATH");
         std::env::set_var("PATH", dir.path().join("no-ffmpeg-on-path"));
-        let result = only_the_programs_asked_for_are_downloaded_inner(&paths);
+        only_the_programs_asked_for_are_downloaded_inner(&paths);
         match old_path {
             Some(p) => std::env::set_var("PATH", p),
             None => std::env::remove_var("PATH"),
         }
-        result
     }
 
     fn only_the_programs_asked_for_are_downloaded_inner(paths: &DataPaths) {
