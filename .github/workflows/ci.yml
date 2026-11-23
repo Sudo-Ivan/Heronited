@@ -3,9 +3,9 @@ name: CI
 on:
   push:
     branches: [main]
-    paths-ignore: ["**.md", "assets/screenshots/**", "docs/**", "licenses/**"]
+    paths-ignore: ["**.md", "assets/screenshots/**", "docs/**", "licenses/**", ".github/ISSUE_TEMPLATE/**", ".github/dependabot.yml"]
   pull_request:
-    paths-ignore: ["**.md", "assets/screenshots/**", "docs/**", "licenses/**"]
+    paths-ignore: ["**.md", "assets/screenshots/**", "docs/**", "licenses/**", ".github/ISSUE_TEMPLATE/**", ".github/dependabot.yml"]
 
 permissions:
   contents: read
@@ -16,6 +16,11 @@ concurrency:
 
 env:
   CARGO_TERM_COLOR: always
+  # CI builds once per job: incremental bookkeeping is pure overhead, and a
+  # retried crates.io fetch should not fail the run.
+  CARGO_INCREMENTAL: "0"
+  CARGO_NET_RETRY: "10"
+  RUST_BACKTRACE: short
   # No debug info in CI: faster builds and a smaller cache. Backtraces still
   # name the functions.
   CARGO_PROFILE_DEV_DEBUG: "0"
