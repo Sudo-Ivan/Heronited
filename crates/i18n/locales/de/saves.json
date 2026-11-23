@@ -103,5 +103,8 @@
   "Wine prefix data": "Wine-Prefix-Daten",
   "The registry and the user folder of the prefix. Restoring them also rolls back the settings of other programs installed there, so they are not picked for you.": "Die Registry und der Benutzerordner des Prefix. Beim Wiederherstellen werden auch die Einstellungen anderer dort installierter Programme zurückgesetzt, daher sind sie nicht vorausgewählt.",
   "Also back up the Wine prefix data": "Auch die Wine-Prefix-Daten sichern",
-  "The registry and user folder of a game's prefix go along with its saves. Restoring them is always your choice.": "Die Registry und der Benutzerordner des Prefix eines Spiels werden mit den Spielständen gesichert. Das Wiederherstellen entscheidest immer du."
+  "The registry and user folder of a game's prefix go along with its saves. Restoring them is always your choice.": "Die Registry und der Benutzerordner des Prefix eines Spiels werden mit den Spielständen gesichert. Das Wiederherstellen entscheidest immer du.",
+  "Heronited could not find this game's saves on this PC. If it keeps them in a folder of its own, choose that folder here.": "Heronited hat die Spielstand-Dateien dieses Spiels auf diesem PC nicht gefunden. Wenn das Spiel sie in einem eigenen Ordner ablegt, wähle ihn hier.",
+  "Saves folder: {file}": "Speicherstand-Ordner: {file}",
+  "The saves folder has to be a full path.": "Der Speicherstand-Ordner muss ein vollständiger Pfad sein."
 }

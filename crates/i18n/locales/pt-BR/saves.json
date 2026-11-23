@@ -103,5 +103,8 @@
   "Wine prefix data": "Dados do prefixo do Wine",
   "The registry and the user folder of the prefix. Restoring them also rolls back the settings of other programs installed there, so they are not picked for you.": "O registro e a pasta de usuário do prefixo. Restaurá-los também desfaz as configurações de outros programas instalados ali, por isso não vêm marcados.",
   "Also back up the Wine prefix data": "Fazer backup também dos dados do prefixo do Wine",
-  "The registry and user folder of a game's prefix go along with its saves. Restoring them is always your choice.": "O registro e a pasta de usuário do prefixo de um jogo vão junto com seus saves. Restaurá-los é sempre uma escolha sua."
+  "The registry and user folder of a game's prefix go along with its saves. Restoring them is always your choice.": "O registro e a pasta de usuário do prefixo de um jogo vão junto com seus saves. Restaurá-los é sempre uma escolha sua.",
+  "Heronited could not find this game's saves on this PC. If it keeps them in a folder of its own, choose that folder here.": "O Heronited não encontrou os arquivos de save deste jogo neste PC. Se o jogo os mantém em uma pasta própria, escolha essa pasta aqui.",
+  "Saves folder: {file}": "Pasta de saves: {file}",
+  "The saves folder has to be a full path.": "A pasta de saves precisa ser um caminho completo."
 }

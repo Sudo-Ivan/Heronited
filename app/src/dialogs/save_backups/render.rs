@@ -64,6 +64,9 @@ pub(super) fn short_path(path: &str, target: &Target) -> String {
     if let Some(rest) = target.roots.iter().find_map(|d| p.strip_prefix(d).ok()) {
         return tr!("Steam folder: {file}", file = shown(rest));
     }
+    if let Some(rest) = target.custom.as_ref().and_then(|d| p.strip_prefix(d).ok()) {
+        return tr!("Saves folder: {file}", file = shown(rest));
+    }
     path.to_string()
 }
 
@@ -352,7 +355,59 @@ impl SaveBackupsView {
             )
         });
 
-        div().flex().flex_col().child(target).child(caption(tr!("Backups"))).child(list).child(actions).children(undo).into_any_element()
+        div()
+            .flex()
+            .flex_col()
+            .child(target)
+            .child(self.render_folder(l, busy, cx))
+            .child(caption(tr!("Backups")))
+            .child(list)
+            .child(actions)
+            .children(undo)
+            .into_any_element()
+    }
+
+    /// The "Saves folder" row: the folder named by hand for this game, with
+    /// the picker and Clear; the hint shows while nothing holds its saves.
+    fn render_folder(&self, l: &Loaded, busy: bool, cx: &mut Context<Self>) -> AnyElement {
+        let current = l.target.custom.as_ref().map(|p| p.display().to_string());
+        let value = current.clone().unwrap_or_else(|| tr!("Automatic").to_string());
+        let mut card = card_box().py(px(12.)).gap(px(8.)).child(
+            div()
+                .flex()
+                .items_center()
+                .gap(px(12.))
+                .child(icon(Icon::Folder, px(16.), theme::text_muted()))
+                .child(
+                    div()
+                        .flex_1()
+                        .min_w_0()
+                        .flex()
+                        .flex_col()
+                        .child(div().text_size(px(13.)).text_color(theme::text_primary()).child(tr!("Saves folder")))
+                        .child(div().text_size(px(12.)).text_color(theme::text_dim()).truncate().child(value)),
+                )
+                .child(action_button(
+                    "sb-folder-choose",
+                    ButtonKind::Glass,
+                    tr!("Choose…"),
+                    !busy,
+                    cx.listener(|v, _, window, cx| v.pick_saves_folder(window, cx)),
+                ))
+                .child(action_button(
+                    "sb-folder-clear",
+                    ButtonKind::Ghost,
+                    tr!("Clear"),
+                    current.is_some() && !busy,
+                    cx.listener(|v, _, _, cx| v.clear_saves_folder(cx)),
+                )),
+        );
+        if l.saves_missing {
+            card = card.child(help_text(tr!(
+                "Heronited could not find this game's saves on this PC. If it keeps them in a folder of its own, choose that folder here."
+            )));
+        }
+        card.into_any_element()
     }
 
     /// `i` only names the elements; every action goes by the backup's id.

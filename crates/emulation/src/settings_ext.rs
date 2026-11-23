@@ -99,6 +99,26 @@ pub fn set_auto_backup(paths: &DataPaths, runner: &str, app_name: &str, on: bool
     write(paths, next)
 }
 
+/// Names the folder one game's saves are in (`None`/empty clears it), for
+/// games whose saves the rules cannot find.
+pub fn set_manual_saves_folder(paths: &DataPaths, runner: &str, app_name: &str, folder: Option<&str>) -> Result<()> {
+    let mut next = current(paths)?;
+    let key = heronite_data::models::game_key(runner, app_name);
+    let folder = folder.map(str::trim).filter(|f| !f.is_empty());
+    match folder {
+        Some(f) => {
+            if !std::path::Path::new(f).is_absolute() {
+                anyhow::bail!(heronite_i18n::tr!("The saves folder has to be a full path."));
+            }
+            next.manual_saves_folders.insert(key, f.to_string());
+        }
+        None => {
+            next.manual_saves_folders.shift_remove(&key);
+        }
+    }
+    write(paths, next)
+}
+
 /// Outcome of a save backup to record.
 #[derive(Debug, Clone, Default)]
 pub struct SavesRecord {
@@ -200,6 +220,26 @@ mod tests {
         let raw = json_store::read_value(&paths.collection_settings()).unwrap();
         assert!(raw["saves"].get("intervalMinutes").is_none(), "{raw}");
         assert_eq!(raw["greyUninstalledGames"], true);
+    }
+
+    #[test]
+    fn a_game_can_name_its_saves_folder() {
+        let (d, paths) = setup(r#"{"saves":{"enabled":true}}"#);
+        let folder = d.path().join("saves").to_string_lossy().into_owned();
+        let other = d.path().join("other").to_string_lossy().into_owned();
+        assert!(set_manual_saves_folder(&paths, "gog", "1", Some("relative/x")).is_err());
+        set_manual_saves_folder(&paths, "gog", "1", Some(&folder)).unwrap();
+        set_manual_saves_folder(&paths, "sideload", "2", Some(&other)).unwrap();
+        let s = settings::load(&paths).unwrap().saves;
+        assert_eq!(s.manual_saves_folder_for("gog", "1"), Some(folder.as_str()));
+        assert_eq!(s.manual_saves_folder_for("sideload", "2"), Some(other.as_str()));
+        assert_eq!(s.manual_saves_folder_for("gog", "2"), None);
+        set_manual_saves_folder(&paths, "gog", "1", None).unwrap();
+        let s = settings::load(&paths).unwrap().saves;
+        assert_eq!(s.manual_saves_folder_for("gog", "1"), None);
+        assert_eq!(s.manual_saves_folder_for("sideload", "2"), Some(other.as_str()), "other games keep theirs");
+        let raw = json_store::read_value(&paths.collection_settings()).unwrap();
+        assert!(raw["saves"]["manualSavesFolders"].get("gog:1").is_none(), "{raw}");
     }
 
     #[test]

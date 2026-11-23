@@ -211,6 +211,9 @@ pub fn target_for(env: &SavesEnv, game: &SavesGame) -> Target {
     if let Some(prefix) = &target.prefix {
         target.wine_user = crate::saves::wine_user(prefix, Some(&target.login)).or_else(|| Some("steamuser".into()));
     }
+    if let Ok(s) = heronite_data::settings::load(env.paths) {
+        target.custom = s.saves.manual_saves_folder_for(&game.runner, &game.app_name).map(PathBuf::from);
+    }
     let mut seen = Vec::new();
     target.roots.retain(|r| {
         r.is_dir()

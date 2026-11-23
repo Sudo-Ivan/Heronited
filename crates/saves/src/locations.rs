@@ -54,6 +54,9 @@ pub struct Target {
     pub win: WinDirs,
     /// The name of the user on this PC.
     pub login: String,
+    /// The folder the user named for this game's saves, when the rules find
+    /// none (`custom/` paths of a snapshot).
+    pub custom: Option<PathBuf>,
 }
 
 impl Target {
@@ -109,6 +112,7 @@ impl Target {
             "winPublic" => one(win().public),
             "winProgramData" => one(win().program_data),
             "winPrefix" if !self.windows_host => one(self.prefix.clone()),
+            "custom" => one(self.custom.clone()),
             _ => Vec::new(),
         }
     }
@@ -337,6 +341,52 @@ pub fn find_prefix(target: &Target) -> Vec<Found> {
     out
 }
 
+/// The first name of the paths [`find_custom`] gives.
+pub const CUSTOM_KEY: &str = "custom";
+
+/// The files below the folder the user named for this game
+/// ([`Target::custom`]), as `custom/<path>`: files only, and a link is
+/// followed only while it stays inside the folder. Empty when it is not set
+/// or cannot be read.
+pub fn find_custom(target: &Target) -> Vec<Found> {
+    let Some(folder) = target.custom.as_ref() else { return Vec::new() };
+    let Ok(root) = fs::canonicalize(folder) else { return Vec::new() };
+    if !root.is_dir() {
+        return Vec::new();
+    }
+    let mut out = Vec::new();
+    let mut seen = 0;
+    let mut dirs = HashSet::new();
+    dirs.insert(root.clone());
+    walk_custom(&root, &root, &mut Vec::new(), &mut out, &mut seen, &mut dirs);
+    out.sort_by(|a, b| a.path.cmp(&b.path));
+    out
+}
+
+/// [`walk_prefix`] for [`find_custom`]: every entry is resolved first and a
+/// link that leaves the folder finds nothing.
+fn walk_custom(root: &Path, dir: &Path, rel: &mut Vec<String>, out: &mut Vec<Found>, seen: &mut usize, dirs: &mut HashSet<PathBuf>) {
+    for e in entries(dir) {
+        *seen += 1;
+        if *seen > MAX_WALK || out.len() >= MAX_FILES || rel.len() >= MAX_DEPTH {
+            return;
+        }
+        let Ok(canon) = fs::canonicalize(e.path()) else { continue };
+        if !canon.starts_with(root) {
+            continue;
+        }
+        let Ok(md) = fs::metadata(&canon) else { continue };
+        let name = e.file_name().to_string_lossy().into_owned();
+        rel.push(escape_name(&name));
+        if md.is_file() {
+            out.push(Found { path: format!("{CUSTOM_KEY}/{}", rel.join("/")), full: canon });
+        } else if md.is_dir() && dirs.insert(canon.clone()) {
+            walk_custom(root, &canon, rel, out, seen, dirs);
+        }
+        rel.pop();
+    }
+}
+
 /// The save files of `game` on this PC, as the snapshot names them. Files
 /// of several account folders keep the newest account only.
 pub fn find(game: &Game, target: &Target) -> Vec<Found> {
@@ -454,7 +504,27 @@ pub fn place(path: &str, target: &Target) -> Result<PathBuf, Unplaced> {
     if !full.starts_with(anchor) {
         return Err(Unplaced::Unsafe);
     }
+    if link_escapes(&full, anchor) {
+        return Err(Unplaced::Unsafe);
+    }
     Ok(full)
+}
+
+/// Whether writing `full` can leave `anchor` through a link on the way: the
+/// deepest folder of `full` that exists, resolved, must sit inside the
+/// anchor resolved. Folders not there yet are made as real folders, and the
+/// file itself is not checked: a rename replaces a link of its name.
+fn link_escapes(full: &Path, anchor: &Path) -> bool {
+    let Ok(real_anchor) = fs::canonicalize(anchor) else { return false };
+    for dir in full.ancestors().skip(1) {
+        if !dir.starts_with(anchor) {
+            break;
+        }
+        if fs::symlink_metadata(dir).is_ok() {
+            return fs::canonicalize(dir).is_ok_and(|real| !real.starts_with(&real_anchor));
+        }
+    }
+    false
 }
 
 /// The newest change of a file in `path` or below it (a few levels, so a big
@@ -701,6 +771,71 @@ G:
         // escaped name to the real folder of that name.
         assert_eq!(place("root/userdata/~storeUserId/config.sav", &t).unwrap(), d.path().join("root/userdata/123456/config.sav"));
         assert_eq!(place("root/userdata/%7EstoreUserId/config.sav", &t).unwrap(), d.path().join("root/userdata/~storeUserId/config.sav"));
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn the_named_folder_is_found_and_restored_and_links_cannot_leave_it() {
+        let d = tempfile::tempdir().unwrap();
+        let saves = d.path().join("my saves");
+        put(&saves.join("slot1.sav"), "1");
+        put(&saves.join("deep/slot: 2.sav"), "2");
+        put(&saves.join("inner/real.sav"), "r");
+        // Links that leave the folder find nothing; links inside are followed
+        // (a file under its link's name, a folder once under its real name).
+        let outside = d.path().join("outside");
+        put(&outside.join("secret.sav"), "x");
+        std::os::unix::fs::symlink(&outside, saves.join("escape")).unwrap();
+        std::os::unix::fs::symlink(outside.join("secret.sav"), saves.join("linked.sav")).unwrap();
+        std::os::unix::fs::symlink(saves.join("slot1.sav"), saves.join("linked-inside.sav")).unwrap();
+        std::os::unix::fs::symlink(saves.join("inner"), saves.join("alias")).unwrap();
+        std::os::unix::fs::symlink(&saves, saves.join("loop")).unwrap();
+        let mut t = linux_target(d.path());
+        t.custom = Some(saves.clone());
+        let found = find_custom(&t);
+        let paths: Vec<_> = found.iter().map(|f| f.path.as_str()).collect();
+        assert_eq!(
+            paths,
+            ["custom/deep/slot%3A 2.sav", "custom/inner/real.sav", "custom/linked-inside.sav", "custom/slot1.sav"],
+            "{paths:?}"
+        );
+        // Every path goes back into the folder, escaped names included.
+        for f in &found {
+            let placed = place(&f.path, &t).unwrap();
+            assert_eq!(fs::canonicalize(&placed).unwrap(), f.full, "{}", f.path);
+        }
+        assert_eq!(place("custom/slot1.sav", &t).unwrap(), saves.join("slot1.sav"));
+        assert_eq!(place("custom/deep/slot%3A 2.sav", &t).unwrap(), saves.join("deep/slot: 2.sav"));
+        for bad in ["custom/../x", "custom/%2E%2E/x", "custom/a%2F..%2Fb", "custom//x", "custom"] {
+            assert!(place(bad, &t).is_err(), "{bad}");
+        }
+        // No folder named: nothing found, and its paths have no place.
+        let mut none = linux_target(d.path());
+        none.custom = None;
+        assert!(find_custom(&none).is_empty());
+        assert!(matches!(place("custom/slot1.sav", &none), Err(Unplaced::NoFolder(_))));
+        none.custom = Some(d.path().join("missing"));
+        assert!(find_custom(&none).is_empty());
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn a_link_inside_the_folder_cannot_carry_a_restore_out_of_it() {
+        let d = tempfile::tempdir().unwrap();
+        let saves = d.path().join("saves");
+        put(&saves.join("real.sav"), "r");
+        let outside = d.path().join("outside");
+        put(&outside.join("victim.sav"), "v");
+        std::os::unix::fs::symlink(&outside, saves.join("link")).unwrap();
+        let mut t = linux_target(d.path());
+        t.custom = Some(saves.clone());
+        assert!(place("custom/link/victim.sav", &t).is_err());
+        assert!(place("custom/link/deep/victim.sav", &t).is_err());
+        // The link's own name is replaced by the file, not written through.
+        assert_eq!(place("custom/link", &t).unwrap(), saves.join("link"));
+        assert_eq!(place("custom/real.sav", &t).unwrap(), saves.join("real.sav"));
+        // A folder not there yet cannot hold a link out.
+        assert_eq!(place("custom/new/deep.sav", &t).unwrap(), saves.join("new/deep.sav"));
     }
 
     #[cfg(unix)]

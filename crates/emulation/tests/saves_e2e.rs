@@ -9,6 +9,7 @@ use heronite_data::DataPaths;
 use heronite_emulation::saves::restore::{apply_restore, list_snapshots, plan_restore, Change};
 use heronite_emulation::saves::undo;
 use heronite_emulation::saves::{backup_for_game, BackupReason, SavesEnv, SavesGame};
+use heronite_emulation::settings_ext::set_manual_saves_folder;
 use heronite_launch::SystemProbe;
 use heronite_saves::manifest::{self, Game, Rule};
 
@@ -149,4 +150,67 @@ fn local_folder_backup_and_restore_without_a_server() {
     let plan = plan_restore(&env, &game, &listing.snapshots[1]).unwrap();
     assert!(apply_restore(&env, &plan, &paths.save_restore_undo(), &game.app_name).is_err());
     assert_eq!(fs::read_to_string(install.join("saves/a.sav")).unwrap(), "two");
+}
+
+#[test]
+fn a_folder_named_by_hand_carries_the_backup_when_the_rules_find_nothing() {
+    let _one = ONE_AT_A_TIME.lock().unwrap_or_else(|e| e.into_inner());
+    let tmp = tempfile::tempdir().unwrap();
+    let paths = DataPaths::at(tmp.path().join("data"));
+    fs::create_dir_all(paths.local_library()).unwrap();
+    let folder = tmp.path().join("my backups");
+    fs::write(
+        paths.collection_settings(),
+        format!(
+            r#"{{"saves":{{"enabled":true,"serverOff":true,"localFolder":{}}}}}"#,
+            serde_json::to_string(&folder.to_string_lossy()).unwrap()
+        ),
+    )
+    .unwrap();
+    let game_entry = Game {
+        title: "Manual Game".into(),
+        files: vec![Rule { path: "<base>/saves".into(), tags: "s".into(), when: vec![] }],
+        ..Default::default()
+    };
+    manifest::store(&manifest::dir(&paths.root), vec![game_entry], "").unwrap();
+    let install = tmp.path().join("install");
+    fs::create_dir_all(&install).unwrap();
+    let game = SavesGame {
+        app_name: "mg".into(),
+        title: "Manual Game".into(),
+        runner: "sideload".into(),
+        install_dir: Some(install.clone()),
+        ..Default::default()
+    };
+    let env = SavesEnv { paths: &paths, probe: &SystemProbe };
+
+    // The rules find nothing and no folder is named: skipped as no-saves.
+    let first = backup_for_game(&env, &game, BackupReason::Manual);
+    assert_eq!(first.skipped_reason.as_deref(), Some("no-saves"), "{first:?}");
+
+    // Naming the folder makes its files enough for a backup.
+    let custom = tmp.path().join("odd saves");
+    fs::create_dir_all(custom.join("sub")).unwrap();
+    fs::write(custom.join("slot1.sav"), "one").unwrap();
+    fs::write(custom.join("sub/slot2.sav"), "two").unwrap();
+    let custom_text = custom.to_string_lossy().into_owned();
+    set_manual_saves_folder(&paths, "sideload", "mg", Some(custom_text.as_str())).unwrap();
+    let second = backup_for_game(&env, &game, BackupReason::Manual);
+    assert!(second.ran && !second.unchanged && second.files == Some(2), "{second:?}");
+
+    // The backup holds them under `custom/` and they restore into the folder.
+    let listing = list_snapshots(&env, &game);
+    assert_eq!(listing.snapshots.len(), 1);
+    let plan = plan_restore(&env, &game, &listing.snapshots[0]).unwrap();
+    let in_plan: Vec<&str> = plan.files.iter().map(|f| f.path.as_str()).collect();
+    assert_eq!(in_plan, ["custom/slot1.sav", "custom/sub/slot2.sav"]);
+    for f in &plan.files {
+        let rest = f.path.trim_start_matches("custom/");
+        assert_eq!(f.target.as_deref(), Some(custom.join(rest).to_string_lossy().as_ref()));
+    }
+    fs::write(custom.join("slot1.sav"), "changed").unwrap();
+    let plan = plan_restore(&env, &game, &listing.snapshots[0]).unwrap();
+    let outcome = apply_restore(&env, &plan, &paths.save_restore_undo(), &game.app_name).unwrap();
+    assert_eq!(outcome.written, 1);
+    assert_eq!(fs::read_to_string(custom.join("slot1.sav")).unwrap(), "one");
 }

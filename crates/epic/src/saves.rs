@@ -127,6 +127,13 @@ pub(crate) fn detect_path_with(data_paths: &DataPaths, legendary: &Legendary, ap
     Ok(installed_save_path(data_paths, app_name))
 }
 
+/// Whether a typed saves path names an existing folder; legendary needs a
+/// directory, so anything else gets a hint before it is used.
+pub fn valid_save_dir(path: &str) -> bool {
+    let path = path.trim();
+    !path.is_empty() && std::path::Path::new(path).is_dir()
+}
+
 /// Whether the game supports cloud saves (the library's `cloud_save_enabled`).
 pub fn supported(data_paths: &DataPaths, app_name: &str) -> bool {
     let lib = json_store::read_value(&data_paths.legendary_library()).unwrap_or(Value::Null);
@@ -189,6 +196,18 @@ mod tests {
         let path = detect_path_with(&data_paths, &lg, "A").unwrap();
         assert_eq!(path.as_deref(), Some(r"C:\Users\x\AppData\Local\Game\Saved"));
         assert_eq!(tool.calls(), ["sync-saves A --skip-upload --skip-download --accept-path"]);
+    }
+
+    #[test]
+    fn save_dir_validation() {
+        assert!(valid_save_dir("/"));
+        let dir = tempfile::tempdir().unwrap();
+        assert!(valid_save_dir(dir.path().to_str().unwrap()));
+        let file = dir.path().join("f");
+        std::fs::write(&file, "x").unwrap();
+        assert!(!valid_save_dir(file.to_str().unwrap()));
+        assert!(!valid_save_dir(&dir.path().join("missing").to_string_lossy()));
+        assert!(!valid_save_dir("  "));
     }
 
     #[test]

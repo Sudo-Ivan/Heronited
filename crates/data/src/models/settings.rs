@@ -88,6 +88,10 @@ pub struct SavesSettings {
     /// backup; a backup by hand still runs.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub auto_backup_off: Vec<String>,
+    /// The folder a game's saves are in when the rules find none
+    /// (`runner:appName` -> folder).
+    #[serde(default, skip_serializing_if = "IndexMap::is_empty")]
+    pub manual_saves_folders: IndexMap<String, String>,
     /// Minutes between backups while a game runs, on top of the after-play
     /// one; `None` = only after play.
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -143,6 +147,12 @@ impl SavesSettings {
     /// Whether a session of this game ends with a backup.
     pub fn auto_backup_for(&self, runner: &str, app_name: &str) -> bool {
         self.enabled && !self.auto_backup_off.contains(&super::game_key(runner, app_name))
+    }
+
+    /// The folder the user named for this game's saves, when the rules find
+    /// none (`None` = not set).
+    pub fn manual_saves_folder_for(&self, runner: &str, app_name: &str) -> Option<&str> {
+        self.manual_saves_folders.get(&super::game_key(runner, app_name)).map(String::as_str).filter(|f| !f.is_empty())
     }
 
     /// Time between backups while this game runs, when it gets any.

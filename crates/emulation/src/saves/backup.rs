@@ -199,8 +199,11 @@ fn backup_inner(env: &SavesEnv, game: &SavesGame, reason: BackupReason) -> Resul
         return Ok(skipped("no-match", None, Some(error)));
     };
     let target = target_for(env, game);
+    let mut found = locations::find(entry, &target);
+    found.extend(locations::find_custom(&target));
+    found.sort_by(|a, b| a.path.cmp(&b.path));
     // Saves only: prefix data goes along when there are saves, never alone.
-    if locations::find(entry, &target).is_empty() {
+    if found.is_empty() {
         let error = tr!("No save files of {title} were found on this PC.", title = game.title).to_string();
         record_error(env.paths, &error);
         return Ok(skipped("no-saves", Some(entry.title.clone()), Some(error)));
@@ -215,7 +218,7 @@ fn backup_inner(env: &SavesEnv, game: &SavesGame, reason: BackupReason) -> Resul
     }
     let app = game.app_id();
     let files = || -> Vec<snapshot::LocalFile> {
-        let mut all = locations::find(entry, &target);
+        let mut all = found.clone();
         if cfg.prefix_backup {
             all.extend(locations::find_prefix(&target));
         }

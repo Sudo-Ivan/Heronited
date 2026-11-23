@@ -250,6 +250,7 @@ impl EffectiveSettings {
                 prefix_backup: saves.prefix_backup,
                 local_folder: saves.local_folder.trim().to_owned(),
                 auto_backup_off: saves.auto_backup_off,
+                manual_saves_folders: saves.manual_saves_folders,
                 interval_minutes: as_saves_interval(saves.interval_minutes),
                 last_backup_at: saves.last_backup_at,
                 last_backup_game: saves.last_backup_game,

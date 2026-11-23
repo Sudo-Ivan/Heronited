@@ -16,14 +16,16 @@ use heronite_emulation::saves::restore::{
     apply_restore, delete_snapshot, list_snapshots, plan_restore, FileKind, RestoreOutcome, RestorePlan,
 };
 use heronite_emulation::saves::undo::{self, UndoRecord};
-use heronite_emulation::saves::{backup_for_game, steam_game_running, target_for, BackupReason, SavesEnv, SavesGame};
+use heronite_emulation::saves::{backup_for_game, game_list, steam_game_running, target_for, BackupReason, SavesEnv, SavesGame};
+use heronite_emulation::settings_ext::set_manual_saves_folder;
 use heronite_i18n::tr;
 use heronite_launch::SystemProbe;
-use heronite_saves::locations::Target;
+use heronite_saves::locations::{self, Target};
 use heronite_saves::SnapshotInfo;
 
 use super::saves_backup::{describe, Outcome};
 use super::settings_panel::logic::{GameFacts, RunKind};
+use crate::ui::fields::choose_path;
 use render::{groups, Group};
 
 /// What the tab knows once loaded.
@@ -35,6 +37,9 @@ pub(crate) struct Loaded {
     snapshots: Vec<SnapshotInfo>,
     /// The copy of what the last restore replaced.
     undo: Option<UndoRecord>,
+    /// Nothing on this PC holds the game's saves: the rules find none and
+    /// the last backup found none either, so the folder row asks for one.
+    saves_missing: bool,
 }
 
 /// A previewed restore and its groups, summed up once (not on every frame).
@@ -246,7 +251,8 @@ impl SaveBackupsView {
                 let prefix_ok =
                     cfg!(windows) || target.prefix.is_some() || !(kind == RunKind::Wine || (kind == RunKind::Steam && !installed));
                 let undo = undo::latest(&env.paths.save_restore_undo(), &game.app_name);
-                Ok(Some((Loaded { target, prefix_ok, snapshots, undo }, listing.server_error)))
+                let saves_missing = missing_saves(env, &game, &target) || last_backup_found_no_saves(env, &game);
+                Ok(Some((Loaded { target, prefix_ok, snapshots, undo, saves_missing }, listing.server_error)))
             },
             move |v, result, cx| {
                 v.load = match result {
@@ -499,6 +505,56 @@ impl SaveBackupsView {
             },
         );
     }
+
+    /// The folder picker of the "Saves folder" row.
+    pub(crate) fn pick_saves_folder(&mut self, window: &mut Window, cx: &mut Context<Self>) {
+        choose_path(window, cx, true, tr!("Choose a folder"), move |v, path, _window, cx| {
+            v.set_saves_folder(Some(path), cx);
+        });
+    }
+
+    pub(crate) fn clear_saves_folder(&mut self, cx: &mut Context<Self>) {
+        self.set_saves_folder(None, cx);
+    }
+
+    /// Writes the per-game folder setting, then reads the tab again so the
+    /// folder, the restore targets and the missing-saves hint are fresh.
+    fn set_saves_folder(&mut self, folder: Option<String>, cx: &mut Context<Self>) {
+        let game = self.game.clone();
+        self.working = true;
+        self.notice = None;
+        cx.notify();
+        self.background(
+            cx,
+            move |env| set_manual_saves_folder(env.paths, &game.runner, &game.app_name, folder.as_deref()),
+            |v, result, cx| {
+                v.working = false;
+                match result {
+                    Ok(()) => v.reload(cx),
+                    Err(e) => v.notice = Some((format!("{e:#}"), true)),
+                }
+            },
+        );
+    }
+}
+
+/// Whether the game list knows the game but nothing on this PC holds its
+/// saves: the rules find none and no folder was named for it. `false` when
+/// the list cannot be read (the last-backup check still applies then).
+fn missing_saves(env: &SavesEnv, game: &SavesGame, target: &Target) -> bool {
+    let Ok(index) = game_list(env.paths) else { return false };
+    let names = game.names(env.paths);
+    let Some(entry) = index.find(game.steam_app_id.as_deref(), game.store_game_id.as_deref().filter(|_| game.runner == "gog"), &names)
+    else {
+        return false;
+    };
+    locations::find(entry, target).is_empty() && locations::find_custom(target).is_empty()
+}
+
+/// Whether the last backup attempt ended in "no save files found".
+fn last_backup_found_no_saves(env: &SavesEnv, game: &SavesGame) -> bool {
+    let found_none = tr!("No save files of {title} were found on this PC.", title = game.title);
+    heronite_data::settings::load(env.paths).ok().and_then(|s| s.saves.last_error).is_some_and(|e| e == found_none)
 }
 
 impl Render for SaveBackupsView {

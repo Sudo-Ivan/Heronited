@@ -46,6 +46,15 @@ impl SaveBackupsView {
 
         match &self.stage {
             Stage::List | Stage::Planning => {
+                let folder = l.target.custom.as_ref().map(|p| p.display().to_string()).unwrap_or_else(|| tr!("Automatic").to_string());
+                rows.push(Row::info("sb-folder", tr!("Saves folder"), folder));
+                if l.saves_missing {
+                    rows.push(Row::info(
+                        "sb-folder-hint",
+                        tr!("Heronited could not find this game's saves on this PC. If it keeps them in a folder of its own, choose that folder here."),
+                        "",
+                    ));
+                }
                 rows.push(Row::header(tr!("Backups")));
                 if l.snapshots.is_empty() {
                     rows.push(Row::info("sb-none", tr!("No backup of this game on the saves server yet."), ""));

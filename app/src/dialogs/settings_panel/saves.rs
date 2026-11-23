@@ -57,7 +57,10 @@ impl SettingsPanel {
                         this.set_input("savesPath", &path, window, cx);
                         this.set("savesPath", Value::String(path), cx);
                     }
-                    Ok(None) => {}
+                    Ok(None) => {
+                        this.notice =
+                            Some(Notice { text: tr!("No saves folder found for this game; choose it above.").into(), error: false })
+                    }
                     Err(err) => {
                         this.notice = Some(Notice {
                             text: tr!("Could not detect the saves folder: {error}", error = format!("{err:#}")).into(),
@@ -75,7 +78,8 @@ impl SettingsPanel {
 
     pub(super) fn sync_saves(&mut self, cx: &mut Context<Self>) {
         let Some(app) = self.facts().map(|f| f.app_name.clone()) else { return };
-        let path = self.text("savesPath");
+        self.commit("savesPath", cx);
+        let path = self.saves_path(cx);
         if path.is_empty() || self.saves.syncing {
             return;
         }
@@ -112,7 +116,8 @@ impl SettingsPanel {
         if !self.facts().is_some_and(|f| f.cloud_saves) {
             return column().child(hint(tr!("This game has no cloud saves.")));
         }
-        let has_path = !self.text("savesPath").is_empty();
+        let path = self.saves_path(cx);
+        let has_path = !path.is_empty();
         let mut col = column().child(hint(tr!("Cloud saves are in beta: back up your saves before syncing.")));
         if self.saves.detecting {
             return col.child(help(tr!("Trying to detect the correct save folder\u{2026}")).px(px(6.)));
@@ -133,6 +138,9 @@ impl SettingsPanel {
             notes.push(help(tr!(
                 "After changing the prefix, clear this path and detect it again: Proton uses /pfx and the user steamuser."
             )));
+        }
+        if has_path && !saves::valid_save_dir(&path) {
+            notes.push(danger_text(tr!("That path is not a folder on this PC.")));
         }
         let folder = rows()
             .field_help(self.path_row("savesPath", Some(tr!("Saves folder")), true, tr!("Choose the saves directory"), true, cx), notes);
@@ -207,6 +215,12 @@ impl SettingsPanel {
 }
 
 impl SettingsPanel {
+    /// The saves folder as the field shows it now; typed text counts before
+    /// it is committed to the settings.
+    pub(super) fn saves_path(&self, cx: &App) -> String {
+        self.input_text("savesPath", cx).trim().to_string()
+    }
+
     /// The game runs through Wine (its save folders are in a prefix).
     fn runs_in_wine(&self) -> bool {
         self.facts().is_some_and(|f| f.run_kind == super::logic::RunKind::Wine)

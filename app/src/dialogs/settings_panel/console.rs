@@ -678,7 +678,7 @@ impl SettingsPanel {
         if self.saves.detecting {
             return vec![Self::c_info("detecting", tr!("Saves folder"), tr!("Detecting\u{2026}"))];
         }
-        let has_path = !self.text("savesPath").is_empty();
+        let has_path = !self.saves_path(cx).is_empty();
         let mut v = vec![
             Self::c_header(tr!("Location (beta: back up your saves first)")),
             self.c_path("savesPath", tr!("Saves folder"), true, cx),
