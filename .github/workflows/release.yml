@@ -163,7 +163,7 @@ jobs:
     permissions:
       contents: read
       id-token: write # OIDC token for the SLSA provenance attestation
-      attestations: write
+      attestations: write # pushes the attestation to this repository
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
@@ -192,7 +192,7 @@ jobs:
     permissions:
       contents: read
       id-token: write # OIDC token for the SLSA provenance attestation
-      attestations: write
+      attestations: write # pushes the attestation to this repository
     outputs:
       signed: ${{ steps.cert.outputs.signed }}
     defaults:
@@ -278,7 +278,7 @@ jobs:
     permissions:
       contents: write # creates the GitHub release
       id-token: write # OIDC token for the SLSA provenance attestation
-      attestations: write
+      attestations: write # pushes the attestation to this repository
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
