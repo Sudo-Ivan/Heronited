@@ -239,18 +239,31 @@ mod tests {
     fn only_the_programs_asked_for_are_downloaded() {
         let dir = tempfile::tempdir().unwrap();
         let paths = DataPaths::at(dir.path().join("heronite"));
+        // An ffmpeg on this PC's PATH counts as installed: look with a PATH
+        // that has none, so the download is what is asked for.
+        let old_path = std::env::var_os("PATH");
+        std::env::set_var("PATH", dir.path().join("no-ffmpeg-on-path"));
+        let result = only_the_programs_asked_for_are_downloaded_inner(&paths);
+        match old_path {
+            Some(p) => std::env::set_var("PATH", p),
+            None => std::env::remove_var("PATH"),
+        }
+        result
+    }
+
+    fn only_the_programs_asked_for_are_downloaded_inner(paths: &DataPaths) {
         let Some(assets) = assets_for(std::env::consts::OS, std::env::consts::ARCH) else {
-            let err = ensure(&paths, &[Tool::Ffmpeg], &FakeNet::online(), &|| false).unwrap_err();
+            let err = ensure(paths, &[Tool::Ffmpeg], &FakeNet::online(), &|| false).unwrap_err();
             assert!(err.contains("not downloaded on"), "{err}");
             return;
         };
         // Not the release's bytes: refused, after asking for ffmpeg only.
         let url = download_url(assets[0].file);
         let net = FakeNet::online().with_file(&url, fake_bin(true));
-        let err = ensure(&paths, &[Tool::Ffmpeg], &net, &|| false).unwrap_err();
+        let err = ensure(paths, &[Tool::Ffmpeg], &net, &|| false).unwrap_err();
         assert!(err.contains("not the expected file"), "{err}");
         assert_eq!(net.requests(), [url]);
-        assert!(!ffmpeg::data_bin(&paths, Tool::Ffmpeg).exists());
+        assert!(!ffmpeg::data_bin(paths, Tool::Ffmpeg).exists());
     }
 
     #[test]
