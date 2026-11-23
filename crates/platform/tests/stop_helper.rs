@@ -5,6 +5,16 @@
 
 fn main() {
     heronite_platform::process::init_stop_helper();
+    // Runners list every test binary before running it; with no libtest
+    // harness, answer with one test so the listing parses. They ask twice:
+    // once for every test and once for only the ignored ones (none here).
+    let args: Vec<String> = std::env::args().collect();
+    if args.iter().any(|a| a == "--list") {
+        if !args.iter().any(|a| a == "--ignored") {
+            println!("stop_helper: test");
+        }
+        std::process::exit(0);
+    }
     #[cfg(windows)]
     windows::main();
 }
