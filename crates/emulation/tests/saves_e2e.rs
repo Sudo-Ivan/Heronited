@@ -4,6 +4,7 @@
 //! install folder, the key and the game list are all temporary.
 
 use std::fs;
+use std::path::Path;
 
 use heronite_data::DataPaths;
 use heronite_emulation::saves::restore::{apply_restore, list_snapshots, plan_restore, Change};
@@ -206,7 +207,8 @@ fn a_folder_named_by_hand_carries_the_backup_when_the_rules_find_nothing() {
     assert_eq!(in_plan, ["custom/slot1.sav", "custom/sub/slot2.sav"]);
     for f in &plan.files {
         let rest = f.path.trim_start_matches("custom/");
-        assert_eq!(f.target.as_deref(), Some(custom.join(rest).to_string_lossy().as_ref()));
+        // Paths compare by components, so `/` and `\` separators match.
+        assert_eq!(f.target.as_deref().map(Path::new), Some(custom.join(rest).as_path()));
     }
     fs::write(custom.join("slot1.sav"), "changed").unwrap();
     let plan = plan_restore(&env, &game, &listing.snapshots[0]).unwrap();
