@@ -16,6 +16,10 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: security-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   zizmor:
     name: zizmor (workflow lint)
@@ -39,7 +43,10 @@ jobs:
         with:
           persist-credentials: false
       - uses: dtolnay/rust-toolchain@39008827e6b4319a349e9a42dfc90579dd25f1ca # stable
+      # Prebuilt binary: `cargo install cargo-audit` compiled it from source
+      # on every run.
+      - uses: taiki-e/install-action@75a7c0f87bd666af3cdb75c5b9e9d03ab6044e6f # v2
+        with:
+          tool: cargo-audit
       - name: cargo audit
-        run: |
-          cargo install cargo-audit --locked
-          cargo audit
+        run: cargo audit
