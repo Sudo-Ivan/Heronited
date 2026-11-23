@@ -3920,7 +3920,6 @@ dependencies = [
  "heronite-platform",
  "log",
  "serde_json",
- "shlex 2.0.1",
  "tempfile",
 ]
 

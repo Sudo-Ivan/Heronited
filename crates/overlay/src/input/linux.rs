@@ -580,7 +580,7 @@ mod tests {
     #[test]
     #[ignore = "creates controllers through /dev/uinput"]
     fn steam_input_copy_is_read_once() {
-        let names = ["Heronite test DualSense", "Heronite test Steam pad", "Heronite test Steam Deck"];
+        let names = ["Heronited test DualSense", "Heronited test Steam pad", "Heronited test Steam Deck"];
         for (dualsense, steam, deck) in [(true, true, false), (true, false, false), (false, true, false), (false, true, true)] {
             let mut pads = Vec::new();
             if dualsense {

@@ -177,7 +177,7 @@ fn ensure_dummy_service_pinned(
     }
     if !net.is_online() {
         if DUMMY_FILES.iter().any(|f| dir.join(f).exists()) {
-            return Err("Comet's dummy service in Heronite's data folder is not the release Heronite expects, and there is no internet connection to download it again".into());
+            return Err("Comet's dummy service in Heronited's data folder is not the release Heronited expects, and there is no internet connection to download it again".into());
         }
         return Err("Comet's dummy service is not downloaded and there is no internet connection".into());
     }
@@ -394,7 +394,7 @@ mod tests {
         // Unpacked files that are not the pinned ones (changed since, or
         // unpacked before the pin) are not handed out: downloaded again.
         let err = ensure_dummy_service(&paths, &FakeNet::offline(), &|| false).unwrap_err();
-        assert!(err.contains("not the release Heronite expects") && err.contains("no internet"), "{err}");
+        assert!(err.contains("not the release Heronited expects") && err.contains("no internet"), "{err}");
         std::fs::write(got.join("update-permissions.exe"), b"changed").unwrap();
         ensure_dummy_service_pinned(&paths, &net, &|| false, &zip_pin, &pins).unwrap();
         assert_eq!(net.requests().len(), 2);

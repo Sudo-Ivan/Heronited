@@ -522,7 +522,7 @@ mod tests {
         let dir = tempfile::tempdir().unwrap();
         let sock = dir.path().join("s.sock");
 
-        // Another program now listens on the ephemeral port a dead Heronite
+        // Another program now listens on the ephemeral port a dead Heronited
         // left in its `.sock` file, and drops/resets unexpected connections
         // (the `os error 10054` failure reported after a forced restart).
         let unrelated = TcpListener::bind((Ipv4Addr::LOCALHOST, 0)).unwrap();

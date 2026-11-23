@@ -198,7 +198,7 @@ impl StoreTool {
 
     /// Whether `bin` is the pinned release asset for this system. Read from
     /// the disk, not through the [`Probe`]: only for the data folder's copy,
-    /// which Heronite wrote itself.
+    /// which Heronited wrote itself.
     fn is_pinned_release(&self, bin: &Path) -> bool {
         self.pinned_sha256().is_some_and(|pin| crate::legendary_install::sha256_of(bin).is_ok_and(|sum| sum == pin))
     }
@@ -269,7 +269,7 @@ impl StoreTool {
             }
             if stale {
                 return Err(format!(
-                    "the {} in Heronite's data folder is not the release Heronite expects, and there is no internet connection to download it again",
+                    "the {} in Heronited's data folder is not the release Heronited expects, and there is no internet connection to download it again",
                     self.name
                 ));
             }
@@ -462,7 +462,7 @@ pub(crate) mod tests {
         let probe = FakeProbe::default().with_path(data.to_str().unwrap());
 
         let err = tool.ensure(&paths, &probe, &FakeNet::offline(), &|| false).unwrap_err();
-        assert!(err.contains("not the release Heronite expects") && err.contains("no internet"), "{err}");
+        assert!(err.contains("not the release Heronited expects") && err.contains("no internet"), "{err}");
         assert_eq!(std::fs::read(&data).unwrap(), b"an older or changed nile", "kept for when the internet is back");
         // Offline, a nile on `PATH` does instead.
         let with_path = probe.clone().with_bin("nile", "/usr/bin/nile");
@@ -471,7 +471,7 @@ pub(crate) mod tests {
         // Not on `PATH` when that `PATH` holds the data folder.
         let through_path = probe.clone().with_bin("nile", data.to_str().unwrap());
         let err = tool.ensure(&paths, &through_path, &FakeNet::offline(), &|| false).unwrap_err();
-        assert!(err.contains("not the release Heronite expects"), "{err}");
+        assert!(err.contains("not the release Heronited expects"), "{err}");
 
         // A download that is not the pin either: the old copy stays, unused.
         let url = tool.download_url(tool.asset_name().unwrap());
