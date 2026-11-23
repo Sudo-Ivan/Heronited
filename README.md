@@ -28,6 +28,19 @@ Heronited brings your games from Steam, Epic Games, GOG, Amazon Games, Xbox and 
 
 Coming from Heroic, Lutris, Bottles, Faugus, or Playnite? Heronited imports your games from them.
 
+## Differences from upstream
+
+Heronited tracks [Heronite](https://github.com/RafaelGoulartB/Heronite) and picks up its fixes, but some parts are ours:
+
+- **Saves backups** go to a saves server (saves.quad4.io by default, or your own) or a local folder, in place of Ludusavi. Backups can include the game's Wine prefix data, and a game whose saves are not detected can be pointed at a folder by hand.
+- **GOG offline installers are kept as backups.** Windows GOG games install from GOG's own offline files, which stay in `~/Games/GOG Offline Installers` so a reinstall needs no download.
+- **The overlay draws over games on X11**, and a global shortcut explains itself when the desktop has no GlobalShortcuts portal instead of showing a raw D-Bus error.
+- **Secrets are sealed with the OS keyring** before they are stored.
+- **Packaging is ours:** AppImage, Flatpak, and the system packages under the app id `io.github.sudoivan.Heronited`. Upstream's COPR, Scoop, and Winget channels are not carried.
+- **CI and releases are hardened for this repository:** pinned actions, zizmor audits, minisign-signed updates.
+
+Upstream's larger feature work, like the console-mode redesign, is not pulled in yet. Bug fixes and small self-contained changes are cherry-picked as they land.
+
 ## Download
 
 <div align="center">

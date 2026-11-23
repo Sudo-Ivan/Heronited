@@ -1,13 +1,13 @@
 # Third-party notices
 
-Heronite is licensed under the [GNU General Public License v3.0](LICENSE). It includes or is derived from the third-party work listed below. The full license texts are in [`licenses/`](licenses/).
+Heronited is licensed under the [GNU General Public License v3.0](LICENSE). It includes or is derived from the third-party work listed below. The full license texts are in [`licenses/`](licenses/).
 
 ## Heroic Games Launcher
 
 - **Project:** [Heroic Games Launcher](https://github.com/Heroic-Games-Launcher/HeroicGamesLauncher)
 - **Copyright:** the Heroic Games Launcher contributors
 - **License:** GPL-3.0 ([`LICENSE`](LICENSE))
-- **Used in Heronite:** parts of the code are ported from Heroic. This includes the Epic Games integration through legendary, the Wine Manager, game settings, Steam shortcuts, and the data formats Heronite reads and writes.
+- **Used in Heronited:** parts of the code are ported from Heroic. This includes the Epic Games integration through legendary, the Wine Manager, game settings, Steam shortcuts, and the data formats Heronited reads and writes.
 
 ## Fonts
 
@@ -21,7 +21,7 @@ Heronite is licensed under the [GNU General Public License v3.0](LICENSE). It in
 
 | Icons | Files | Copyright | License |
 |---|---|---|---|
-| [Material Icons](https://github.com/google/material-design-icons), through [`@mui/icons-material`](https://github.com/mui/material-ui/tree/master/packages/mui-icons-material) | every `app/assets/icons/*.svg` with a `0 0 24 24` view box, except `brand-*`, and `moon`, `sun`, `sunrise`, `sunset`, and `emu-*` (the emulators' icons), which were drawn for Heronite (as were `play-circle`, `install-circle`, and `stop-circle`) | Google LLC (icons); Copyright (c) 2014 Call-Em-All (package) | Apache License 2.0 ([`licenses/Apache-2.0.txt`](licenses/Apache-2.0.txt)); MIT ([`licenses/MIT-mui-icons-material.txt`](licenses/MIT-mui-icons-material.txt)) |
+| [Material Icons](https://github.com/google/material-design-icons), through [`@mui/icons-material`](https://github.com/mui/material-ui/tree/master/packages/mui-icons-material) | every `app/assets/icons/*.svg` with a `0 0 24 24` view box, except `brand-*`, and `moon`, `sun`, `sunrise`, `sunset`, and `emu-*` (the emulators' icons), which were drawn for Heronited (as were `play-circle`, `install-circle`, and `stop-circle`) | Google LLC (icons); Copyright (c) 2014 Call-Em-All (package) | Apache License 2.0 ([`licenses/Apache-2.0.txt`](licenses/Apache-2.0.txt)); MIT ([`licenses/MIT-mui-icons-material.txt`](licenses/MIT-mui-icons-material.txt)) |
 | [Font Awesome Free](https://fontawesome.com) 6 | `app/assets/icons/fa-*.svg` | Copyright (c) 2024 Fonticons, Inc. | CC BY 4.0 ([`licenses/FontAwesome-Free.txt`](licenses/FontAwesome-Free.txt)) |
 | [Simple Icons](https://simpleicons.org) 16.36.0 | `app/assets/icons/brand-*.svg` (the logos of the stores, of the sites the Links section opens, Dolphin and RetroArch, path data unchanged) | the Simple Icons contributors; the logos are trademarks of their owners | CC0 1.0 ([`licenses/CC0-1.0-simple-icons.txt`](licenses/CC0-1.0-simple-icons.txt)) |
 
@@ -58,7 +58,7 @@ The Windows build links this library statically into `heronite.exe`; it reads ga
 
 ## Rust crates
 
-The Rust crates Heronite depends on are listed in [`Cargo.lock`](Cargo.lock). Each one is distributed under its own license, mostly MIT and/or Apache-2.0. To list them all with their license texts, run [`cargo about`](https://github.com/EmbarkStudios/cargo-about) or [`cargo license`](https://github.com/onur/cargo-license).
+The Rust crates Heronited depends on are listed in [`Cargo.lock`](Cargo.lock). Each one is distributed under its own license, mostly MIT and/or Apache-2.0. To list them all with their license texts, run [`cargo about`](https://github.com/EmbarkStudios/cargo-about) or [`cargo license`](https://github.com/onur/cargo-license).
 
 `vendor/gpui-pre-linux/` is a copy of the [`gpui-pre-linux`](https://crates.io/crates/gpui-pre-linux) 0.3.8 crate (GPUI's Linux platform from [Zed](https://github.com/zed-industries/zed), Copyright Zed Industries, Inc.), under the Apache License 2.0 ([`licenses/Apache-2.0.txt`](licenses/Apache-2.0.txt), also in the folder). It is modified: `vendor/gpui-pre-linux/PATCHES.md` lists the changes.
 
@@ -66,7 +66,7 @@ The Rust crates Heronite depends on are listed in [`Cargo.lock`](Cargo.lock). Ea
 
 ## External tools
 
-Heronite runs these programs if they are installed. It does not include them:
+Heronited runs these programs if they are installed. It does not include them:
 
 - [legendary](https://github.com/derrod/legendary) (GPL-3.0) for Epic Games
 - [Comet](https://github.com/imLinguin/comet) (GPL-3.0) for the achievements of GOG games, with its dummy `GalaxyCommunication` service, downloaded from its GitHub releases when a GOG game first needs it
