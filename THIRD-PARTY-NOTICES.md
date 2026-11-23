@@ -76,6 +76,7 @@ The Rust crates Heronited depends on are listed in [`Cargo.lock`](Cargo.lock). E
 Heronited runs these programs if they are installed. It does not include them:
 
 - [legendary](https://github.com/derrod/legendary) (GPL-3.0) for Epic Games
+- [heroic-epic-integration](https://github.com/BananaWorks07/heroic-epic-integration) (MIT) for the dummy `EpicGamesLauncher.exe` wrapper used by Epic games with `USE_FAKE_EPIC_EXE`, downloaded from its GitHub releases when a game needs it
 - [Comet](https://github.com/imLinguin/comet) (GPL-3.0) for the achievements of GOG games, with its dummy `GalaxyCommunication` service, downloaded from its GitHub releases when a GOG game first needs it
 - [Ludusavi manifest](https://github.com/mtkennerly/ludusavi-manifest) (MIT), the list of games and where they keep saves, downloaded on demand and not bundled
 - [rclone](https://github.com/rclone/rclone) (MIT) for the cloud accounts of Settings → Cloud, downloaded from rclone's site when it is not installed
