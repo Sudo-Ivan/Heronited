@@ -544,5 +544,12 @@
   "Choose where GOG's offline installers are kept": "Wähle, wo GOGs Offline-Installer aufbewahrt werden",
   "One folder per game, with its installers.json. Empty keeps ~/Games/GOG Offline Installers.": "Ein Ordner pro Spiel, mit seiner installers.json. Leer behält ~/Games/GOG Offline Installers bei.",
   "Keep GOG offline installers": "GOG-Offline-Installer behalten",
-  "GOG offline installers folder": "Ordner für GOG-Offline-Installer"
+  "GOG offline installers folder": "Ordner für GOG-Offline-Installer",
+  "Open the window on": "Fenster öffnen auf",
+  "Where it was left": "Wo es zuletzt war",
+  "Screen {n}": "Bildschirm {n}",
+  "Screen {n} (main)": "Bildschirm {n} (Hauptbildschirm)",
+  "Applies the next time the window opens. Screens are numbered from left to right. If the screen is not connected, the window opens where it was left.": "Gilt ab dem nächsten Öffnen des Fensters. Die Bildschirme sind von links nach rechts nummeriert. Ist der Bildschirm nicht angeschlossen, öffnet sich das Fenster dort, wo es zuletzt war.",
+  "Applies the next time the window opens.": "Gilt ab dem nächsten Öffnen des Fensters.",
+  "A screen that is not connected": "Ein Bildschirm, der nicht angeschlossen ist"
 }
