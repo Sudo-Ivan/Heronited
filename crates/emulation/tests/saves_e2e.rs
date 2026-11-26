@@ -216,3 +216,97 @@ fn a_folder_named_by_hand_carries_the_backup_when_the_rules_find_nothing() {
     assert_eq!(outcome.written, 1);
     assert_eq!(fs::read_to_string(custom.join("slot1.sav")).unwrap(), "one");
 }
+
+#[test]
+fn a_folder_named_by_hand_is_enough_when_the_game_is_not_in_the_list() {
+    let _one = ONE_AT_A_TIME.lock().unwrap_or_else(|e| e.into_inner());
+    let tmp = tempfile::tempdir().unwrap();
+    let paths = DataPaths::at(tmp.path().join("data"));
+    fs::create_dir_all(paths.local_library()).unwrap();
+    let folder = tmp.path().join("my backups");
+    fs::write(
+        paths.collection_settings(),
+        format!(
+            r#"{{"saves":{{"enabled":true,"serverOff":true,"localFolder":{}}}}}"#,
+            serde_json::to_string(&folder.to_string_lossy()).unwrap()
+        ),
+    )
+    .unwrap();
+    manifest::store(&manifest::dir(&paths.root), vec![], "").unwrap();
+    let custom = tmp.path().join("unlisted saves");
+    fs::create_dir_all(custom.join("sub")).unwrap();
+    fs::write(custom.join("slot1.sav"), "one").unwrap();
+    fs::write(custom.join("sub/slot2.sav"), "two").unwrap();
+    let custom_text = custom.to_string_lossy().into_owned();
+    set_manual_saves_folder(&paths, "sideload", "unlisted", Some(custom_text.as_str())).unwrap();
+    let game = SavesGame { app_name: "unlisted".into(), title: "Unlisted Game".into(), runner: "sideload".into(), ..Default::default() };
+    let env = SavesEnv { paths: &paths, probe: &SystemProbe };
+
+    let backup = backup_for_game(&env, &game, BackupReason::Manual);
+    assert!(backup.ran && backup.files == Some(2), "{backup:?}");
+    assert_eq!(backup.game_name.as_deref(), Some("Unlisted Game"));
+    let listing = list_snapshots(&env, &game);
+    assert_eq!(listing.snapshots.len(), 1);
+    let plan = plan_restore(&env, &game, &listing.snapshots[0]).unwrap();
+    let in_plan: Vec<&str> = plan.files.iter().map(|f| f.path.as_str()).collect();
+    assert_eq!(in_plan, ["custom/slot1.sav", "custom/sub/slot2.sav"]);
+
+    // The named folder still carries the backup when the list itself cannot be read.
+    fs::remove_dir_all(manifest::dir(&paths.root)).unwrap();
+    fs::write(manifest::dir(&paths.root), "not a folder").unwrap();
+    fs::write(custom.join("slot1.sav"), "changed").unwrap();
+    let without_list = backup_for_game(&env, &game, BackupReason::Manual);
+    assert!(without_list.ran && !without_list.unchanged && without_list.files == Some(2), "{without_list:?}");
+}
+
+#[cfg(unix)]
+#[test]
+fn prefix_data_never_makes_a_backup_when_the_saves_cannot_be_read() {
+    let _one = ONE_AT_A_TIME.lock().unwrap_or_else(|e| e.into_inner());
+    let tmp = tempfile::tempdir().unwrap();
+    let paths = DataPaths::at(tmp.path().join("data"));
+    fs::create_dir_all(paths.local_library()).unwrap();
+    fs::create_dir_all(paths.games_config_dir()).unwrap();
+    let folder = tmp.path().join("my backups");
+    fs::write(
+        paths.collection_settings(),
+        format!(
+            r#"{{"saves":{{"enabled":true,"serverOff":true,"prefixBackup":true,"localFolder":{}}}}}"#,
+            serde_json::to_string(&folder.to_string_lossy()).unwrap()
+        ),
+    )
+    .unwrap();
+    let game_entry = Game {
+        title: "Prefix Game".into(),
+        files: vec![Rule { path: "<base>/saves".into(), tags: "s".into(), when: vec![] }],
+        ..Default::default()
+    };
+    manifest::store(&manifest::dir(&paths.root), vec![game_entry], "").unwrap();
+
+    let install = tmp.path().join("install");
+    fs::create_dir_all(install.join("saves")).unwrap();
+    let too_big = fs::File::create(install.join("saves/slot.sav")).unwrap();
+    too_big.set_len(heronite_saves::Me::default().effective_limits().max_file_bytes + 1).unwrap();
+
+    let prefix = tmp.path().join("prefix");
+    fs::create_dir_all(prefix.join("drive_c/users/steamuser")).unwrap();
+    fs::write(prefix.join("user.reg"), "registry").unwrap();
+    fs::write(
+        paths.game_config("px"),
+        format!(r#"{{"px":{{"winePrefix":{}}},"version":"v0"}}"#, serde_json::to_string(&prefix.to_string_lossy()).unwrap()),
+    )
+    .unwrap();
+
+    let game = SavesGame {
+        app_name: "px".into(),
+        title: "Prefix Game".into(),
+        runner: "sideload".into(),
+        install_dir: Some(install),
+        ..Default::default()
+    };
+    let env = SavesEnv { paths: &paths, probe: &SystemProbe };
+    let backup = backup_for_game(&env, &game, BackupReason::Manual);
+    assert_eq!(backup.skipped_reason.as_deref(), Some("no-saves"), "{backup:?}");
+    assert!(!backup.ran);
+    assert!(list_snapshots(&env, &game).snapshots.is_empty());
+}

@@ -185,7 +185,7 @@ pub fn prepare(files: Vec<LocalFile>, limits: &Limits, device: &str, label: &str
             skipped.push(skip(SkipReason::CaseCollision));
             continue;
         }
-        let md = match fs::symlink_metadata(&f.full) {
+        let md = match fs::metadata(&f.full) {
             Ok(md) if md.is_file() => md,
             Ok(_) => continue,
             Err(e) => {
@@ -521,6 +521,21 @@ mod tests {
         assert_eq!(chunks[0].h, sha256_hex(&big[..1 << 20]));
         assert_eq!(p.manifest.files[1].inline.as_deref(), Some("aGVsbG8="));
         assert_eq!(p.total_bytes, big.len() as u64 + 5);
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn files_behind_links_are_read() {
+        let d = tempfile::tempdir().unwrap();
+        let real = d.path().join("real/save.dat");
+        std::fs::create_dir_all(real.parent().unwrap()).unwrap();
+        std::fs::write(&real, b"hello").unwrap();
+        let link = d.path().join("save-link.dat");
+        std::os::unix::fs::symlink(&real, &link).unwrap();
+        let p = prepare(vec![LocalFile { path: "save-link.dat".into(), full: link }], &limits(), "pc", "", None).unwrap();
+        assert_eq!(p.files(), 1);
+        assert_eq!(p.manifest.files[0].inline.as_deref(), Some("aGVsbG8="));
+        assert!(p.skipped.is_empty());
     }
 
     #[test]

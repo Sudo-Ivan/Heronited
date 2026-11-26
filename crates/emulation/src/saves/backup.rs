@@ -190,23 +190,34 @@ fn backup_inner(env: &SavesEnv, game: &SavesGame, reason: BackupReason) -> Resul
         log::info!("saves auto backup is off for {}", game.title);
         return Ok(skipped("off-for-game", None, None));
     }
-    let index = game_list(env.paths)?;
-    let names = game.names(env.paths);
-    let Some(entry) = index.find(game.steam_app_id.as_deref(), game.store_game_id.as_deref().filter(|_| game.runner == "gog"), &names)
-    else {
+    let target = target_for(env, game);
+    let custom_found = locations::find_custom(&target);
+    let listed = match game_list(env.paths) {
+        Ok(index) => {
+            let names = game.names(env.paths);
+            index
+                .find(game.steam_app_id.as_deref(), game.store_game_id.as_deref().filter(|_| game.runner == "gog"), &names)
+                .map(|entry| (entry.title.clone(), locations::find(entry, &target)))
+        }
+        Err(e) if target.custom.is_none() => return Err(e),
+        Err(e) => {
+            log::warn!("the game list could not be read, so only the saves folder named for {} is backed up: {e}", game.title);
+            None
+        }
+    };
+    if listed.is_none() && target.custom.is_none() {
         let error = tr!("{title} is not in the game list, so its saves cannot be found.", title = game.title).to_string();
         record_error(env.paths, &error);
         return Ok(skipped("no-match", None, Some(error)));
-    };
-    let target = target_for(env, game);
-    let mut found = locations::find(entry, &target);
-    found.extend(locations::find_custom(&target));
+    }
+    let (entry_title, mut found) = listed.unwrap_or_else(|| (game.title.clone(), Vec::new()));
+    found.extend(custom_found);
     found.sort_by(|a, b| a.path.cmp(&b.path));
     // Saves only: prefix data goes along when there are saves, never alone.
     if found.is_empty() {
         let error = tr!("No save files of {title} were found on this PC.", title = game.title).to_string();
         record_error(env.paths, &error);
-        return Ok(skipped("no-saves", Some(entry.title.clone()), Some(error)));
+        return Ok(skipped("no-saves", Some(entry_title.clone()), Some(error)));
     }
     let use_server = !cfg.server_off;
     let local_root = Some(cfg.local_folder.trim()).filter(|f| !f.is_empty()).map(std::path::PathBuf::from);
@@ -229,17 +240,18 @@ fn backup_inner(env: &SavesEnv, game: &SavesGame, reason: BackupReason) -> Resul
         c.as_ref().map_or_else(|| heronite_saves::Me::default().effective_limits(), |c| c.me.effective_limits())
     };
     let prepared = snapshot::prepare(files(), &limits(&conn), &device(), reason.label(), None)?;
-    if prepared.files() == 0 {
+    let a_save_was_read = prepared.manifest.files.iter().any(|f| f.path.split('/').next() != Some(locations::PREFIX_KEY));
+    if !a_save_was_read {
         let error = tr!("No save file of {title} could be read.", title = game.title).to_string();
         record_error(env.paths, &error);
-        return Ok(skipped("no-saves", Some(entry.title.clone()), Some(error)));
+        return Ok(skipped("no-saves", Some(entry_title.clone()), Some(error)));
     }
     let at = iso_now();
     let mut local_path = None;
     let mut local_id = None;
     if let Some(root) = &local_root {
         let stamp = chrono::Utc::now().format("%Y%m%dT%H%M%S%3fZ").to_string();
-        match heronite_saves::local::write(root, &app, &entry.title, &device(), &stamp, &at, &prepared) {
+        match heronite_saves::local::write(root, &app, &entry_title, &device(), &stamp, &at, &prepared) {
             Ok(made) => {
                 local_path = Some(heronite_saves::local::app_dir(root, &app).to_string_lossy().into_owned());
                 local_id = made.map(|b| format!("local:{}", b.id));
@@ -275,16 +287,16 @@ fn backup_inner(env: &SavesEnv, game: &SavesGame, reason: BackupReason) -> Resul
             env.paths,
             &game.runner,
             &game.app_name,
-            GameNote { at: at.clone(), name: entry.title.clone(), app: app.clone(), snapshot: id.clone(), files: files_n, bytes: bytes_n },
+            GameNote { at: at.clone(), name: entry_title.clone(), app: app.clone(), snapshot: id.clone(), files: files_n, bytes: bytes_n },
         )
         .map_err(|e| SavesError::local(format!("{e:#}")))?;
     }
-    record_saves_backup(env.paths, &SavesRecord { at: Some(at), game: Some(entry.title.clone()), error: None })
+    record_saves_backup(env.paths, &SavesRecord { at: Some(at), game: Some(entry_title.clone()), error: None })
         .map_err(|e| SavesError::local(format!("{e:#}")))?;
     let unchanged = !server_out.as_ref().is_some_and(|o| o.snapshot.is_some()) && local_id.is_none();
     Ok(BackupResult {
         ran: true,
-        game_name: Some(entry.title.clone()),
+        game_name: Some(entry_title.clone()),
         snapshot: snapshot_id,
         files: Some(files_n),
         bytes: Some(bytes_n),
