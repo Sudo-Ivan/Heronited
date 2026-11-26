@@ -57,7 +57,7 @@ impl SaveBackupsView {
                 }
                 rows.push(Row::header(tr!("Backups")));
                 if l.snapshots.is_empty() {
-                    rows.push(Row::info("sb-none", tr!("No backup of this game on the saves server yet."), ""));
+                    rows.push(Row::info("sb-none", tr!("No backup of this game yet."), ""));
                 } else if let Some(b) = self.console_backup.as_ref().and_then(|id| l.snapshots.iter().find(|s| &s.id == id)) {
                     let (title, facts) = backup_line(b);
                     rows.push(Row::info("sb-m-title", title, "").desc(facts));

@@ -230,6 +230,15 @@ impl SaveBackupsView {
 
     /// Reads the backups and the folders again.
     pub(crate) fn reload(&mut self, cx: &mut Context<Self>) {
+        self.reload_inner(cx, false);
+    }
+
+    /// Reads them again without dropping the outcome of the action that asked.
+    fn reload_keep_notice(&mut self, cx: &mut Context<Self>) {
+        self.reload_inner(cx, true);
+    }
+
+    fn reload_inner(&mut self, cx: &mut Context<Self>, keep_notice: bool) {
         self.load = Load::Loading;
         let game = self.game.clone();
         let (kind, installed) = (self.run_kind, self.installed);
@@ -259,7 +268,13 @@ impl SaveBackupsView {
                     Ok(None) => Load::Off,
                     Ok(Some((l, server_error))) => {
                         // The folder's backups show even when the server cannot be asked.
-                        v.notice = server_error.map(|e| (e, true));
+                        if let Some(e) = server_error {
+                            if !(keep_notice && v.notice.is_some()) {
+                                v.notice = Some((e, true));
+                            }
+                        } else if !keep_notice {
+                            v.notice = None;
+                        }
                         // Drop what points at a backup that is gone.
                         let gone = |id: &Option<String>| id.as_ref().is_some_and(|id| !l.snapshots.iter().any(|s| &s.id == id));
                         if gone(&v.backup) {
@@ -334,7 +349,7 @@ impl SaveBackupsView {
             return;
         }
         if let Stage::Plan(preview) = &mut self.stage {
-            let on = !preview.plan.files.iter().any(|f| f.kind == kind && f.selected);
+            let on = !preview.plan.files.iter().filter(|f| f.kind == kind).all(|f| f.selected);
             for f in preview.plan.files.iter_mut().filter(|f| f.kind == kind) {
                 f.selected = on;
             }
@@ -470,7 +485,7 @@ impl SaveBackupsView {
                 match result {
                     Ok(()) => {
                         v.notice = Some((tr!("Backup deleted.").into(), false));
-                        v.reload(cx);
+                        v.reload_keep_notice(cx);
                     }
                     Err(e) => v.notice = Some((e, true)),
                 }
@@ -500,7 +515,7 @@ impl SaveBackupsView {
                 });
                 if result.ran {
                     v.backup = None;
-                    v.reload(cx);
+                    v.reload_keep_notice(cx);
                 }
             },
         );
@@ -538,17 +553,21 @@ impl SaveBackupsView {
     }
 }
 
-/// Whether the game list knows the game but nothing on this PC holds its
-/// saves: the rules find none and no folder was named for it. `false` when
-/// the list cannot be read (the last-backup check still applies then).
+/// Whether nothing on this PC holds the game's saves: the list does not know
+/// it or its rules find none, and the folder named for it has none either.
+/// `false` when the list cannot be read (the last-backup check still applies
+/// then).
 fn missing_saves(env: &SavesEnv, game: &SavesGame, target: &Target) -> bool {
+    if !locations::find_custom(target).is_empty() {
+        return false;
+    }
     let Ok(index) = game_list(env.paths) else { return false };
     let names = game.names(env.paths);
     let Some(entry) = index.find(game.steam_app_id.as_deref(), game.store_game_id.as_deref().filter(|_| game.runner == "gog"), &names)
     else {
-        return false;
+        return true;
     };
-    locations::find(entry, target).is_empty() && locations::find_custom(target).is_empty()
+    locations::find(entry, target).is_empty()
 }
 
 /// Whether the last backup attempt ended in "no save files found".

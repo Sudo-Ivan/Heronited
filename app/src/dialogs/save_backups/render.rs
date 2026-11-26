@@ -306,7 +306,7 @@ impl SaveBackupsView {
 
         let mut list = card_box().py(px(6.));
         if l.snapshots.is_empty() {
-            list = list.child(div().py(px(10.)).child(meta_text(tr!("No backup of this game on the saves server yet."))));
+            list = list.child(div().py(px(10.)).child(meta_text(tr!("No backup of this game yet."))));
         } else {
             let picked = self.selected_id();
             for (i, b) in l.snapshots.iter().enumerate() {
@@ -372,7 +372,7 @@ impl SaveBackupsView {
     fn render_folder(&self, l: &Loaded, busy: bool, cx: &mut Context<Self>) -> AnyElement {
         let current = l.target.custom.as_ref().map(|p| p.display().to_string());
         let value = current.clone().unwrap_or_else(|| tr!("Automatic").to_string());
-        let mut card = card_box().py(px(12.)).gap(px(8.)).child(
+        let mut card = card_box().mt(px(12.)).py(px(12.)).gap(px(8.)).child(
             div()
                 .flex()
                 .items_center()
