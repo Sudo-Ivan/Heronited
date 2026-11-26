@@ -69,8 +69,24 @@ fn http_error(e: ureq::Error) -> String {
     }
 }
 
+/// Whether `url` answers. Any answer counts, an HTTP error included: the
+/// point is that the request left this computer and something replied.
+fn reachable(url: &str) -> bool {
+    match agent().head(url).config().timeout_global(Some(Duration::from_secs(5))).build().call() {
+        Ok(_) => true,
+        Err(ureq::Error::StatusCode(_)) => true,
+        Err(_) => false,
+    }
+}
+
 /// Hosts probed by the connectivity check (IP literals: no DNS to hang on).
 const PROBES: [&str; 3] = ["1.1.1.1:443", "9.9.9.9:443", "8.8.8.8:443"];
+
+/// Asked over HTTPS when none of [`PROBES`] answers. A network can reach
+/// GitHub and still block those literals: DNS filtering that drops them, a
+/// firewall that only lets a proxy out, IPv6-only with NAT64. Downloads come
+/// from GitHub, so an answer from it is what "online" means for them.
+const PROBE_URL: &str = "https://github.com/robots.txt";
 
 impl Net for SystemNet {
     fn is_online(&self) -> bool {
@@ -83,6 +99,11 @@ impl Net for SystemNet {
         let online = PROBES.iter().any(|addr| {
             addr.parse::<SocketAddr>().ok().map(|a| TcpStream::connect_timeout(&a, Duration::from_secs(2)).is_ok()).unwrap_or(false)
         });
+        if !online && reachable(PROBE_URL) {
+            log::info!("none of the {PROBES:?} answers, but {PROBE_URL} does: online");
+            *LAST.lock().unwrap() = Some((Instant::now(), true));
+            return true;
+        }
         *LAST.lock().unwrap() = Some((Instant::now(), online));
         online
     }
@@ -283,6 +304,14 @@ mod tests {
         assert_eq!(fs::read(&dest).unwrap(), br#"{"a": [1, 2]}"#);
         let v = SystemNet.get_json(&format!("{base}/x")).unwrap();
         assert_eq!(v["a"][1], 2);
+    }
+
+    #[test]
+    fn a_reachable_host_is_online_without_the_ip_probes() {
+        let base = serve(b"ok".to_vec());
+        assert!(reachable(&format!("{base}/x")));
+        // Nothing listens there: connection refused.
+        assert!(!reachable("http://127.0.0.1:1/x"));
     }
 
     #[test]
