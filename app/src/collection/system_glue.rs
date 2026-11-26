@@ -69,7 +69,7 @@ impl CollectionView {
     pub(super) fn on_session_event(&mut self, ev: &crate::services::session::SessionEvent, cx: &mut Context<Self>) {
         use crate::services::session::SessionEvent;
         match ev {
-            SessionEvent::Toast { text, error } => self.show_toast(text.clone(), *error, cx),
+            SessionEvent::Toast { title, text, error } => self.show_saves_toast(title.clone(), text.clone(), *error, cx),
             SessionEvent::Capture(c) => self.shots_on_msg(super::screenshots::Msg::Capture(c.clone()), cx),
             SessionEvent::LibraryChanged => self.reload(cx),
             SessionEvent::JournalChanged(key) => self.journal_changed(key, cx),

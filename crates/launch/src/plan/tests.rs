@@ -106,6 +106,51 @@ fn native_missing_executable_and_missing_tool_are_unavailable() {
     assert_eq!(plan, LaunchPlan::Unavailable("No executable is configured for this game".into()));
 }
 
+#[cfg(unix)]
+#[test]
+fn stored_executable_arguments_come_before_the_users() {
+    let probe = FakeProbe::new("/home/u").with_file(
+        "/games/drop/run",
+        b"#!/bin/sh
+",
+    );
+    let mut game = sideload("g", "/games/drop/run", "linux");
+    game.rest.insert(heronite_data::sideload::ARGS_KEY.into(), json!(["--drop", "server value"]));
+    let plan = build_plan_with_settings(
+        &ctx(json!({})),
+        &probe,
+        &game,
+        Some(&meta("executable")),
+        &settings(json!({"launcherArgs": "--user"})),
+        &Default::default(),
+    );
+    let LaunchPlan::Native(p) = plan else { panic!("{plan:?}") };
+    assert_eq!(p.command.program, "/games/drop/run");
+    assert_eq!(p.command.args, ["--drop", "server value", "--user"]);
+}
+
+#[cfg(unix)]
+#[test]
+fn drop_setup_commands_run_once_before_the_first_start() {
+    let probe = FakeProbe::new("/home/u").with_file(
+        "/games/drop/run",
+        b"#!/bin/sh
+",
+    );
+    let mut game = sideload("g", "/games/drop/run", "linux");
+    game.install.install_path = Some("/games/drop".into());
+    let mut m = meta("executable");
+    m.source = "drop".into();
+    m.extra.insert("dropSetup".into(), json!([{"parts": ["/games/drop/setup", "--quiet"], "env": ["WINEDEBUG=-fixme"]}]));
+    let plan = build_plan_with_settings(&ctx(json!({})), &probe, &game, Some(&m), &settings(json!({})), &Default::default());
+    let LaunchPlan::Native(p) = plan else { panic!("{plan:?}") };
+    let first = p.prep.first_launch.expect("drop setup");
+    assert_eq!(first.runner, "drop");
+    assert_eq!(first.install_path, "/games/drop");
+    assert_eq!(first.post_install[0].parts, ["/games/drop/setup", "--quiet"]);
+    assert_eq!(first.post_install[0].env, [("WINEDEBUG".to_string(), "-fixme".to_string())]);
+}
+
 // Linux games run only on Linux.
 #[cfg(unix)]
 #[test]

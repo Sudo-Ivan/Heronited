@@ -66,7 +66,11 @@ impl CollectionView {
     /// `HERONITE_DEBUG_DIALOG=batchedit` the fields editor, `batchremove` the
     /// removal confirmation, and
     /// `HERONITE_DEBUG_BATCH` runs batch changes (see `open_pending_debug_dialog`).
+    /// `HERONITE_DEBUG_SAVES_TOAST=1` shows the save backup toast.
     pub(super) fn apply_debug_env(&mut self, cx: &mut Context<Self>) {
+        if crate::env::flag("HERONITE_DEBUG_SAVES_TOAST") {
+            self.show_saves_toast("Cloud saves", "Saved 3 files of Hades to the saves server.", false, cx);
+        }
         if let Some(n) = crate::env::parse::<usize>("HERONITE_DEBUG_MULTI") {
             self.set_selection(self.shown_keys().into_iter().take(n).collect());
             self.sel.pop = match crate::env::value("HERONITE_DEBUG_DOCK").as_deref() {

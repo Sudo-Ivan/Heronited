@@ -142,7 +142,7 @@ impl Prep<'_> {
         // Set when a step could not even be run (so the setup is not done).
         let incomplete = Cell::new(false);
         let setup = match fl.runner.as_str() {
-            "gog" | "nile" => self.store_setup(&ctx, settings, fl, store, &incomplete),
+            "gog" | "nile" | "drop" => self.store_setup(&ctx, settings, fl, store, &incomplete),
             _ => self.epic_setup(&ctx, settings, fl, epic, &incomplete),
         };
         if setup != Flow::Go {
@@ -178,8 +178,25 @@ impl Prep<'_> {
         timeout: Duration,
         incomplete: &Cell<bool>,
     ) -> bool {
+        self.wine_run_with_env(ctx, settings, parts, Vec::new(), install_path, wait, timeout, incomplete)
+    }
+
+    fn wine_run_with_env(
+        &self,
+        ctx: &PlanContext,
+        settings: &GameSettings,
+        parts: Vec<String>,
+        extra_env: Vec<(String, String)>,
+        install_path: Option<&str>,
+        wait: bool,
+        timeout: Duration,
+        incomplete: &Cell<bool>,
+    ) -> bool {
         let cmd = match wine_command_for(ctx, self.probe, settings, parts, install_path) {
-            Ok(c) => c,
+            Ok(mut c) => {
+                c.env.extend(extra_env);
+                c
+            }
             Err(e) => {
                 self.notice(Notice::warn(
                     format!("Could not run a Wine command: {e}"),
@@ -322,7 +339,13 @@ impl Prep<'_> {
         if steps.is_empty() {
             return if self.cancelled() { Flow::Cancelled } else { Flow::Go };
         }
-        let store_name = if fl.runner == "gog" { "GOG" } else { "AMAZON" };
+        let store_name = if fl.runner == "gog" {
+            "GOG"
+        } else if fl.runner == "drop" {
+            "DROP"
+        } else {
+            "AMAZON"
+        };
         self.notice(Notice::info(
             format!("Installing Redistributables ({store_name})"),
             tr!("Installing Redistributables ({store})", store = store_name),
@@ -333,7 +356,13 @@ impl Prep<'_> {
             }
             log::info!("first-launch setup of {}: {:?}", fl.app_name, step.parts);
             let cwd = step.cwd.as_deref().unwrap_or(&fl.install_path);
-            self.wine_run(ctx, settings, step.parts, Some(cwd), true, INSTALLER_TIMEOUT, incomplete);
+            let ran = self.wine_run_with_env(ctx, settings, step.parts, step.env, Some(cwd), true, INSTALLER_TIMEOUT, incomplete);
+            // Drop marks a setup complete only after a successful installer. GOG and
+            // Amazon keep Heroic's looser behavior because their installers often
+            // return a nonzero code after doing their work.
+            if !ran && fl.runner == "drop" {
+                incomplete.set(true);
+            }
         }
         if self.cancelled() {
             Flow::Cancelled

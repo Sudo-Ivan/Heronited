@@ -132,6 +132,10 @@ pub struct SideloadSpec {
 
 /// The shell command that starts a Linux game, run inside its folder.
 pub const COMMAND_KEY: &str = "heroniteCommand";
+/// Stored arguments of an executable game (`Drop` launch commands).
+pub const ARGS_KEY: &str = "heroniteArgs";
+/// Stored environment of an executable game (`Drop` launch commands).
+pub const ENV_KEY: &str = "heroniteEnv";
 
 /// `(command, folder)` of a game started by a command (see
 /// [`SideloadSpec::command`]).

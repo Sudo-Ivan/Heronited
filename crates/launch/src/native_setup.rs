@@ -152,7 +152,12 @@ impl Prep<'_> {
             let cwd = step.cwd.clone().filter(|c| !c.is_empty()).unwrap_or_else(|| fl.install_path.clone());
             match self.run_step(&step, &cwd, elevate) {
                 Ran::Code(0) => {}
-                Ran::Code(code) => log::warn!("{:?} ended with exit code {code}", step.parts.first()),
+                Ran::Code(code) => {
+                    log::warn!("{:?} ended with exit code {code}", step.parts.first());
+                    if fl.runner == "drop" {
+                        incomplete = true;
+                    }
+                }
                 Ran::NotRun => incomplete = true,
                 Ran::Cancelled => return Flow::Cancelled,
             }
@@ -170,7 +175,8 @@ impl Prep<'_> {
         if step.elevate {
             return self.run_elevated(elevate, program, args, cwd);
         }
-        let cmd = Command { program: program.clone(), args: args.to_vec(), env: Default::default(), cwd: Some(cwd.to_string()) };
+        let cmd =
+            Command { program: program.clone(), args: args.to_vec(), env: step.env.iter().cloned().collect(), cwd: Some(cwd.to_string()) };
         let mut handle = match self.spawner.spawn(&cmd, None) {
             Ok(h) => h,
             Err(e) if e.raw_os_error() == Some(ELEVATION_REQUIRED) => return self.run_elevated(elevate, program, args, cwd),

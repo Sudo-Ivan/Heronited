@@ -152,8 +152,29 @@ impl CollectionView {
         shown: std::time::Duration,
         cx: &mut Context<Self>,
     ) {
+        self.set_toast(super::CollectionToast { title: None, text: text.into(), error, saves: false, generation: 0 }, shown, cx);
+    }
+
+    /// The post-game save backup, with its own card.
+    pub(super) fn show_saves_toast(
+        &mut self,
+        title: impl Into<SharedString>,
+        text: impl Into<SharedString>,
+        error: bool,
+        cx: &mut Context<Self>,
+    ) {
+        self.set_toast(
+            super::CollectionToast { title: Some(title.into()), text: text.into(), error, saves: true, generation: 0 },
+            std::time::Duration::from_secs(6),
+            cx,
+        );
+    }
+
+    fn set_toast(&mut self, mut toast: super::CollectionToast, shown: std::time::Duration, cx: &mut Context<Self>) {
+        self.toast_generation = self.toast_generation.wrapping_add(1);
+        toast.generation = self.toast_generation;
         self.toast_action = None;
-        self.toast = Some((text.into(), error));
+        self.toast = Some(toast);
         self.toast_task = Some(cx.spawn(async move |this, cx| {
             cx.background_executor().timer(shown).await;
             this.update(cx, |this, cx| {
@@ -274,6 +295,22 @@ impl CollectionView {
         if self.playing.contains_key(&game.app_name) {
             if !self.runtime.stop(&game.app_name) {
                 self.runtime.force_clear(&game.app_name);
+            }
+            return;
+        }
+        if game.installed
+            && game.meta.as_deref().is_some_and(|m| {
+                if m.source != heronite_drop::SOURCE {
+                    return false;
+                }
+                let current = m.extra.get(heronite_drop::VERSION_KEY).and_then(|v| v.as_str()).unwrap_or_default();
+                let latest = m.extra.get(heronite_drop::LATEST_KEY).and_then(|v| v.as_str()).unwrap_or_default();
+                !latest.is_empty() && latest != current
+            })
+        {
+            let app = game.app_name.clone();
+            if let Err(e) = crate::services::drop(cx).update(cx, |s, cx| s.install(&app, cx)) {
+                self.show_toast(e, true, cx);
             }
             return;
         }

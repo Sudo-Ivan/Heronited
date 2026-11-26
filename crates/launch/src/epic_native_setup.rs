@@ -79,7 +79,7 @@ impl Prep<'_> {
             }
             let mut parts = vec![installer];
             parts.extend(args.iter().map(|a| a.to_string()));
-            steps.push(SetupStep { parts, cwd: Some(fl.install_path.clone()), elevate: true });
+            steps.push(SetupStep { parts, cwd: Some(fl.install_path.clone()), elevate: true, ..Default::default() });
         } else {
             if fl.install_path.is_empty() || crate::native_setup::is_recorded(self.paths, &fl.runner, &fl.app_name, &fl.install_path) {
                 return Flow::Go;
@@ -92,7 +92,7 @@ impl Prep<'_> {
                     let mut parts = vec![program];
                     parts.extend(shlex::split(&pre.args).unwrap_or_else(|| pre.args.split_whitespace().map(str::to_string).collect()));
                     log::info!("the prerequisites of {}: {parts:?}", fl.app_name);
-                    steps.push(SetupStep { parts, cwd, elevate: true });
+                    steps.push(SetupStep { parts, cwd, elevate: true, ..Default::default() });
                 }
                 Ok(_) => {}
                 Err(e) => {

@@ -188,6 +188,12 @@ fn executable_plan(
             return command_plan(ctx, probe, game, settings, command, folder, extra);
         }
     }
+    // Stored launch arguments (Drop's launch commands) come before the user's.
+    let stored_args = game
+        .rest
+        .get(heronite_data::sideload::ARGS_KEY)
+        .and_then(|v| serde_json::from_value::<Vec<String>>(v.clone()).ok())
+        .unwrap_or_default();
     // targetExe wins; otherwise what install-state would have stored:
     // the first existing of (remapped executable, install.executable).
     let install_exe = game.install.executable.as_deref();
@@ -201,15 +207,83 @@ fn executable_plan(
     }
     let platform = effective_platform(game, meta, &executable, probe);
     // A Windows program (under Wine, or on Windows) reads its arguments the Windows way.
-    let mut extra = split_args_for(platform == Platform::Windows, &settings.launcher_args);
+    let mut extra = stored_args;
+    extra.extend(split_args_for(platform == Platform::Windows, &settings.launcher_args));
     extra.extend(opts.extra_args.iter().cloned());
 
-    match (run_mode(platform.into()), platform) {
+    let mut plan = match (run_mode(platform.into()), platform) {
         (RunMode::Native, Platform::Windows) => windows_plan(probe, game, settings, &executable, extra, "sideload"),
         (RunMode::Native, Platform::Linux) => native_plan(ctx, probe, game, settings, &executable, extra, "sideload"),
         (RunMode::Wine, _) => crate::wine::build_wine_plan(ctx, probe, game, settings, &executable, &extra),
         (RunMode::Unavailable, _) => LaunchPlan::Unavailable(unavailable_reason(platform.into())),
+    };
+    attach_drop_setup(&mut plan, game, meta, &executable);
+    plan
+}
+
+/// Drop's setup commands run once before the first start, in the same prefix
+/// as the game. They were parsed when the version was installed.
+fn attach_drop_setup(plan: &mut LaunchPlan, game: &GameInfo, meta: Option<&LocalGameMeta>, executable: &str) {
+    let Some(meta) = meta.filter(|m| m.source == "drop") else { return };
+    #[derive(serde::Deserialize)]
+    struct StoredStep {
+        parts: Vec<String>,
+        #[serde(default)]
+        env: Vec<String>,
     }
+    let raw = meta.extra.get("dropSetup").cloned().unwrap_or_default();
+    let steps: Vec<StoredStep> = serde_json::from_value(raw.clone())
+        .or_else(|_| {
+            serde_json::from_value::<Vec<Vec<String>>>(raw)
+                .map(|old| old.into_iter().map(|parts| StoredStep { parts, env: Vec::new() }).collect())
+        })
+        .unwrap_or_default();
+    if steps.is_empty() {
+        return;
+    }
+    let install_path = game
+        .install
+        .install_path
+        .clone()
+        .filter(|p| !p.is_empty())
+        .or_else(|| std::path::Path::new(executable).parent().map(|p| p.to_string_lossy().into_owned()))
+        .unwrap_or_default();
+    let first = crate::plan::FirstLaunch {
+        runner: "drop".into(),
+        app_name: game.app_name.clone(),
+        install_path,
+        platform: game.install.platform.clone().unwrap_or_default(),
+        post_install: steps
+            .into_iter()
+            .map(|step| crate::plan::SetupStep {
+                parts: step.parts,
+                env: step.env.into_iter().filter_map(|v| v.split_once('=').map(|(k, v)| (k.to_string(), v.to_string()))).collect(),
+                cwd: None,
+                elevate: false,
+            })
+            .collect(),
+        ..Default::default()
+    };
+    let process = match plan {
+        LaunchPlan::Native(p) => Some(p),
+        LaunchPlan::Wine { process, .. } => Some(process),
+        _ => None,
+    };
+    if let Some(process) = process {
+        process.prep.first_launch = Some(first);
+    }
+}
+
+/// Environment stored on the entry itself (`Drop` launch commands). The
+/// game's own settings are added after it, so they win on a duplicate key.
+pub(crate) fn stored_env(game: &GameInfo) -> Vec<(String, String)> {
+    game.rest
+        .get(heronite_data::sideload::ENV_KEY)
+        .and_then(|v| serde_json::from_value::<Vec<String>>(v.clone()).ok())
+        .unwrap_or_default()
+        .into_iter()
+        .filter_map(|v| v.split_once('=').map(|(k, v)| (k.to_string(), v.to_string())))
+        .collect()
 }
 
 /// A Windows program on Windows: started as it is, from its folder. Linux's
@@ -232,6 +306,7 @@ pub(crate) fn windows_plan(
     let folder = path.parent().map(|d| d.to_string_lossy().into_owned()).filter(|d| !d.is_empty());
     let name = path.file_name().map(|n| n.to_string_lossy().into_owned()).unwrap_or_default();
     let mut env = setup_wrapper_env_vars(&game.app_name, runner);
+    env.extend(stored_env(game));
     env.extend(settings.env_options.iter().cloned());
     LaunchPlan::Native(ProcessPlan {
         command: Command { program: executable.to_string(), args: extra, env, cwd: folder },
@@ -260,6 +335,7 @@ fn command_plan(
     let umu = native_runtime(ctx, probe, settings, &mut notes);
     let umu_missing = umu.as_deref().is_some_and(|u| !probe.exists(u));
     let mut env = setup_wrapper_env_vars(&game.app_name, "sideload");
+    env.extend(stored_env(game));
     env.extend(setup_env_vars(settings, Some(folder), probe));
     if let Err(err) = crate::lsfg::apply(&mut env, &settings.lsfg, &ctx.global, probe) {
         return LaunchPlan::Unavailable(tr!("Launch aborted: {error}", error = err));
@@ -336,6 +412,7 @@ pub(crate) fn native_plan(
     let umu = native_runtime(ctx, probe, settings, &mut notes);
     let umu_missing = umu.as_deref().is_some_and(|u| !probe.exists(u));
     let mut env = setup_wrapper_env_vars(&game.app_name, runner);
+    env.extend(stored_env(game));
     env.extend(setup_env_vars(settings, game.install.install_path.as_deref(), probe));
     if let Err(err) = crate::lsfg::apply(&mut env, &settings.lsfg, &ctx.global, probe) {
         return LaunchPlan::Unavailable(tr!("Launch aborted: {error}", error = err));

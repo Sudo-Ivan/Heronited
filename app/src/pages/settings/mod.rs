@@ -40,6 +40,8 @@ mod cloud;
 mod console;
 mod console_mode;
 mod controls;
+mod drop;
+mod gameyfin;
 mod integrations;
 mod launchers;
 mod library;
@@ -190,6 +192,8 @@ pub struct SettingsPage {
     replay: replay::State,
     quick_launch: quick_launch::State,
     mods: mods::State,
+    gameyfin: gameyfin::State,
+    drop: drop::State,
     storage: storage::State,
     advanced: advanced::State,
     about: about::State,
@@ -295,6 +299,8 @@ impl SettingsPage {
             replay: replay::State::new(&ctx, cx),
             quick_launch: quick_launch::State::new(cx),
             mods: mods::State::new(window, cx),
+            gameyfin: gameyfin::State::new(window, cx),
+            drop: drop::State::new(window, cx),
             storage,
             advanced: advanced::State::default(),
             about: about::State::default(),
@@ -459,7 +465,9 @@ impl SettingsPage {
     fn dismiss_confirms(&mut self) -> bool {
         let launchers = self.launchers.dismiss();
         let library = self.library.dismiss();
-        launchers || library
+        let gameyfin = self.gameyfin.dismiss();
+        let drop = self.drop.dismiss();
+        launchers || library || gameyfin || drop
     }
 
     fn select(&mut self, section: Section, window: &mut Window, cx: &mut Context<Self>) {
@@ -499,6 +507,8 @@ impl SettingsPage {
             Section::Saves => saves::State::shown(self, window, cx),
             Section::Storage => storage::State::shown(self, cx),
             Section::Mods => mods::shown(cx),
+            Section::Gameyfin => gameyfin::shown(cx),
+            Section::Drop => drop::shown(cx),
             Section::Backups => backup::shown(self, cx),
             Section::Cloud => cloud::shown(self, window, cx),
             Section::ConsoleMode => console_mode::shown(self, window, cx),
@@ -903,6 +913,8 @@ impl SettingsPage {
             Section::Library => self.library_section(cx).into_any_element(),
             Section::Storage => storage::render(self, window, cx),
             Section::Mods => mods::render(self, window, cx),
+            Section::Gameyfin => gameyfin::render(self, window, cx),
+            Section::Drop => drop::render(self, window, cx),
             Section::Controls => controls::render(self, window, cx),
             Section::Overlay => overlay::render(self, window, cx),
             Section::Launchers => launchers::render(self, cx),

@@ -40,7 +40,7 @@ pub fn busy() -> bool {
 #[derive(Clone, Debug)]
 pub enum SessionEvent {
     /// Result of the post-game work (backup saved / failed).
-    Toast { text: String, error: bool },
+    Toast { title: String, text: String, error: bool },
     /// The capture service reported something (a saved screenshot...).
     Capture(CaptureEvent),
     /// Something outside the Collection changed a game (the in-game
@@ -347,9 +347,9 @@ impl Session {
 /// window, a desktop notification.
 fn show_notice(n: Notice, cx: &mut Context<Session>) {
     if n.desktop || (n.error && !crate::system::has_window(cx)) {
-        crate::system::notify::send(n.title, n.text.clone());
+        crate::system::notify::send(n.title.clone(), n.text.clone());
     }
-    cx.emit(SessionEvent::Toast { text: n.text, error: n.error });
+    cx.emit(SessionEvent::Toast { title: n.title, text: n.text, error: n.error });
 }
 
 /// What the post-game work has to say.
@@ -403,7 +403,7 @@ pub fn backup_notice(result: &BackupResult, title: &str) -> Option<Notice> {
         return Some(Notice { title: t, text: body, error: false, desktop: true });
     }
     result.error.as_ref().map(|e| Notice {
-        title: "Saves".into(),
+        title: tr!("Saves").into(),
         text: tr!("Save backup failed: {error}", error = e),
         error: true,
         desktop: false,
@@ -416,7 +416,8 @@ pub fn backup_notice(result: &BackupResult, title: &str) -> Option<Notice> {
 pub fn periodic_notice(result: &BackupResult, title: &str) -> Option<Notice> {
     if result.ran && !result.unchanged {
         let name = result.game_name.as_deref().unwrap_or(title);
-        return Some(Notice { title: "Saves".into(), text: tr!("Backed up {name} while playing", name), error: false, desktop: false });
+        let title = if result.server { tr!("Cloud saves") } else { tr!("Saves") };
+        return Some(Notice { title: title.into(), text: tr!("Backed up {name} while playing", name), error: false, desktop: false });
     }
     backup_notice(result, title)
 }
@@ -465,9 +466,12 @@ mod tests {
 
     #[test]
     fn saved_backup_is_a_desktop_notice() {
-        let r = BackupResult { ran: true, game_name: Some("Hades".into()), ..Default::default() };
+        let r = BackupResult { ran: true, game_name: Some("Hades".into()), files: Some(2), server: true, ..Default::default() };
         let n = backup_notice(&r, "hades").unwrap();
-        assert_eq!(n, Notice { title: "Saves".into(), text: "Saved Hades to the saves server".into(), error: false, desktop: true });
+        assert_eq!(
+            n,
+            Notice { title: "Cloud saves".into(), text: "Saved 2 files of Hades to the saves server.".into(), error: false, desktop: true }
+        );
     }
 
     #[test]
@@ -488,9 +492,9 @@ mod tests {
 
     #[test]
     fn periodic_backups_announce_saves_only_in_the_collection() {
-        let saved = BackupResult { ran: true, game_name: Some("Hades".into()), ..Default::default() };
+        let saved = BackupResult { ran: true, game_name: Some("Hades".into()), server: true, ..Default::default() };
         let n = periodic_notice(&saved, "hades").unwrap();
-        assert_eq!(n, Notice { title: "Saves".into(), text: "Backed up Hades while playing".into(), error: false, desktop: false });
+        assert_eq!(n, Notice { title: "Cloud saves".into(), text: "Backed up Hades while playing".into(), error: false, desktop: false });
         let failed = BackupResult { error: Some("boom".into()), ..Default::default() };
         let n = periodic_notice(&failed, "x").unwrap();
         assert!(n.error && !n.desktop, "a failure is never silent");

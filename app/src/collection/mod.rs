@@ -105,6 +105,7 @@ use heronite_data::ui_state::UiState;
 use heronite_data::{AppPaths, DataPaths, Library};
 use heronite_images::ImageRef;
 
+use crate::icons::Icon;
 use crate::images::ImageStore;
 use crate::runtime::GameRuntime;
 use crate::theme;
@@ -136,6 +137,18 @@ enum ToastAction {
     ShowAgeRatings,
     /// Undoes the last bulk metadata update.
     UndoMetadata,
+}
+
+/// A toast at the bottom of the Collection. Save backups carry a title and
+/// draw the richer card; every other message uses the plain one.
+#[derive(Clone)]
+struct CollectionToast {
+    title: Option<SharedString>,
+    text: SharedString,
+    error: bool,
+    saves: bool,
+    /// Tells two backup notices apart, so their entrance plays again.
+    generation: u64,
 }
 
 pub struct CollectionView {
@@ -189,7 +202,9 @@ pub struct CollectionView {
     playing: HashMap<String, bool>,
     /// app_name -> the step of a launch that has not started the game yet.
     preparing: HashMap<String, launch_progress::LaunchStep>,
-    toast: Option<(SharedString, bool)>,
+    toast: Option<CollectionToast>,
+    /// Tells two toasts apart in their animation ids.
+    toast_generation: u64,
     /// The button the toast offers, if any.
     toast_action: Option<ToastAction>,
     context_menu: Option<context_menu::ContextMenuState>,
@@ -415,6 +430,7 @@ impl CollectionView {
             playing: HashMap::new(),
             preparing: HashMap::new(),
             toast: None,
+            toast_generation: 0,
             toast_action: None,
             toast_task: None,
             context_menu: None,
@@ -483,6 +499,8 @@ impl CollectionView {
         this.spawn_load(cx);
         this.start_idle_jobs(cx);
         this.watch_launcher_imports(cx);
+        this.watch_gameyfin(cx);
+        this.watch_drop(cx);
         this.watch_clients(cx);
         this.watch_library_sync(cx);
         this.init_metadata(window, cx);
@@ -490,6 +508,118 @@ impl CollectionView {
         this.spawn_disk_watch(cx);
         this.spawn_debug_browse(cx);
         this
+    }
+}
+
+fn saves_toast_card(toast: &CollectionToast) -> AnyElement {
+    let tone: Hsla = if toast.error { theme::danger().into() } else { theme::success().into() };
+    let title = toast.title.clone().unwrap_or_else(|| heronite_i18n::tr!("Cloud saves").into());
+    let ic = if toast.error { Icon::Warning } else { Icon::CloudSync };
+    let badge = div()
+        .flex()
+        .flex_none()
+        .items_center()
+        .justify_center()
+        .size(px(46.))
+        .rounded(px(14.))
+        .bg(tone.opacity(0.16))
+        .border_1()
+        .border_color(tone.opacity(0.28))
+        .child(crate::ui::icon(ic, px(24.), tone));
+    let badge = if theme::animations() && !toast.error {
+        badge
+            .with_animation(
+                ElementId::NamedInteger("saves-toast-badge".into(), toast.generation),
+                Animation::new(std::time::Duration::from_millis(1500)).repeat().with_max_fps(30.),
+                move |el, t| {
+                    let pulse = ((t * std::f32::consts::TAU).sin() + 1.) * 0.5;
+                    el.shadow(vec![BoxShadow {
+                        color: tone.opacity(0.08 + 0.10 * pulse),
+                        offset: point(px(0.), px(0.)),
+                        blur_radius: px(10. + 8. * pulse),
+                        spread_radius: px(0.),
+                        inset: false,
+                    }])
+                },
+            )
+            .into_any_element()
+    } else {
+        badge.into_any_element()
+    };
+    let line = div().absolute().left_0().bottom_0().h(px(3.)).bg(tone);
+    let line = if theme::animations() {
+        line.with_animation(
+            ElementId::NamedInteger("saves-toast-line".into(), toast.generation),
+            Animation::new(std::time::Duration::from_millis(700)).with_easing(ease_out_quint()),
+            |el, t| el.w(relative(t)),
+        )
+        .into_any_element()
+    } else {
+        line.w_full().into_any_element()
+    };
+    let card = div()
+        .relative()
+        .overflow_hidden()
+        .flex()
+        .items_center()
+        .gap(px(14.))
+        .max_w(px(620.))
+        .px(px(16.))
+        .pt(px(12.))
+        .pb(px(15.))
+        .rounded(px(16.))
+        .bg(theme::toast_fill())
+        .border_1()
+        .border_color(tone.opacity(if toast.error { 0.45 } else { 0.35 }))
+        .shadow(vec![
+            BoxShadow {
+                color: theme::shadow_a(0.42),
+                offset: point(px(0.), px(10.)),
+                blur_radius: px(28.),
+                spread_radius: px(0.),
+                inset: false,
+            },
+            BoxShadow {
+                color: tone.opacity(0.10),
+                offset: point(px(0.), px(0.)),
+                blur_radius: px(22.),
+                spread_radius: px(0.),
+                inset: false,
+            },
+        ])
+        .child(div().absolute().inset_0().bg(linear_gradient(
+            90.,
+            linear_color_stop(tone.opacity(0.13), 0.),
+            linear_color_stop(tone.opacity(0.02), 1.),
+        )))
+        .child(badge)
+        .child(
+            div()
+                .flex()
+                .flex_col()
+                .flex_1()
+                .min_w_0()
+                .gap(px(3.))
+                .child(div().text_size(px(11.)).font_weight(theme::W_BOLD).text_color(tone).child(title.to_uppercase()))
+                .child(
+                    div()
+                        .text_size(px(14.5))
+                        .line_height(px(19.))
+                        .font_weight(theme::W_BOLD)
+                        .text_color(theme::text_primary())
+                        .child(toast.text.clone()),
+                ),
+        )
+        .child(line);
+    if theme::animations() {
+        card.with_animation(
+            ElementId::NamedInteger("saves-toast-card".into(), toast.generation),
+            Animation::new(std::time::Duration::from_millis(360)).with_easing(ease_out_quint()),
+            |el, t| el.opacity(t),
+        )
+        .into_any_element()
+    } else {
+        card.into_any_element()
     }
 }
 
@@ -502,8 +632,10 @@ impl CollectionView {
             ToastAction::UndoMetadata => metadata_undo,
             _ => true,
         });
-        self.toast.clone().map(|(text, error)| {
-            div().absolute().bottom(px(84.)).left_0().right_0().flex().justify_center().child(
+        self.toast.clone().map(|toast| {
+            let card = if toast.saves {
+                saves_toast_card(&toast)
+            } else {
                 div()
                     .flex()
                     .items_center()
@@ -515,11 +647,11 @@ impl CollectionView {
                     .rounded(px(10.))
                     .bg(theme::toast_fill())
                     .border_1()
-                    .border_color(if error { theme::danger().into() } else { theme::ink_a(0.12) })
+                    .border_color(if toast.error { theme::danger().into() } else { theme::ink_a(0.12) })
                     .text_size(px(13.33))
                     .text_color(theme::ink_a(0.92))
                     // A long text wraps instead of pushing the button out.
-                    .child(div().flex_1().min_w_0().child(text))
+                    .child(div().flex_1().min_w_0().child(toast.text.clone()))
                     .children(action.map(|action| {
                         div()
                             .id("toast-action")
@@ -595,8 +727,10 @@ impl CollectionView {
                                 }
                                 cx.notify();
                             }))
-                    })),
-            )
+                    }))
+                    .into_any_element()
+            };
+            div().absolute().bottom(px(84.)).left_0().right_0().flex().justify_center().child(card)
         })
     }
 

@@ -5,7 +5,9 @@ pub mod achievements;
 pub mod clients;
 pub mod compression;
 pub mod downloads;
+pub mod drop;
 pub mod game_folders;
+pub mod gameyfin;
 pub mod launch_blocker;
 pub mod launcher_imports;
 pub mod mods;
@@ -58,6 +60,32 @@ pub fn launcher_imports(cx: &mut App) -> Entity<launcher_imports::LauncherImport
     }
     let entity = cx.new(|cx| launcher_imports::LauncherImports::new(DataPaths::detect(), cx));
     cx.set_global(LauncherImportsGlobal(entity.clone()));
+    entity
+}
+
+struct GameyfinGlobal(Entity<gameyfin::Gameyfin>);
+impl Global for GameyfinGlobal {}
+
+/// The Gameyfin service: server profiles, syncs and installs.
+pub fn gameyfin(cx: &mut App) -> Entity<gameyfin::Gameyfin> {
+    if let Some(g) = cx.try_global::<GameyfinGlobal>() {
+        return g.0.clone();
+    }
+    let entity = cx.new(|_| gameyfin::Gameyfin::new(DataPaths::detect()));
+    cx.set_global(GameyfinGlobal(entity.clone()));
+    entity
+}
+
+struct DropGlobal(Entity<drop::Drop>);
+impl Global for DropGlobal {}
+
+/// The Drop OSS service: server profiles, sign-ins, syncs and installs.
+pub fn drop(cx: &mut App) -> Entity<drop::Drop> {
+    if let Some(g) = cx.try_global::<DropGlobal>() {
+        return g.0.clone();
+    }
+    let entity = cx.new(|_| drop::Drop::new(DataPaths::detect()));
+    cx.set_global(DropGlobal(entity.clone()));
     entity
 }
 

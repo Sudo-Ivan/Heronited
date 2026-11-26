@@ -221,6 +221,8 @@ pub struct SetupStep {
     pub parts: Vec<String>,
     /// Folder it starts in.
     pub cwd: Option<String>,
+    /// Variables of the command itself (Drop's `KEY=value` prefixes).
+    pub env: Vec<(String, String)>,
     /// Windows: started through the administrator prompt right away (others
     /// go through it only when Windows refuses to start them without).
     /// Ignored under Wine.

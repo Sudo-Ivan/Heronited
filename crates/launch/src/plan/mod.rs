@@ -12,7 +12,7 @@ mod types;
 mod tests;
 
 pub use build::{build_plan, build_plan_with_settings};
-pub(crate) use build::{native_plan, windows_plan};
+pub(crate) use build::{native_plan, stored_env, windows_plan};
 pub use context::{LaunchOptions, PlanContext};
 pub use emulator::{emulator_executable, open_emulator_command, pick_rom_path};
 pub use types::{

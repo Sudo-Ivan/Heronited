@@ -56,7 +56,8 @@ impl CollectionView {
         if let Some(step) = self.preparing.get_mut(app_name) {
             step.cancelling = true;
         }
-        if !self.runtime.stop(app_name) {
+        let drop_cancelled = crate::services::drop(cx).update(cx, |s, _| s.cancel_install(app_name));
+        if !drop_cancelled && !self.runtime.stop(app_name) {
             self.runtime.force_clear(app_name);
         }
         cx.notify();

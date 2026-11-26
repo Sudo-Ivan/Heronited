@@ -232,6 +232,7 @@ pub fn build_wine_plan(
     };
     let s = &wine.settings;
     let mut env = setup_wrapper_env_vars(&game.app_name, &game.runner);
+    env.extend(crate::plan::stored_env(game));
     env.extend(setup_env_vars(s, None, probe));
     env.extend(setup_wine_env_vars(s, "0", &ctx.runtime_dir(), probe));
     env.insert("PROTON_VERB".into(), "waitforexitandrun".into());

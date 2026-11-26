@@ -21,6 +21,10 @@ pub enum Section {
     /// Heroic, Lutris, Bottles and Faugus (Heroic and Playnite on Windows): bringing
     /// their games in.
     Launchers,
+    /// Gameyfin servers: remote game libraries, downloads and installs.
+    Gameyfin,
+    /// Drop OSS servers: remote game libraries, encrypted downloads and installs.
+    Drop,
     /// Sunshine: the games in its application list, for Moonlight.
     Integrations,
     /// What the games take on disk, and cleaning it up.
@@ -54,7 +58,18 @@ impl Section {
     /// Left navigation: caption + sections (the caption is translated when drawn).
     pub const GROUPS: [(&'static str, &'static [Section]); 6] = [
         (n_!("App"), &[Section::General, Section::Appearance, Section::ConsoleMode, Section::Controls, Section::QuickLauncher]),
-        (n_!("Games"), &[Section::GameDefaults, Section::Downloads, Section::Launchers, Section::Integrations, Section::Mods]),
+        (
+            n_!("Games"),
+            &[
+                Section::GameDefaults,
+                Section::Downloads,
+                Section::Launchers,
+                Section::Gameyfin,
+                Section::Drop,
+                Section::Integrations,
+                Section::Mods,
+            ],
+        ),
         (n_!("Collection"), &[Section::Library, Section::Metadata, Section::Achievements]),
         (n_!("While playing"), &[Section::Overlay, Section::Screenshots, Section::Replay]),
         (n_!("Data"), &[Section::Storage, Section::Saves, Section::Backups, Section::Cloud]),
@@ -62,7 +77,7 @@ impl Section {
     ];
 
     /// Same order as [`Section::GROUPS`].
-    pub const ALL: [Section; 23] = [
+    pub const ALL: [Section; 25] = [
         Section::General,
         Section::Appearance,
         Section::ConsoleMode,
@@ -71,6 +86,8 @@ impl Section {
         Section::GameDefaults,
         Section::Downloads,
         Section::Launchers,
+        Section::Gameyfin,
+        Section::Drop,
         Section::Integrations,
         Section::Mods,
         Section::Library,
@@ -118,6 +135,8 @@ impl Section {
             Section::Downloads => tr!("Downloads"),
             Section::Library => tr!("Library"),
             Section::Launchers => tr!("Other launchers"),
+            Section::Gameyfin => "Gameyfin",
+            Section::Drop => "Drop",
             Section::Integrations => tr!("Integrations"),
             Section::Storage => tr!("Storage"),
             Section::Mods => tr!("Mods"),
@@ -146,6 +165,8 @@ impl Section {
             Section::Downloads => Icon::Download,
             Section::Library => Icon::GridView,
             Section::Launchers => Icon::CallMerge,
+            Section::Gameyfin => Icon::CloudSync,
+            Section::Drop => Icon::CloudDownload,
             Section::Integrations => Icon::Tv,
             Section::Storage => Icon::FaHardDrive,
             Section::Mods => Icon::CallMerge,
@@ -178,6 +199,8 @@ impl Section {
                 tr!("Bring in the games of Heroic and Playnite. While on, a game added there shows up here too.")
             }
             Section::Launchers => tr!("Bring in the games of Heroic, Lutris, Bottles and Faugus. While on, a game added there shows up here too."),
+            Section::Gameyfin => tr!("Connect one or more Gameyfin servers. Their PC games show in your Collection and can be downloaded, installed and started here."),
+            Section::Drop => tr!("Connect one or more Drop servers. Their games show in your Collection and can be downloaded, installed, updated and started here."),
             Section::Integrations => tr!("Sunshine keeps your games in its list, with their covers, so Moonlight can start them from a phone, a TV or another computer."),
             Section::Storage => tr!("What your games take on disk, and what can go."),
             Section::Mods => tr!("Your Nexus Mods account, the download buttons of the mod sites, and what Heronited needs to apply mods when a game starts. Each game's mods are managed from its own Mods."),
@@ -207,6 +230,8 @@ impl Section {
             Section::Downloads => "downloads epic updates install atualizacoes instalar baixar",
             Section::Library => "library hidden favourites favorites recent biblioteca ocultos favoritos recentes",
             Section::Launchers => "other launchers import heroic lutris bottles faugus playnite sync bring in outros launchers importar sincronizar trazer",
+            Section::Gameyfin => "gameyfin server remote library self hosted download install sync api key servidor biblioteca remota baixar instalar sincronizar chave",
+            Section::Drop => "drop oss server remote library self hosted download install update sync sign in servidor biblioteca remota baixar instalar atualizar sincronizar",
             Section::Integrations => "integrations sunshine moonlight stream streaming remote play tv phone couch integracoes transmitir transmissao jogar remotamente celular sofa",
             Section::Storage => "storage disk space free up clean cleanup size prefixes proton cache leftovers uninstall armazenamento disco espaco liberar limpar limpeza tamanho prefixos sobras desinstalar",
             Section::Mods => "mods nexus thunderstore nxm ror2mm api key account premium links fuse overlayfs fomod mod manager modding mods conta chave link modificacoes gerenciador",
@@ -244,6 +269,8 @@ impl Section {
             "downloads" => Some(Section::Downloads),
             "library" => Some(Section::Library),
             "launchers" | "import" => Some(Section::Launchers),
+            "gameyfin" => Some(Section::Gameyfin),
+            "drop" => Some(Section::Drop),
             "integrations" | "sunshine" => Some(Section::Integrations),
             "storage" | "disk" => Some(Section::Storage),
             "mods" | "nexus" => Some(Section::Mods),

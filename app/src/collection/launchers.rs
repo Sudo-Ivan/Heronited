@@ -39,4 +39,76 @@ impl CollectionView {
         .detach();
         cx.observe(&svc, |_, _, cx| cx.notify()).detach();
     }
+
+    pub(super) fn watch_gameyfin(&mut self, cx: &mut Context<Self>) {
+        let svc = crate::services::gameyfin(cx);
+        svc.update(cx, |s, cx| s.start_periodic(cx));
+        cx.subscribe(&svc, |this, _, ev: &crate::services::gameyfin::GameyfinEvent, cx| match ev {
+            crate::services::gameyfin::GameyfinEvent::LibraryChanged => this.reload(cx),
+            crate::services::gameyfin::GameyfinEvent::Toast { title, text, error } => {
+                let text = if title == "Gameyfin" { text.clone() } else { format!("{title}: {text}") };
+                this.show_toast(text, *error, cx);
+            }
+            crate::services::gameyfin::GameyfinEvent::InstallState { app_name, active } => {
+                if *active {
+                    this.preparing.insert(
+                        app_name.clone(),
+                        super::launch_progress::LaunchStep {
+                            message: tr!("Downloading and installing...").into(),
+                            cancellable: false,
+                            cancelling: false,
+                        },
+                    );
+                } else {
+                    this.preparing.remove(app_name);
+                }
+                this.refresh_groups();
+            }
+            crate::services::gameyfin::GameyfinEvent::Changed => cx.notify(),
+        })
+        .detach();
+        cx.observe(&svc, |_, _, cx| cx.notify()).detach();
+    }
+
+    pub(super) fn watch_drop(&mut self, cx: &mut Context<Self>) {
+        let svc = crate::services::drop(cx);
+        svc.update(cx, |s, cx| s.start_periodic(cx));
+        cx.subscribe(&svc, |this, _, ev: &crate::services::drop::DropEvent, cx| match ev {
+            crate::services::drop::DropEvent::LibraryChanged => this.reload(cx),
+            crate::services::drop::DropEvent::Toast { title, text, error } => {
+                let text = if title == "Drop" { text.clone() } else { format!("{title}: {text}") };
+                this.show_toast(text, *error, cx);
+            }
+            crate::services::drop::DropEvent::InstallState { app_name, active } => {
+                if *active {
+                    this.preparing.insert(
+                        app_name.clone(),
+                        super::launch_progress::LaunchStep {
+                            message: tr!("Downloading and installing...").into(),
+                            cancellable: true,
+                            cancelling: false,
+                        },
+                    );
+                } else {
+                    this.preparing.remove(app_name);
+                }
+                this.refresh_groups();
+            }
+            crate::services::drop::DropEvent::InstallProgress { app_name, done, total } => {
+                if this.preparing.contains_key(app_name) {
+                    let message = if *total > 1 {
+                        let percent = ((*done as f64 / *total as f64) * 100.).round() as u32;
+                        tr!("Downloading and installing... {percent}%", percent = percent).into()
+                    } else {
+                        tr!("Downloading and installing...").into()
+                    };
+                    this.set_launch_step(app_name.clone(), message, true);
+                    cx.notify();
+                }
+            }
+            crate::services::drop::DropEvent::Changed => cx.notify(),
+        })
+        .detach();
+        cx.observe(&svc, |_, _, cx| cx.notify()).detach();
+    }
 }

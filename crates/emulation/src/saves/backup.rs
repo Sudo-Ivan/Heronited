@@ -11,7 +11,7 @@ use std::time::{Duration, Instant};
 
 use anyhow::Result;
 use heronite_data::{settings, DataPaths};
-use heronite_i18n::tr;
+use heronite_i18n::{tr, trn};
 use heronite_saves::locations;
 use heronite_saves::manifest;
 use heronite_saves::snapshot::{self, SkipReason};
@@ -346,11 +346,18 @@ pub fn notification(result: &BackupResult, title: &str) -> Option<(String, Strin
         return None;
     }
     let name = result.game_name.as_deref().unwrap_or(title);
-    let body = match (&result.local_path, result.server) {
-        (Some(path), false) => tr!("Saved {name} to {path}", name, path = path.clone()),
+    let body = match (&result.local_path, result.server, result.files) {
+        (Some(path), false, Some(files)) => {
+            trn!(files, "Saved {n} file of {name} to {folder}.", "Saved {n} files of {name} to {folder}.", name, folder = path.clone())
+        }
+        (Some(path), false, None) => tr!("Saved {name} to {path}", name, path = path.clone()),
+        (_, _, Some(files)) => {
+            trn!(files, "Saved {n} file of {name} to the saves server.", "Saved {n} files of {name} to the saves server.", name)
+        }
         _ => tr!("Saved {name} to the saves server", name),
     };
-    Some(("Saves".into(), body))
+    let title = if result.server { tr!("Cloud saves") } else { tr!("Saves") };
+    Some((title.into(), body))
 }
 
 #[cfg(test)]
@@ -415,8 +422,16 @@ mod tests {
 
     #[test]
     fn notices_only_for_saves_that_went_up() {
-        let ran = BackupResult { ran: true, game_name: Some("Hades".into()), ..Default::default() };
-        assert_eq!(notification(&ran, "T"), Some(("Saves".into(), "Saved Hades to the saves server".into())));
+        let ran = BackupResult { ran: true, game_name: Some("Hades".into()), files: Some(3), server: true, ..Default::default() };
+        assert_eq!(notification(&ran, "T"), Some(("Cloud saves".into(), "Saved 3 files of Hades to the saves server.".into())));
+        let local = BackupResult {
+            ran: true,
+            game_name: Some("Hades".into()),
+            files: Some(1),
+            local_path: Some("/backups/hades".into()),
+            ..Default::default()
+        };
+        assert_eq!(notification(&local, "T"), Some(("Saves".into(), "Saved 1 file of Hades to /backups/hades.".into())));
         assert_eq!(notification(&BackupResult { unchanged: true, ..ran.clone() }, "T"), None);
         assert_eq!(notification(&BackupResult::default(), "T"), None);
     }
