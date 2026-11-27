@@ -111,6 +111,13 @@ impl CollectionView {
     /// [`Self::install_or_play`] for `game` itself, never another copy of it
     /// (the Copies card's buttons, "Install with GOG").
     pub(super) fn install_or_play_on(&mut self, game: &heronite_data::collection::Game, window: &mut Window, cx: &mut Context<Self>) {
+        if !game.installed && game.meta.as_deref().is_some_and(|m| m.source == heronite_gamehub::SOURCE) {
+            let app = game.app_name.clone();
+            if let Err(e) = crate::services::gamehub(cx).update(cx, |s, cx| s.install(&app, cx)) {
+                self.show_toast(e, true, cx);
+            }
+            return;
+        }
         if !game.installed && game.meta.as_deref().is_some_and(|m| m.source == heronite_gameyfin::SOURCE) {
             let app = game.app_name.clone();
             if let Err(e) = crate::services::gameyfin(cx).update(cx, |s, cx| s.install(&app, cx)) {

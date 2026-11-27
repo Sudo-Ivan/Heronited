@@ -499,6 +499,7 @@ impl CollectionView {
         this.spawn_load(cx);
         this.start_idle_jobs(cx);
         this.watch_launcher_imports(cx);
+        this.watch_gamehub(cx);
         this.watch_gameyfin(cx);
         this.watch_drop(cx);
         this.watch_clients(cx);

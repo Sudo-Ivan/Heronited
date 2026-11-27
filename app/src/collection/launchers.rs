@@ -40,6 +40,36 @@ impl CollectionView {
         cx.observe(&svc, |_, _, cx| cx.notify()).detach();
     }
 
+    pub(super) fn watch_gamehub(&mut self, cx: &mut Context<Self>) {
+        let svc = crate::services::gamehub(cx);
+        svc.update(cx, |s, cx| s.start_periodic(cx));
+        cx.subscribe(&svc, |this, _, ev: &crate::services::gamehub::GameHubEvent, cx| match ev {
+            crate::services::gamehub::GameHubEvent::LibraryChanged => this.reload(cx),
+            crate::services::gamehub::GameHubEvent::Toast { title, text, error } => {
+                let text = if title == "GameHub" { text.clone() } else { format!("{title}: {text}") };
+                this.show_toast(text, *error, cx);
+            }
+            crate::services::gamehub::GameHubEvent::InstallState { app_name, active } => {
+                if *active {
+                    this.preparing.insert(
+                        app_name.clone(),
+                        super::launch_progress::LaunchStep {
+                            message: tr!("Downloading and installing...").into(),
+                            cancellable: false,
+                            cancelling: false,
+                        },
+                    );
+                } else {
+                    this.preparing.remove(app_name);
+                }
+                this.refresh_groups();
+            }
+            crate::services::gamehub::GameHubEvent::Changed => cx.notify(),
+        })
+        .detach();
+        cx.observe(&svc, |_, _, cx| cx.notify()).detach();
+    }
+
     pub(super) fn watch_gameyfin(&mut self, cx: &mut Context<Self>) {
         let svc = crate::services::gameyfin(cx);
         svc.update(cx, |s, cx| s.start_periodic(cx));

@@ -1,0 +1,14 @@
+{
+  "Add a GameHub server. There is no sign-in yet, only the server address.": "Añade un servidor de GameHub. Todavía no hay inicio de sesión, solo la dirección del servidor.",
+  "Change the server, then save it.": "Cambia el servidor y guárdalo.",
+  "Connect one or more GameHub servers. Their PC games appear in your Collection and can be downloaded, installed and started here.": "Conecta uno o varios servidores de GameHub. Sus juegos de PC aparecen en tu colección y se pueden descargar, instalar e iniciar aquí.",
+  "Connect one or more GameHub servers. Their PC games show in your Collection and can be downloaded, installed and started here.": "Conecta uno o varios servidores de GameHub. Sus juegos de PC se muestran en tu colección y se pueden descargar, instalar e iniciar aquí.",
+  "GameHub servers, sync, downloads": "Servidores de GameHub, sincronización, descargas",
+  "That GameHub server or game was not found": "No se encontró ese servidor o juego de GameHub",
+  "The GameHub game was not found": "No se encontró el juego de GameHub",
+  "The GameHub server has no free download slot": "El servidor de GameHub tiene todos los espacios de descarga ocupados",
+  "The GameHub server is no longer configured": "El servidor de GameHub ya no está configurado",
+  "The GameHub server is rate limiting requests": "El servidor de GameHub está limitando las peticiones",
+  "The GameHub server was not found": "No se encontró el servidor de GameHub",
+  "Use the desktop settings to enter the server address": "Usa los ajustes de escritorio para introducir la dirección del servidor"
+}

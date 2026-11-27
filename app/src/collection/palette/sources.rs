@@ -221,6 +221,7 @@ fn section_help(s: Section) -> &'static str {
         Section::Library => tr!("Hidden games, favourites, recent games"),
         Section::Launchers if cfg!(windows) => tr!("Bring in games from Heroic and Playnite"),
         Section::Launchers => tr!("Bring in games from Heroic, Lutris, Bottles and Faugus"),
+        Section::GameHub => tr!("GameHub servers, sync, downloads"),
         Section::Gameyfin => tr!("Gameyfin servers, sync, downloads"),
         Section::Drop => tr!("Drop servers, sign-in, sync, downloads"),
         Section::Integrations => tr!("Sunshine, so Moonlight can start your games"),

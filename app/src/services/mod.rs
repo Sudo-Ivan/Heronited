@@ -7,6 +7,7 @@ pub mod compression;
 pub mod downloads;
 pub mod drop;
 pub mod game_folders;
+pub mod gamehub;
 pub mod gameyfin;
 pub mod launch_blocker;
 pub mod launcher_imports;
@@ -60,6 +61,19 @@ pub fn launcher_imports(cx: &mut App) -> Entity<launcher_imports::LauncherImport
     }
     let entity = cx.new(|cx| launcher_imports::LauncherImports::new(DataPaths::detect(), cx));
     cx.set_global(LauncherImportsGlobal(entity.clone()));
+    entity
+}
+
+struct GameHubGlobal(Entity<gamehub::GameHub>);
+impl Global for GameHubGlobal {}
+
+/// The GameHub service: server profiles, syncs and installs.
+pub fn gamehub(cx: &mut App) -> Entity<gamehub::GameHub> {
+    if let Some(g) = cx.try_global::<GameHubGlobal>() {
+        return g.0.clone();
+    }
+    let entity = cx.new(|_| gamehub::GameHub::new(DataPaths::detect()));
+    cx.set_global(GameHubGlobal(entity.clone()));
     entity
 }
 

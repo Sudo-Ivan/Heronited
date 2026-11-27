@@ -1,0 +1,24 @@
+[package]
+name = "heronite-gamehub"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "GameHub server libraries brought into the Collection"
+
+[dependencies]
+heronite-data = { path = "../data" }
+heronite-installer = { path = "../installer" }
+heronite-i18n = { path = "../i18n" }
+anyhow.workspace = true
+log.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+ureq = "3"
+url = "2"
+chrono = { version = "0.4", default-features = false, features = ["std", "clock"] }
+
+[dev-dependencies]
+tempfile = "3"
+
+[lints]
+workspace = true

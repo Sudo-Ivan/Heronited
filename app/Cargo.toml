@@ -36,6 +36,7 @@ heronite-overlay = { path = "../crates/overlay" }
 heronite-emulation = { path = "../crates/emulation" }
 heronite-saves = { path = "../crates/saves" }
 heronite-import = { path = "../crates/import" }
+heronite-gamehub = { path = "../crates/gamehub" }
 heronite-gameyfin = { path = "../crates/gameyfin" }
 heronite-drop = { path = "../crates/drop" }
 heronite-installer = { path = "../crates/installer" }

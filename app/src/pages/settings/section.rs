@@ -21,6 +21,8 @@ pub enum Section {
     /// Heroic, Lutris, Bottles and Faugus (Heroic and Playnite on Windows): bringing
     /// their games in.
     Launchers,
+    /// GameHub servers: remote game libraries, downloads and installs.
+    GameHub,
     /// Gameyfin servers: remote game libraries, downloads and installs.
     Gameyfin,
     /// Drop OSS servers: remote game libraries, encrypted downloads and installs.
@@ -64,6 +66,7 @@ impl Section {
                 Section::GameDefaults,
                 Section::Downloads,
                 Section::Launchers,
+                Section::GameHub,
                 Section::Gameyfin,
                 Section::Drop,
                 Section::Integrations,
@@ -77,7 +80,7 @@ impl Section {
     ];
 
     /// Same order as [`Section::GROUPS`].
-    pub const ALL: [Section; 25] = [
+    pub const ALL: [Section; 26] = [
         Section::General,
         Section::Appearance,
         Section::ConsoleMode,
@@ -86,6 +89,7 @@ impl Section {
         Section::GameDefaults,
         Section::Downloads,
         Section::Launchers,
+        Section::GameHub,
         Section::Gameyfin,
         Section::Drop,
         Section::Integrations,
@@ -135,6 +139,7 @@ impl Section {
             Section::Downloads => tr!("Downloads"),
             Section::Library => tr!("Library"),
             Section::Launchers => tr!("Other launchers"),
+            Section::GameHub => "GameHub",
             Section::Gameyfin => "Gameyfin",
             Section::Drop => "Drop",
             Section::Integrations => tr!("Integrations"),
@@ -165,6 +170,7 @@ impl Section {
             Section::Downloads => Icon::Download,
             Section::Library => Icon::GridView,
             Section::Launchers => Icon::CallMerge,
+            Section::GameHub => Icon::CloudSync,
             Section::Gameyfin => Icon::CloudSync,
             Section::Drop => Icon::CloudDownload,
             Section::Integrations => Icon::Tv,
@@ -199,6 +205,7 @@ impl Section {
                 tr!("Bring in the games of Heroic and Playnite. While on, a game added there shows up here too.")
             }
             Section::Launchers => tr!("Bring in the games of Heroic, Lutris, Bottles and Faugus. While on, a game added there shows up here too."),
+            Section::GameHub => tr!("Connect one or more GameHub servers. Their PC games show in your Collection and can be downloaded, installed and started here."),
             Section::Gameyfin => tr!("Connect one or more Gameyfin servers. Their PC games show in your Collection and can be downloaded, installed and started here."),
             Section::Drop => tr!("Connect one or more Drop servers. Their games show in your Collection and can be downloaded, installed, updated and started here."),
             Section::Integrations => tr!("Sunshine keeps your games in its list, with their covers, so Moonlight can start them from a phone, a TV or another computer."),
@@ -230,6 +237,7 @@ impl Section {
             Section::Downloads => "downloads epic updates install atualizacoes instalar baixar",
             Section::Library => "library hidden favourites favorites recent biblioteca ocultos favoritos recentes",
             Section::Launchers => "other launchers import heroic lutris bottles faugus playnite sync bring in outros launchers importar sincronizar trazer",
+            Section::GameHub => "gamehub server remote library self hosted download install sync servidor biblioteca remota baixar instalar sincronizar",
             Section::Gameyfin => "gameyfin server remote library self hosted download install sync api key servidor biblioteca remota baixar instalar sincronizar chave",
             Section::Drop => "drop oss server remote library self hosted download install update sync sign in servidor biblioteca remota baixar instalar atualizar sincronizar",
             Section::Integrations => "integrations sunshine moonlight stream streaming remote play tv phone couch integracoes transmitir transmissao jogar remotamente celular sofa",
@@ -269,6 +277,7 @@ impl Section {
             "downloads" => Some(Section::Downloads),
             "library" => Some(Section::Library),
             "launchers" | "import" => Some(Section::Launchers),
+            "gamehub" => Some(Section::GameHub),
             "gameyfin" => Some(Section::Gameyfin),
             "drop" => Some(Section::Drop),
             "integrations" | "sunshine" => Some(Section::Integrations),

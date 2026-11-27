@@ -3825,6 +3825,7 @@ dependencies = [
  "heronite-drop",
  "heronite-emulation",
  "heronite-epic",
+ "heronite-gamehub",
  "heronite-gameyfin",
  "heronite-gog",
  "heronite-i18n",
@@ -4054,6 +4055,23 @@ dependencies = [
  "webkit2gtk",
  "windows-sys 0.61.2",
  "wry",
+]
+
+[[package]]
+name = "heronite-gamehub"
+version = "1.8.2"
+dependencies = [
+ "anyhow",
+ "chrono",
+ "heronite-data",
+ "heronite-i18n",
+ "heronite-installer",
+ "log",
+ "serde",
+ "serde_json",
+ "tempfile",
+ "ureq",
+ "url",
 ]
 
 [[package]]
