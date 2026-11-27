@@ -89,7 +89,7 @@ impl Client {
 
     pub fn get_public(&self, path: &str) -> Result<ureq::http::Response<ureq::Body>, String> {
         let url = format!("{}{}", self.base, path);
-        self.agent.get(&url).header("X-API-Key", &self.key).call().map_err(|e| error(e))
+        self.agent.get(&url).header("X-API-Key", &self.key).call().map_err(error)
     }
 
     fn json<T: for<'de> Deserialize<'de>>(&self, path: &str) -> Result<T, String> {
@@ -104,7 +104,7 @@ impl Client {
 
     pub fn providers(&self) -> Result<Vec<Provider>, String> {
         let mut v: Vec<Provider> = self.json("/v1/download-providers")?;
-        v.sort_by(|a, b| b.priority.cmp(&a.priority));
+        v.sort_by_key(|a| std::cmp::Reverse(a.priority));
         Ok(v)
     }
 

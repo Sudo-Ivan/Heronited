@@ -417,9 +417,7 @@ mod tests {
     }
 
     fn unzip_available() -> bool {
-        std::env::var_os("PATH").is_some_and(|path| {
-            std::env::split_paths(&path).any(|dir| ["unzip", "7z", "7za", "7zz", "bsdtar"].iter().any(|tool| dir.join(tool).is_file()))
-        })
+        heronite_installer::exec::which_any(&["unzip", "7z", "7za", "7zz", "bsdtar"]).is_some()
     }
 
     #[test]
@@ -466,9 +464,7 @@ mod tests {
 
     #[test]
     fn installer_only_windows_zip_is_opened_and_the_game_is_installed() {
-        if !unzip_available()
-            || std::env::var_os("PATH").is_none_or(|path| !std::env::split_paths(&path).any(|dir| dir.join("7z").is_file()))
-        {
+        if !unzip_available() || heronite_installer::exec::which_any(&["7z", "7za", "7zz"]).is_none() {
             return;
         }
         use std::net::TcpListener;

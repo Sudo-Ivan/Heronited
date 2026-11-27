@@ -91,7 +91,7 @@ impl Servers {
             Some(s) => *s = server,
             None => self.servers.push(server),
         }
-        self.servers.sort_by(|a, b| a.label().cmp(&b.label()));
+        self.servers.sort_by_key(|a| a.label());
         Ok(())
     }
 

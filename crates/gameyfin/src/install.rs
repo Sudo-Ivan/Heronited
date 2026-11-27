@@ -185,7 +185,7 @@ pub fn install(
     let linux = game.platforms.iter().any(|p| p == "LINUX");
     let has_windows = game.platforms.iter().any(|p| p == "PC_MICROSOFT_WINDOWS");
     if !linux && !has_windows {
-        return Err(tr!("{title} is not a Windows or Linux PC game, so Heronited cannot install it", title = title.clone()).into());
+        return Err(tr!("{title} is not a Windows or Linux PC game, so Heronited cannot install it", title = title.clone()));
     }
     let windows = has_windows || !linux;
     let folder_name = title
@@ -201,9 +201,7 @@ pub fn install(
     // second copy its own folder instead of making one server impossible.
     let folder = if occupied(&first) { base.join(format!("{name}-{server_id}")) } else { first };
     if occupied(&folder) {
-        return Err(
-            tr!("{path} already exists. Choose another install folder or uninstall the game first.", path = folder.display()).into()
-        );
+        return Err(tr!("{path} already exists. Choose another install folder or uninstall the game first.", path = folder.display()));
     }
     let cache = paths.images_cache_dir().join("gameyfin/downloads").join(server_id).join(&game.id);
     let _ = fs::remove_dir_all(&cache);

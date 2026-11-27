@@ -131,7 +131,7 @@ fn form_card(d: &SettingsPage, cx: &mut Context<SettingsPage>) -> Div {
 fn server_status(svc: &Drop, server: &Server) -> (String, bool) {
     let st = svc.states.get(&server.id).cloned().unwrap_or_default();
     if let Some(code) = svc.sign_in_codes.get(&server.id) {
-        return (tr!("Sign-in code: {code}. Approve it in the Drop web interface", code = code).into(), true);
+        return (tr!("Sign-in code: {code}. Approve it in the Drop web interface", code = code), true);
     }
     if st.testing {
         return (tr!("Checking connection…").into(), true);

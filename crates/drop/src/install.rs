@@ -86,7 +86,7 @@ pub(crate) fn install_with(
         parse_command_full(&launch.command, &folder).ok_or_else(|| tr!("Drop's launch command could not be read").to_string())?;
     if windows {
         if !Path::new(&executable).exists() {
-            return Err(tr!("Drop's launch program was not installed: {path}", path = executable).into());
+            return Err(tr!("Drop's launch program was not installed: {path}", path = executable));
         }
     } else {
         // Linux commands may start through a script or an environment prefix. Make the first
@@ -398,30 +398,32 @@ fn download_chunk_once(
     Ok(downloaded)
 }
 
+#[cfg(unix)]
 fn apply_permissions(folder: &Path, file: &FileEntry) {
-    #[cfg(unix)]
-    {
-        if let Ok(path) = safe_path(folder, &file.filename) {
-            if path.exists() {
-                use std::os::unix::fs::PermissionsExt;
-                let mode = if file.permissions == 0 { 0o744 } else { file.permissions };
-                let _ = std::fs::set_permissions(path, std::fs::Permissions::from_mode(mode));
-            }
+    if let Ok(path) = safe_path(folder, &file.filename) {
+        if path.exists() {
+            use std::os::unix::fs::PermissionsExt;
+            let mode = if file.permissions == 0 { 0o744 } else { file.permissions };
+            let _ = std::fs::set_permissions(path, std::fs::Permissions::from_mode(mode));
         }
     }
 }
 
+#[cfg(not(unix))]
+fn apply_permissions(_folder: &Path, _file: &FileEntry) {}
+
+#[cfg(unix)]
 fn executable_bit(path: &str) {
-    #[cfg(unix)]
-    {
-        use std::os::unix::fs::PermissionsExt;
-        if let Ok(meta) = std::fs::metadata(path) {
-            let mut p = meta.permissions();
-            p.set_mode(p.mode() | 0o111);
-            let _ = std::fs::set_permissions(path, p);
-        }
+    use std::os::unix::fs::PermissionsExt;
+    if let Ok(meta) = std::fs::metadata(path) {
+        let mut p = meta.permissions();
+        p.set_mode(p.mode() | 0o111);
+        let _ = std::fs::set_permissions(path, p);
     }
 }
+
+#[cfg(not(unix))]
+fn executable_bit(_path: &str) {}
 
 fn safe_path(root: &Path, rel: &str) -> Result<PathBuf, String> {
     let rel_path = Path::new(rel);
@@ -520,11 +522,13 @@ mod tests {
 
     #[test]
     fn parses_env_command_and_format_fields() {
-        let (exe, args) = parse_command("WINEFSYNC=1 game.exe --dir {dir} --exe {exe}", Path::new("/games/test")).unwrap();
-        assert_eq!(exe, "/games/test/game.exe");
+        let folder = Path::new("/games/test");
+        let (exe, args) = parse_command("WINEFSYNC=1 game.exe --dir {dir} --exe {exe}", folder).unwrap();
+        assert_eq!(Path::new(&exe), folder.join("game.exe"));
         assert_eq!(args, vec!["--dir", "/games/test", "--exe", "game.exe"]);
-        let (_, args) = parse_command("./bin/game --exe {exe} --abs {abs_exe}", Path::new("/games/test")).unwrap();
-        assert_eq!(args, vec!["--exe", "./bin/game", "--abs", "/games/test/./bin/game"]);
+        let (_, args) = parse_command("./bin/game --exe {exe} --abs {abs_exe}", folder).unwrap();
+        let abs = folder.join("./bin/game").to_string_lossy().into_owned();
+        assert_eq!(args, vec!["--exe", "./bin/game", "--abs", &abs]);
     }
 
     #[test]
@@ -535,10 +539,8 @@ mod tests {
 
     #[test]
     fn prefers_native_linux_then_windows() {
-        let mut win = VersionOption::default();
-        win.platform = "Windows".into();
-        let mut lin = VersionOption::default();
-        lin.platform = "Linux".into();
+        let win = VersionOption { platform: "Windows".into(), ..Default::default() };
+        let lin = VersionOption { platform: "Linux".into(), ..Default::default() };
         assert_eq!(choose_version(&[win.clone(), lin.clone()]).unwrap().platform, "Linux");
         assert_eq!(choose_version(&[win]).unwrap().platform, "Windows");
     }
@@ -604,9 +606,10 @@ mod tests {
         assert_eq!(library_folder("Games/My Game").as_deref(), Some("Games/My Game"));
         assert!(library_folder("../evil").is_none());
         assert!(library_folder("/evil").is_none());
-        let (env, exe, args) = parse_command_full("WINEDEBUG=-fixme game.exe --x", Path::new("/g")).unwrap();
+        let folder = Path::new("/g");
+        let (env, exe, args) = parse_command_full("WINEDEBUG=-fixme game.exe --x", folder).unwrap();
         assert_eq!(env, [("WINEDEBUG".to_string(), "-fixme".to_string())]);
-        assert_eq!(exe, "/g/game.exe");
+        assert_eq!(Path::new(&exe), folder.join("game.exe"));
         assert_eq!(args, ["--x"]);
         assert_eq!(shell_command(&env, "/g/game exe", &["--x".to_string()]), "WINEDEBUG=-fixme '/g/game exe' --x");
     }

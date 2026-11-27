@@ -128,7 +128,7 @@ impl CollectionView {
                 if this.preparing.contains_key(app_name) {
                     let message = if *total > 1 {
                         let percent = ((*done as f64 / *total as f64) * 100.).round() as u32;
-                        tr!("Downloading and installing... {percent}%", percent = percent).into()
+                        tr!("Downloading and installing... {percent}%", percent = percent)
                     } else {
                         tr!("Downloading and installing...").into()
                     };
