@@ -129,7 +129,7 @@ pub fn verify_presigned(method: &str, raw_url: &str, headers: &[(String, String)
     let signed_headers = get("X-Amz-SignedHeaders").ok_or("no signed headers")?;
     let signature = get("X-Amz-Signature").ok_or("no signature")?;
     // scope is credential without the access key
-    let scope = credential.splitn(2, '/').nth(1).ok_or("bad credential")?.to_string();
+    let scope = credential.split_once('/').ok_or("bad credential")?.1.to_string();
 
     // Canonical query: every parameter but the signature, sorted, aws-encoded.
     let mut pairs: Vec<(String, String)> = params.into_iter().filter(|(k, _)| k != "X-Amz-Signature").collect();
