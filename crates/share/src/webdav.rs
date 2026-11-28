@@ -256,7 +256,8 @@ fn delete_remote(agent: &ureq::Agent, w: &WebDav, remote: &str, auth: &[(String,
 pub fn delete(target: &Target, w: &WebDav, record: &Record) -> Result<()> {
     let ag = agent(&target.tls)?;
     let auth = auth_headers(w)?;
-    retried(|| delete_remote(&ag, w, &record.remote, &auth))
+    let remote = record.delete.clone().unwrap_or_else(|| record.remote.clone());
+    retried(|| delete_remote(&ag, w, &remote, &auth))
 }
 
 pub fn check(target: &Target, w: &WebDav) -> Result<crate::CheckReport> {
