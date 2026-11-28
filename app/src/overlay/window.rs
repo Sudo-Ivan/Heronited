@@ -55,6 +55,8 @@ impl Display {
     pub fn current(cx: &App, game: Option<u32>) -> Self {
         #[cfg(windows)]
         let screen = target_screen(game);
+        #[cfg(not(windows))]
+        let _ = game;
         // GPUI lists the displays at the interface zoom; the overlay's
         // windows are not zoomed (`gpui-zoom`), so it takes their own size.
         let zoom = gpui_zoom::zoom();
