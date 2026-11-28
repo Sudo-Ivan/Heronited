@@ -284,11 +284,7 @@ mod tests {
         let with = game(|g| g.emulator_id = Some("my-pcsx2".into()));
         assert_eq!(with.names(&paths), vec!["My PS2 games".to_string()]);
         // Without the entry the game keeps its own names.
-        std::fs::write(
-            paths.emulators(),
-            r#"{"emulators":[{"id":"my-pcsx2","definitionId":"pcsx2","name":"PCSX2"}]}"#,
-        )
-        .unwrap();
+        std::fs::write(paths.emulators(), r#"{"emulators":[{"id":"my-pcsx2","definitionId":"pcsx2","name":"PCSX2"}]}"#).unwrap();
         let names = with.names(&paths);
         assert_eq!(names[0], "Hollow Knight");
         assert!(names.len() > 1, "pcsx2 suffix names: {names:?}");

@@ -25,9 +25,8 @@ use gpui_kit::*;
 use heronite_i18n::{n_, tr};
 
 use super::{
-    about, advanced, backup, console_mode, drop, gamehub, gameyfin, launchers, library, logs, metadata, mods, overlay, replay, saves, screenshots,
-    storage, Section,
-    SettingsPage,
+    about, advanced, backup, console_mode, drop, gamehub, gameyfin, launchers, library, logs, metadata, mods, overlay, replay, saves,
+    screenshots, storage, Section, SettingsPage,
 };
 use crate::console::kit::{self, u};
 use crate::console::list::{Outcome, Row, RowStyle};
