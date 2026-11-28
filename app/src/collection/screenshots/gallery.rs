@@ -224,11 +224,14 @@ impl CollectionView {
                 } else {
                     None
                 };
+                let id = SharedString::from(format!("shot-grid-{i}"));
+                let busy = crate::services::share_busy(cx, &self.shots.items[i].name, &self.shots.share_pending);
                 row = row.child(
-                    thumb_tile(SharedString::from(format!("shot-grid-{i}")), src, false)
+                    thumb_tile(id.clone(), src, false)
                         .w(px(col_w))
                         .h(px(ROW_H))
                         .flex_none()
+                        .child(share_tile_button(id, i, busy, cx))
                         .on_click(cx.listener(move |this, _, window, cx| this.shots_open_view(i, window, cx))),
                 );
             }
@@ -276,6 +279,44 @@ impl CollectionView {
             )
             .child(close)
     }
+}
+
+/// Shares the tile's capture, in the tile's top right corner; under the
+/// pointer only, until a job moves the file: then it is a spinner that stays.
+fn share_tile_button(id: SharedString, i: usize, busy: bool, cx: &mut Context<CollectionView>) -> Stateful<Div> {
+    // The tile's own group (`thumb_tile`), so the button shows on its hover.
+    let group: SharedString = format!("{id}-g").into();
+    let mut b = div()
+        .id(SharedString::from(format!("{id}-share")))
+        .absolute()
+        .top(px(6.))
+        .right(px(6.))
+        .flex()
+        .items_center()
+        .justify_center()
+        .size(px(28.))
+        .rounded_full()
+        .bg(theme::rgb_a(10, 12, 14, 0.72))
+        .on_mouse_down(MouseButton::Left, |_, _, cx| cx.stop_propagation());
+    if busy {
+        b = b.child(icon(Icon::FaSpinner, px(14.), rgb(0xf4f6f8)).with_animation(
+            SharedString::from(format!("{id}-share-spin")),
+            Animation::new(std::time::Duration::from_secs(1)).repeat().with_max_fps(30.),
+            |s, t| s.with_transformation(Transformation::rotate(percentage(t))),
+        ));
+    } else {
+        b = b
+            .opacity(0.)
+            .group_hover(group, |s| s.opacity(1.))
+            .cursor_pointer()
+            .hover(|s| s.bg(theme::rgb_a(10, 12, 14, 0.92)))
+            .on_click(cx.listener(move |this, _, _, cx| {
+                cx.stop_propagation();
+                this.shots_share(i, cx);
+            }))
+            .child(icon(Icon::Share, px(15.), rgb(0xf4f6f8)));
+    }
+    b
 }
 
 /// `.collectionScreenshots__thumb`: rounded tile with cover image; the image

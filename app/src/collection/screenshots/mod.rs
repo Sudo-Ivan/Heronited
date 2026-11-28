@@ -115,6 +115,10 @@ pub(super) struct Shots {
     pub full_pending: Option<(PathBuf, (u32, u32))>,
     pub full_failed: Option<PathBuf>,
     pub boost: bool,
+    /// Redraws while the sharing service's jobs move (started on the first share).
+    pub share_sub: Option<Subscription>,
+    /// Files shared here, before their job shows in the service's snapshot.
+    pub share_pending: HashSet<String>,
     /// `HERONITE_DEBUG_DIALOG=gallery|viewer|viewer-zoom|viewer-fit|confirm`.
     pub debug: Option<String>,
     pub debug_delete: bool,
@@ -166,6 +170,8 @@ impl Default for Shots {
             full_pending: None,
             full_failed: None,
             boost: false,
+            share_sub: None,
+            share_pending: HashSet::new(),
             debug: None,
             debug_delete: false,
         }

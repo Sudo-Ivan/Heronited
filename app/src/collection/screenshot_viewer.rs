@@ -141,6 +141,25 @@ impl CollectionView {
         cx.notify();
     }
 
+    /// Shares the screenshot `i` through the sharing service (Settings →
+    /// Sharing); the link lands in the clipboard and a notification. A job
+    /// already moving the file makes it a no-op.
+    pub(super) fn shots_share(&mut self, i: usize, cx: &mut Context<Self>) {
+        let Some(item) = self.shots.items.get(i) else { return };
+        if crate::services::share_busy(cx, &item.name, &self.shots.share_pending) {
+            return;
+        }
+        let path = item.path.clone();
+        let game = self.shots.game.as_ref().and_then(|key| self.lib.as_ref().and_then(|lib| lib.get(key))).map(|g| g.title.clone());
+        let svc = crate::services::share(cx);
+        if self.shots.share_sub.is_none() {
+            self.shots.share_sub = Some(cx.observe(&svc, |_, _, cx| cx.notify()));
+        }
+        self.shots.share_pending.insert(item.name.clone());
+        crate::services::share::ShareService::share_files(cx, vec![path], game, None, crate::services::share::ShareUi::default());
+        cx.notify();
+    }
+
     pub(super) fn shots_delete(&mut self, cx: &mut Context<Self>) {
         let Some(i) = self.shots.confirm.take() else { return };
         let Some(item) = self.shots.items.get(i).cloned() else { return };
@@ -226,6 +245,12 @@ impl CollectionView {
             "left" if viewing => self.shots_step(-1),
             "up" if viewing => self.shots_toggle_fit(),
             "down" if viewing => self.shots_close_view(),
+            // Held does not repeat it: a share is not a navigation.
+            "s" if viewing && !ev.is_held => {
+                if let Some(i) = self.shots.view {
+                    self.shots_share(i, cx);
+                }
+            }
             _ => return false,
         }
         true
@@ -376,7 +401,7 @@ impl CollectionView {
         })
     }
 
-    /// Delete, fit and close buttons (top right).
+    /// Share, delete, fit and close buttons (top right).
     fn viewer_tools(&self, i: usize, cx: &mut Context<Self>) -> Div {
         let fit = self.shots.fit;
         div()
@@ -385,6 +410,30 @@ impl CollectionView {
             .right(px(19.2))
             .flex()
             .gap(px(8.))
+            .child({
+                let busy = self.shots.items.get(i).is_some_and(|s| crate::services::share_busy(cx, &s.name, &self.shots.share_pending));
+                if busy {
+                    div()
+                        .id("shot-share")
+                        .flex()
+                        .flex_none()
+                        .items_center()
+                        .justify_center()
+                        .size(px(36.))
+                        .rounded_full()
+                        .bg(theme::rgb_a(10, 12, 14, 0.72))
+                        .opacity(0.55)
+                        .on_mouse_down(MouseButton::Left, |_, _, cx| cx.stop_propagation())
+                        .child(crate::ui::icon(Icon::FaSpinner, px(20.), rgb(0xf4f6f8)).with_animation(
+                            "shot-share-spin",
+                            Animation::new(Duration::from_secs(1)).repeat().with_max_fps(30.),
+                            |s, t| s.with_transformation(Transformation::rotate(percentage(t))),
+                        ))
+                } else {
+                    icon_button("shot-share", Icon::Share, 36., 0.72, 0.92)
+                        .on_click(cx.listener(move |this, _, _, cx| this.shots_share(i, cx)))
+                }
+            })
             .child({
                 let busy = self.shots.deleting;
                 let mut b = div()
