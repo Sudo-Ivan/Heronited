@@ -70,6 +70,9 @@ impl EmulatorsPage {
             Row::action("scan-folder", tr!("Scan a folder for emulators\u{2026}"))
                 .desc(tr!("Searches a folder you pick, for example your Emulation folder"))
                 .icon(Icon::FolderOpen),
+            Row::action("srm-import", tr!("Import from Steam ROM Manager\u{2026}"))
+                .desc(tr!("Bring over emulators, ROM folders and globs"))
+                .icon(Icon::Download),
             Row::action("add-folder", tr!("Add ROM folder")).desc(tr!("Games found in it are added to the Collection")).icon(Icon::Folder),
             Row::action("scan-all", if busy { tr!("Scanning\u{2026}") } else { tr!("Scan all ROM folders") })
                 .desc(tr!("Adds the games not imported yet from every saved folder"))
@@ -91,9 +94,11 @@ impl EmulatorsPage {
             );
             for sc in &s.scanners {
                 let missing = s.missing_folders.contains(&sc.directory);
-                let profile = e.profile(&sc.profile_id).map(profile_label).unwrap_or_else(|| tr!("Unknown profile").into());
+                let profile_ref = e.profile(&sc.profile_id);
+                let profile = profile_ref.map(profile_label).unwrap_or_else(|| tr!("Unknown profile").into());
+                let profile_glob = profile_ref.and_then(|p| p.rom_glob.as_deref());
                 let mut r = Row::action(format!("f:{}", sc.id), sc.directory.clone())
-                    .desc(format!("{profile}  \u{b7}  {}", folder_flags(sc)))
+                    .desc(format!("{profile}  \u{b7}  {}", folder_flags(sc, profile_glob)))
                     .icon(Icon::Folder);
                 if missing {
                     r = r.danger().desc(format!("{}  \u{b7}  {profile}", tr!("Folder not found")));
@@ -119,6 +124,7 @@ impl EmulatorsPage {
                     d.update(cx, |d, cx| d.console_pick_folder(window, cx));
                 }
             }
+            "srm-import" => self.open_srm_import(None, window, cx),
             "add-folder" => self.open_folder_dialog(None, None, window, cx),
             "scan-all" => self.scan_all(cx),
             _ => {
@@ -186,7 +192,7 @@ impl EmulatorsPage {
     pub(super) fn render_console(&mut self, _window: &mut Window, _cx: &mut Context<Self>) -> AnyElement {
         let rows = self.console_rows();
         let overlay = self.layer.is_open() || self.dialog.is_some();
-        let list = self.console_list.render("console-emulators", &rows, !overlay);
+        let list = self.console_list.render_cards("console-emulators", &rows, !overlay);
 
         let mut status = div().flex().flex_col().gap(u(4.));
         if let Some(label) = self.busy.clone() {
@@ -228,8 +234,8 @@ impl EmulatorsPage {
                     .gap(u(10.))
                     .px(u(46.))
                     .pb(u(16.))
-                    .child(div().w(u(900.)).max_w_full().flex().flex_col().gap(u(8.)).child(status))
-                    .child(div().w(u(900.)).max_w_full().flex().flex_col().flex_1().min_h_0().child(list.flex_1().min_h_0())),
+                    .child(div().w(u(kit::SETTINGS_W)).max_w_full().flex().flex_col().gap(u(8.)).child(status))
+                    .child(list),
             )
             .children(self.layer.view())
             .children(self.dialog.clone())

@@ -75,6 +75,27 @@ pub(crate) fn clip(text: &str, max: usize) -> String {
     format!("{}\u{2026}", cut.trim_end_matches([',', ';', ':', '.', ' ']))
 }
 
+/// `text` cut after whole words so that it fits in `lines` lines `width`
+/// wide at `size` in `family`, with "…" when cut. GPUI's line wrapper has
+/// the layout's break rules but adds up each character's width, which errs
+/// wide: the cut may come a word early, never mid-word.
+pub(crate) fn fit_words(text: &str, lines: usize, width: Pixels, size: Pixels, family: &'static str, window: &Window) -> String {
+    let text = text.split_whitespace().collect::<Vec<_>>().join(" ");
+    let mut wrapper = window.text_system().line_wrapper(font(family), size);
+    let fragments = [LineFragment::text(&text)];
+    let end = wrapper.wrap_line(&fragments, width, IndentAdjustment::NoIndent).nth(lines.saturating_sub(1)).map(|b| b.ix);
+    cut_words(&text, end)
+}
+
+/// `text` up to `end`, where the line after the last one shown starts
+/// (`None`: it all fits), without its last word so "…" has room.
+fn cut_words(text: &str, end: Option<usize>) -> String {
+    let Some(end) = end.filter(|&e| e < text.len() && text.is_char_boundary(e)) else { return text.to_string() };
+    let kept = text[..end].trim_end();
+    let kept = kept.rfind(' ').map_or(kept, |i| &kept[..i]);
+    format!("{}\u{2026}", kept.trim_end_matches([',', ';', ':', '.', ' ']))
+}
+
 /// A logo fitted in a `w`×`h` design px box at its own proportions (a small
 /// one grows up to twice its size), laid out at the size it shows at so the
 /// column under it stays in place.
@@ -130,10 +151,10 @@ pub(crate) fn played_time(g: &CollectionGame) -> Option<String> {
     (g.playtime_minutes > 0).then(|| heronite_data::collection::format_playtime_minutes(g.playtime_minutes))
 }
 
-/// "3 days ago · 12h 40m"; `long` says "Last played 3 days ago · 12h 40m".
-/// "Not played yet" for a game never played.
-pub(crate) fn played_line(g: &CollectionGame, long: bool) -> String {
-    let when = match g.last_played.as_deref().and_then(played_ago) {
+/// "3 days ago · 12h 40m" (`last`: when it was last played); `long` says
+/// "Last played 3 days ago · 12h 40m". "Not played yet" for a game never played.
+pub(crate) fn played_line(g: &CollectionGame, last: Option<&str>, long: bool) -> String {
+    let when = match last.and_then(played_ago) {
         Some(ago) if long => tr!("Last played {when}", when = ago.to_lowercase()),
         Some(ago) => ago,
         None => tr!("Not played yet").to_string(),
@@ -254,27 +275,6 @@ impl CollectionView {
             .then(|| div().flex().flex_wrap().gap(u(8.)).children(g.details.genres.iter().take(4).map(|t| outlined(t.clone(), 13.))))
     }
 
-    /// The genres in one line, thin bars between them ("Adventure | RPG").
-    pub(super) fn console_genre_line(g: &CollectionGame) -> Option<Div> {
-        (!g.details.genres.is_empty()).then(|| {
-            let mut line = div()
-                .flex()
-                .items_center()
-                .gap(u(14.))
-                .text_size(u(22.))
-                .font_weight(theme::W_BOLD)
-                .text_color(theme::text_primary())
-                .whitespace_nowrap();
-            for (i, t) in g.details.genres.iter().take(3).enumerate() {
-                if i > 0 {
-                    line = line.child(div().w(px(1.5)).h(u(20.)).bg(kit::ink(0.45)));
-                }
-                line = line.child(t.clone());
-            }
-            line
-        })
-    }
-
     /// The panel of numbers at the right edge (`hero.stats`): time played,
     /// last played, size on disk, score, genre and status; only what is
     /// known, at most `max` lines. The caller puts it at the edge (it is
@@ -284,7 +284,7 @@ impl CollectionView {
         if let Some(time) = played_time(g) {
             lines.push((Icon::AccessTime, time, None));
         }
-        if let Some(ago) = g.last_played.as_deref().and_then(played_ago) {
+        if let Some(ago) = self.console_last_played(g).as_deref().and_then(played_ago) {
             lines.push((Icon::History, ago, None));
         }
         if let Some(size) = g.details.install_size.as_deref().filter(|s| g.installed && !s.is_empty() && *s != "0") {
@@ -354,7 +354,7 @@ impl CollectionView {
             self.console_name(&g, size, window)
         };
         let mut line = Self::console_facts(&g);
-        if let Some(ago) = g.last_played.as_deref().and_then(played_ago).filter(|_| how.last_played) {
+        if let Some(ago) = self.console_last_played(&g).as_deref().and_then(played_ago).filter(|_| how.last_played) {
             line = format!("{line} \u{b7} {}", tr!("Last played {when}", when = ago.to_lowercase()));
         }
         let facts = theme.hero.facts.then(|| match theme.hero.fact_style {
@@ -374,5 +374,28 @@ impl CollectionView {
         // direction keeps the text readable).
         let (dx, dy) = how.slide;
         div().child(motion::enter_from(SharedString::from(format!("hero-{}-{}", g.key, how.replay)), hero, 300, dx, dy, 0.25))
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::cut_words;
+
+    #[test]
+    fn a_cut_keeps_whole_words_and_ends_with_an_ellipsis() {
+        let text = "and the dark depths of the underworld";
+        for (text, at, want) in [
+            // Text that fits is left whole.
+            ("Short and sweet.", None, "Short and sweet."),
+            ("Short and sweet.", Some(16), "Short and sweet."),
+            // The next line would start at "dark": "the" goes too, for the mark.
+            (text, Some(8), "and\u{2026}"),
+            (text, text.find("depths"), "and the\u{2026}"),
+            ("One, two, three", Some(10), "One\u{2026}"),
+            // A cut off a char boundary is ignored.
+            ("Pokémon Emerald", Some(4), "Pokémon Emerald"),
+        ] {
+            assert_eq!(cut_words(text, at), want, "{text} at {at:?}");
+        }
     }
 }

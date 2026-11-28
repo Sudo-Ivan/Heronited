@@ -3,12 +3,16 @@
 //! and Playnite on Windows ([`Launcher::here`]). Which launchers the user turned the
 //! import on for is `local_library/launcher-imports.json`.
 //!
-//! Lutris, Bottles, Faugus and Playnite keep starting their games: the
-//! entries hold the command that asks them to ([`LAUNCH_KIND`]). Heroic's
-//! games added by hand are copied as this app's own and start here.
+//! Lutris, Bottles and Faugus keep starting their games: the entries hold
+//! the command that asks them to ([`LAUNCH_KIND`]), unless the user picks
+//! that they start here ([`ImportPrefs::start_here`]): the ones that can
+//! are then brought over as this app's own. Heroic's games added by hand
+//! and Playnite's that can start without it are always copied as this
+//! app's own and start here; Playnite starts the rest.
 //!
 //! The folders and Wine prefixes of those games belong to their launcher
-//! ([`managed_paths`]): uninstalling a game added here never deletes them.
+//! ([`managed_paths`]), the ones brought over too ([`brought_over`]):
+//! uninstalling a game never deletes them.
 //! The same goes for the prefix and the games of a store client
 //! ([`crate::clients`]) and the games of the Xbox app ([`crate::xbox`]).
 
@@ -74,6 +78,20 @@ impl Launcher {
     pub fn from_source(source: &str) -> Option<Self> {
         Self::ALL.into_iter().find(|l| l.id() == source)
     }
+
+    /// Whether the user picks if its games start here, without it
+    /// ([`ImportPrefs::start_here`]): Lutris, Bottles and Faugus. Heroic's
+    /// and Playnite's games start here whenever they can.
+    pub fn can_start_here(self) -> bool {
+        matches!(self, Launcher::Lutris | Launcher::Bottles | Launcher::Faugus)
+    }
+}
+
+/// A Collection entry of a launcher's game that starts here, without it
+/// (brought over from Lutris, Bottles, Faugus or Playnite). Heroic's copies
+/// are this app's games like any other.
+pub fn brought_over(meta: &LocalGameMeta) -> bool {
+    Launcher::from_source(&meta.source).is_some_and(|l| l != Launcher::Heroic) && meta.launch_kind != LAUNCH_KIND
 }
 
 /// `launchKind` of the games another launcher starts (`launcherArgs` holds
@@ -115,6 +133,13 @@ pub struct ImportPrefs {
     /// out until it is turned off and on again.
     #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
     pub removed: BTreeMap<Launcher, BTreeSet<String>>,
+    /// Launchers whose games start here, without them
+    /// ([`Launcher::can_start_here`]): each game the import can start here
+    /// comes over as this app's own, with its program, arguments, Wine
+    /// prefix, Wine and environment variables. Turned off, those go back to
+    /// asking the launcher.
+    #[serde(default, skip_serializing_if = "BTreeSet::is_empty")]
+    pub start_here: BTreeSet<Launcher>,
     #[serde(flatten)]
     pub extra: Extra,
 }
@@ -155,6 +180,9 @@ pub fn managed_paths(paths: &DataPaths, home: &str) -> Vec<Managed> {
                 LAUNCH_KIND => Launcher::from_source(&m.source)?.name(),
                 clients::LAUNCH_KIND => Client::from_id(&m.source)?.name(),
                 xbox::LAUNCH_KIND => xbox::NAME,
+                // Brought over: its folder (for Playnite often one of many
+                // ROMs) and prefix are still the launcher's.
+                _ if brought_over(m) => Launcher::from_source(&m.source)?.name(),
                 _ => return None,
             };
             Some((m.app_name.as_str(), (owner, m)))
@@ -268,17 +296,24 @@ mod tests {
         let paths = DataPaths::at(dir.path());
         write_collection(
             &paths,
-            serde_json::json!({"games": [{"app_name": "lutris_7", "install": {"install_path": "/home/u/Games/heroes/"}}]}),
+            serde_json::json!({"games": [
+                {"app_name": "lutris_7", "install": {"install_path": "/home/u/Games/heroes/"}},
+                {"app_name": "playnite_1", "install": {"install_path": "/home/u/ROMs/ps1"}}]}),
             serde_json::json!({"games": {
                 "lutris_7": {"appName": "lutris_7", "runner": "sideload", "source": "lutris", "launchKind": "launcher", "title": "Heroes III",
                              "heroniteLauncherPrefix": "/home/u/Prefixes/heroes"},
+                "playnite_1": {"appName": "playnite_1", "runner": "sideload", "source": "playnite", "launchKind": "emulator", "title": "Castlevania"},
                 "by_hand": {"appName": "by_hand", "runner": "sideload", "source": "lutris", "launchKind": "executable", "title": "By hand"}}}),
         );
         let managed = managed_paths(&paths, "/home/u");
         let kept: Vec<_> = managed.iter().map(|m| (m.path.to_str().unwrap(), m.owner, m.app_name.as_str(), m.title.as_str())).collect();
         assert_eq!(
             kept,
-            [("/home/u/Games/heroes", "Lutris", "lutris_7", "Heroes III"), ("/home/u/Prefixes/heroes", "Lutris", "lutris_7", "Heroes III")]
+            [
+                ("/home/u/Games/heroes", "Lutris", "lutris_7", "Heroes III"),
+                ("/home/u/Prefixes/heroes", "Lutris", "lutris_7", "Heroes III"),
+                ("/home/u/ROMs/ps1", "Playnite", "playnite_1", "Castlevania"),
+            ]
         );
         assert_eq!(managed_by(&managed, Path::new("/home/u/Games/heroes/drive_c")).map(|m| m.owner), Some("Lutris"));
         assert_eq!(managed_by(&managed, Path::new("/home/u/Games/other")), None);

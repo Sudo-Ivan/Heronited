@@ -44,6 +44,9 @@ const OURS: &str = "# Heronited: the game's FPS limit, changed by the in-game ov
 /// of the user's config must not undo each other.
 static WRITE: Mutex<()> = Mutex::new(());
 
+/// One write of MangoHud's file at a time: the overlay's change and the copy
+/// of the user's config must not undo each other.
+
 /// How a running game's limit can change. Written to `running.json` with the
 /// session, so a game the app picks up again keeps it.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]

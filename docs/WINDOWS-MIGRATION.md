@@ -8,7 +8,7 @@ What works on Windows, what is left, and what Windows does not need.
 
 - App: window and its controls, tray, single instance, start with Windows, `heronite://` links, keep awake
 - Collection: Steam (installed games and the whole library), games added by hand, play time
-- Other launchers: Playnite's installed games (Settings → Other launchers), started through Playnite; Heroic's games added by hand and its Epic, GOG and Amazon install records (`%APPDATA%\heroic`), once its import is turned on there. Nothing is copied from Heroic at the first start (`Feature::HeroicMigration` is off, on Linux too)
+- Other launchers: Playnite's installed games (Settings → Other launchers), brought over as this app's own with their settings, emulators and details (only the ones Playnite alone can start keep going through it); Heroic's games added by hand and its Epic, GOG and Amazon install records (`%APPDATA%\heroic`), once its import is turned on there. Nothing is copied from Heroic at the first start (`Feature::HeroicMigration` is off, on Linux too)
 - Epic Games, GOG and Amazon Games through the Windows builds of legendary, gogdl and nile: login (WebView2 window), library, downloads, installs and moves, first launch, cloud saves, and the games of the official launchers (Epic Games Launcher, GOG Galaxy). Epic has one EOS Overlay switch instead of one per Wine prefix; Amazon's `.msi` installers run through `msiexec`
 - GOG Galaxy services (`comet`): Comet runs beside a GOG game's Windows build, so its achievements, stats and leaderboards reach the GOG account without GOG Galaxy, and new unlocks show over the game (`heronite_launch::galaxy`). Settings → Achievements → GOG registers Comet's dummy `GalaxyCommunication` service as administrator (LocalService, in a folder only administrators may change) for the games that look for it. Not yet checked on a real Windows: the service's registration, and a standard user starting it (`sc start GalaxyCommunication`)
 - Battle.net, the EA app, Ubisoft Connect and the Rockstar Games Launcher as they are (no Wine): set up with the official installer or found already installed, sign-in and games read from this PC (`heronite_clients::place`), opened and closed by Heronited (`heronite_clients::native`), games started through the client; the session follows the programs running from the game's folder
@@ -21,7 +21,7 @@ What works on Windows, what is left, and what Windows does not need.
 - Desktop and Start menu shortcuts, Add to Steam
 - Installer, portable zip, self-update, releases
 - Installer languages: English, Brazilian Portuguese, Spanish and German; silent updates retain the selected language
-- Appearance → "From the desktop": reads Windows' accent colour and app light/dark mode, and follows changes to those settings
+- Appearance → "From the desktop": reads Windows' accent colour and follows its changes; the panel is Windows 11's light or dark app background
 - Steam's per-game launch options (Settings → Launch of a Steam game, `Feature::SteamGameSettings`): through the running client, or in `userdata\<account>\config\localconfig.vdf` while Steam is closed, as on Linux; the account is the registry's `ActiveProcess\ActiveUser`, else the latest login. No compatibility tool: Steam starts Windows games as they are
 - Native launch extras: before/after scripts (`.bat`, `.cmd`, `.ps1`, programs), delayed companions and presets (variables and arguments); for Steam games they run around `steam://rungameid` (`heronite_launch::steam_extras`); real-process tests cover environment, working folders, normal exit, stop and cancellation before a companion starts
 - Restoring a backup made on Linux
@@ -87,6 +87,15 @@ does not inject code into games.
 - **Panel:** Home, Screenshots, Notes (including the on-screen keyboard),
   Audio and Controller reuse the Linux views. Screenshot capture uses the
   existing Windows backend.
+- **Media:** the media row of Home and Audio reads the system media
+  transport controls (`Windows.Media.Control`, what the volume flyout
+  shows: Spotify, Apple Music, Media Player, a browser tab playing media)
+  and sends play / pause, next and previous to the chosen session. A
+  browser has a session per tab: a command goes to the tab playing the
+  title shown. Thumbnails come as bytes and are kept in
+  `%LOCALAPPDATA%\heronite\cache\overlay-media`. A desktop program that
+  is not a packaged app is named from its id ("Spotify.exe" → Spotify,
+  Chrome, MSEdge); Firefox's id is a hash, so it shows without an app name.
 - **Audio:** Core Audio supplies system volume/mute, microphone mute and
   active app/game audio sessions. The output and the microphone are switched
   from the panel (Y on Home's mixer, the Output and Microphone rows on Audio)

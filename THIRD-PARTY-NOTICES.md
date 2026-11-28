@@ -16,6 +16,13 @@ Heronited is licensed under the [GNU General Public License v3.0](LICENSE). It i
 - **License:** GPL-3.0 ([`LICENSE`](LICENSE))
 - **Used in Heronite:** the controller battery drivers in `crates/platform/src/pad_battery/` are ported from its `src/drivers/`. Each driver names the protocol references it was ported with.
 
+## BatteryHub
+
+- **Project:** [BatteryHub](https://github.com/krisgfx9/Wireless-Device-Battery-Monitor) (formerly Wireless Battery)
+- **Copyright:** the BatteryHub contributors
+- **License:** GPL-3.0 ([`LICENSE`](LICENSE))
+- **Used in Heronite:** the controller battery drivers in `crates/platform/src/pad_battery/` are ported from its `src/drivers/`. Each driver names the protocol references it was ported with.
+
 ## Fonts
 
 | Font | Files | Copyright | License |

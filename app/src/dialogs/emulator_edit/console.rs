@@ -85,6 +85,21 @@ impl EmulatorEditDialog {
         if missing > 0 {
             rows.push(Row::action("pcat", trn!(missing, "Add {n} catalog profile", "Add {n} catalog profiles")).icon(Icon::Add));
         }
+        if super::offers_saves() {
+            rows.push(Row::header(tr!("Saves")));
+            rows.push(
+                Row::text("ludusavi", tr!("Ludusavi entry (optional)"), text_of(&self.ludusavi_entry, cx))
+                    .icon(Icon::Edit)
+                    .desc(tr!("Backed up after playing any game of this emulator. Empty backs up each game under its own name.")),
+            );
+            if !self.ludusavi_games.is_empty() {
+                let (options, index) = self.console_ludusavi_choices(cx);
+                rows.push(
+                    Row::choice("ludusavi-pick", tr!("Your Ludusavi custom entries"), options, index)
+                        .desc(tr!("◀ ▶ picks one for the entry.")),
+                );
+            }
+        }
         rows.push(Row::action("cancel", tr!("Cancel")));
         let label = if self.saving {
             tr!("Saving\u{2026}")
@@ -109,6 +124,9 @@ impl EmulatorEditDialog {
             Row::text("pf-ext", tr!("ROM extensions"), text_of(&f.extensions, cx))
                 .icon(Icon::Edit)
                 .desc(tr!("Comma-separated, for example iso, cue, chd.")),
+            Row::text("pf-glob", tr!("ROM glob pattern (optional)"), text_of(&f.rom_glob, cx))
+                .icon(Icon::Edit)
+                .desc(tr!("Leave empty to scan by file extensions. X clears it.")),
         ];
         if self.core_relevant(p) {
             rows.push(
@@ -130,6 +148,20 @@ impl EmulatorEditDialog {
         rows.push(remove);
         rows.push(Row::action("pf-done", tr!("Done")));
         rows
+    }
+
+    /// The choice of a custom game for the entry: "None" (each game under
+    /// its own name), the user's custom games, and the entry typed when it is
+    /// none of them.
+    fn console_ludusavi_choices(&self, cx: &App) -> (Vec<SharedString>, usize) {
+        let current = text_of(&self.ludusavi_entry, cx);
+        let mut options: Vec<SharedString> = vec![tr!("None").into()];
+        options.extend(self.ludusavi_games.iter().map(|g| SharedString::from(g.clone())));
+        if !current.is_empty() && !self.ludusavi_games.contains(&current) {
+            options.push(current.clone().into());
+        }
+        let index = if current.is_empty() { 0 } else { options.iter().position(|o| o.as_ref() == current).unwrap_or(0) };
+        (options, index)
     }
 
     fn console_rows(&self, cx: &App) -> Vec<Row> {
@@ -201,6 +233,7 @@ impl EmulatorEditDialog {
         match id {
             "name" => self.console_type(tr!("Name"), self.name.clone(), window, cx),
             "flatpak" => self.console_type(tr!("Flatpak application id"), self.flatpak_id.clone(), window, cx),
+            "ludusavi" => self.console_type(tr!("Ludusavi entry"), self.ludusavi_entry.clone(), window, cx),
             "exe" => {
                 self.console_pick(tr!("Emulator executable"), PickKind::File(vec![]), self.executable.clone(), window, cx, |this, p, _| {
                     this.launch_kind = super::kind_of_pick(p, &this.launch_kind);
@@ -219,12 +252,13 @@ impl EmulatorEditDialog {
             "pcat" => self.add_catalog_profiles(cx),
             "cancel" => cx.emit(DialogEvent::Close),
             "save" => self.save(cx),
-            "pf-name" | "pf-platform" | "pf-args" | "pf-ext" => {
+            "pf-name" | "pf-platform" | "pf-args" | "pf-ext" | "pf-glob" => {
                 let Some(f) = self.form.as_ref() else { return };
                 let (title, input) = match id {
                     "pf-name" => (tr!("Profile name"), f.name.clone()),
                     "pf-platform" => (tr!("Platform"), f.platform.clone()),
                     "pf-args" => (tr!("Arguments"), f.arguments.clone()),
+                    "pf-glob" => (tr!("ROM glob pattern (optional)"), f.rom_glob.clone()),
                     _ => (tr!("ROM extensions"), f.extensions.clone()),
                 };
                 self.console_type(title, input, window, cx);
@@ -265,6 +299,12 @@ impl EmulatorEditDialog {
                     }
                 }
             }
+            ("ludusavi-pick", Value::Choice { index, .. }) => {
+                let (options, _) = self.console_ludusavi_choices(cx);
+                let value = if index == 0 { String::new() } else { options.get(index).map(|o| o.to_string()).unwrap_or_default() };
+                let input = self.ludusavi_entry.clone();
+                self.set_later(&input, value);
+            }
             ("pf-wd", Value::Choice { index, .. }) => {
                 if let Some(f) = self.form.as_mut() {
                     let wd = WORKING_DIRS[index.min(WORKING_DIRS.len() - 1)].0;
@@ -281,6 +321,7 @@ impl EmulatorEditDialog {
             "exe" => Some(self.executable.clone()),
             "dir" => Some(self.install_dir.clone()),
             "pf-core" => self.form.as_ref().map(|f| f.core.clone()),
+            "pf-glob" => self.form.as_ref().map(|f| f.rom_glob.clone()),
             _ => None,
         }
     }

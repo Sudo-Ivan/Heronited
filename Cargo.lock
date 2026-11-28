@@ -3884,6 +3884,7 @@ dependencies = [
  "heronite-platform",
  "heronite-steam",
  "log",
+ "roxmltree 0.21.2",
  "rusqlite",
  "serde",
  "serde_json",
@@ -3952,6 +3953,7 @@ dependencies = [
  "base64 0.23.1",
  "chrono",
  "dirs 7.0.0",
+ "getrandom 0.3.4",
  "heronite-i18n",
  "heronite-platform",
  "icu_collator",
@@ -3959,9 +3961,11 @@ dependencies = [
  "libc",
  "log",
  "parking_lot 0.13.0",
+ "pbkdf2",
  "rusty-leveldb",
  "serde",
  "serde_json",
+ "sha2 0.10.9",
  "tempfile",
  "unicode-normalization",
 ]
@@ -4146,11 +4150,14 @@ dependencies = [
  "anyhow",
  "chrono",
  "heronite-data",
+ "heronite-metadata",
  "heronite-platform",
  "log",
+ "regex",
  "rusqlite",
  "serde-saphyr 2.2.0",
  "serde_json",
+ "shlex 1.3.0",
  "tempfile",
 ]
 
@@ -4268,6 +4275,8 @@ dependencies = [
  "heronite-platform",
  "log",
  "parking_lot 0.13.0",
+ "regex",
+ "regex-syntax",
  "rquickjs",
  "semver",
  "serde",
@@ -4301,6 +4310,7 @@ dependencies = [
 name = "heronite-overlay"
 version = "1.8.2"
 dependencies = [
+ "base64 0.22.1",
  "evdev",
  "heronite-data",
  "heronite-i18n",
@@ -4309,6 +4319,8 @@ dependencies = [
  "log",
  "serde_json",
  "tempfile",
+ "x11rb",
+ "zbus 5.19.0",
 ]
 
 [[package]]

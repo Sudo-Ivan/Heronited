@@ -2,7 +2,8 @@
 //! on top (focused when it opens), then what the Library grid shows: Show,
 //! Sort, Favourites only, Status and Category (manual categories, then
 //! smart ones). Every change shows at once
-//! behind it, in the tab's grid, else the theme's first Grid tab, else (a
+//! behind it, in the tab's own list when it filters one (a Grid, a Wheel:
+//! [`filters_own_list`]), else the theme's first Grid tab, else (a
 //! theme without one, like Minimal) a grid of the results over the tab that
 //! B closes (`ConsoleUi::results`). A types the search on the on-screen
 //! keyboard, a physical keyboard types into the field directly; X resets
@@ -14,6 +15,7 @@
 use gpui_kit::prelude::*;
 use gpui_kit::*;
 use heronite_data::console_theme::{Layout, TabSpec};
+use heronite_data::CollectionGame;
 use heronite_i18n::{n_, tr};
 
 use super::super::CollectionView;
@@ -47,12 +49,22 @@ pub(super) struct FiltersNav {
     focus: usize,
 }
 
+/// Layouts whose tab's list the Filters panel filters in place (with the
+/// Grid's filtering, `grid_keys`, on that tab's filters). The others show a
+/// fixed choice of games (Spotlight's recent row, Cinema's row and shelves,
+/// the Carousel's own pills, the Dashboard, Xbox's groups): the panel drives
+/// the Library grid for them.
+pub(super) fn filters_own_list(layout: Layout) -> bool {
+    matches!(layout, Layout::Grid | Layout::Wheel)
+}
+
 impl CollectionView {
-    /// The Grid the filters drive: the tab's own, the theme's first Grid
-    /// tab, else one past the theme's tabs (the results grid over the tab).
+    /// What the filters drive: the tab's own list when it is one they can
+    /// filter (a Grid, a Wheel), else the theme's first Grid tab, else one
+    /// past the theme's tabs (the results grid over the tab).
     pub(super) fn filters_target(&self) -> (usize, TabSpec) {
         let (tab, spec) = self.console_tab_spec();
-        if spec.layout == Layout::Grid {
+        if filters_own_list(spec.layout) {
             return (tab, spec);
         }
         let theme = look::theme();
@@ -76,6 +88,7 @@ impl CollectionView {
         nav.index = 0;
         nav.toolbar = None;
         nav.restart = true;
+        self.tab_nav(target).wheel.restart_list();
         if target >= look::theme().tabs.len() {
             self.console.results = true;
         } else if target != self.console.tab {
@@ -207,12 +220,15 @@ impl CollectionView {
         let focus = self.focused_filter()?;
         let lib = self.lib.clone()?;
         let (target, spec) = self.filters_target();
-        let games = self.console_games(&spec.source);
+        // What each "Show" choice lists: a game with copies once, by a copy it keeps.
+        let games = self.console_copies(&spec.source);
+        let count = |f: &dyn Fn(&CollectionGame) -> bool| {
+            self.collapse_copies(&lib, games.iter().map(|g| g.as_ref()).filter(|g| f(g)).collect::<Vec<&CollectionGame>>()).len()
+        };
+        let counts = [count(&|_| true), count(&|g| g.installed), count(&|g| !g.installed)];
         let shown = self.grid_keys(target, &spec).len();
         let f = self.tab_nav(target).grid.filters.clone();
         let search = self.console.search.clone();
-        let installed = games.iter().filter(|g| g.installed).count();
-        let counts = [games.len(), installed, games.len() - installed];
 
         let tint = |on: bool| -> Hsla {
             if on {
@@ -330,7 +346,7 @@ impl CollectionView {
             .border_color(kit::ink(0.08))
             .text_size(u(15.))
             .text_color(theme::text_muted())
-            .child(tr!("{shown} of {total} games", shown, total = games.len()));
+            .child(tr!("{shown} of {total} games", shown, total = counts[0]));
         let panel = div()
             .absolute()
             .top_0()
@@ -408,4 +424,18 @@ fn segments(options: &[(SharedString, Option<usize>)], current: usize, focused: 
                 div().relative().flex_none().text_size(u(13.)).text_color(Hsla { a: color.a * 0.65, ..color }).child(n.to_string())
             }))
     }))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::filters_own_list;
+    use heronite_data::console_theme::Layout;
+
+    #[test]
+    fn the_wheel_and_the_grid_are_filtered_in_place() {
+        assert!(filters_own_list(Layout::Grid) && filters_own_list(Layout::Wheel));
+        for l in [Layout::Spotlight, Layout::Cinema, Layout::Carousel, Layout::Shelves, Layout::Dashboard, Layout::Xbox] {
+            assert!(!filters_own_list(l), "{l:?}");
+        }
+    }
 }

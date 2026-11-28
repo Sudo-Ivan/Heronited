@@ -77,6 +77,12 @@ pub fn overlay_held(cx: &mut App) {
     }
 }
 
+/// Holding LB + RB enters console mode ("Button to enter console mode"): the
+/// desktop leaves the bumpers to it (`collection::desktop_pad`).
+pub fn holds_bumpers(cx: &App) -> bool {
+    cx.try_global::<Global>().is_some_and(|g| g.0.read(cx).button.resolved() == ConsoleButton::Bumpers)
+}
+
 struct Global(Entity<ConsoleSummon>);
 impl gpui_kit::Global for Global {}
 
@@ -247,7 +253,7 @@ impl ConsoleSummon {
                     self.hold.clear();
                 }
             }
-            PadMsg::Press(_) => {}
+            PadMsg::Press(_) | PadMsg::Stick { .. } => {}
         }
     }
 
@@ -477,7 +483,8 @@ impl ConsoleSummon {
             }
             self.notice = None;
         }
-        let display = window::Display::current(cx);
+        // No game runs (`blocked`): where the user is.
+        let display = window::Display::current(cx, None);
         let scale = display.scale();
         match window::open_corner_notice(cx, display, !self.debug_window, NOTICE_SIZE, |_, cx| cx.new(|_| NoticeView::new(shown, scale))) {
             Ok(handle) => self.notice = Some(handle),

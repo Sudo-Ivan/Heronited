@@ -9,6 +9,7 @@ pub mod drop;
 pub mod game_folders;
 pub mod gamehub;
 pub mod gameyfin;
+pub mod hidden_lock;
 pub mod launch_blocker;
 pub mod launcher_imports;
 pub mod mods;

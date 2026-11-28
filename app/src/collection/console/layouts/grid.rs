@@ -47,7 +47,7 @@ impl Default for Nav {
 }
 
 /// What a Grid shows (its chips and the Filters panel edit it).
-#[derive(Clone, Default, PartialEq, Debug)]
+#[derive(Clone, PartialEq, Debug)]
 pub(crate) struct Filters {
     /// Index in [`SHOW`].
     pub show: usize,
@@ -95,6 +95,13 @@ impl Filters {
     pub(crate) fn from_kept(k: KeptFilters) -> Self {
         let pick = |v: usize, n: usize| if v < n { v } else { 0 };
         Self { show: pick(k.show, SHOW.len()), sort: pick(k.sort, SORT.len()), favourites: k.favourites, ..Self::default() }
+    }
+}
+
+impl Default for Filters {
+    /// Every game, the one played last first.
+    fn default() -> Self {
+        Self { show: 0, favourites: false, sort: heronite_data::console_theme::SORT_LAST_PLAYED, status: 0, category: 0, group: 0 }
     }
 }
 
@@ -210,8 +217,8 @@ fn rail_letters() -> impl Iterator<Item = char> {
 /// The rail letter of a game's [`sort_key`](CollectionGame::sort_key): its
 /// first letter without accents, `#` for digits and symbols (they sort
 /// before A).
-pub(super) fn letter_of(title: &str) -> char {
-    let first = title.trim_start().chars().next().unwrap_or('#');
+pub(super) fn letter_of(key: &str) -> char {
+    let first = key.trim_start().chars().next().unwrap_or('#');
     heronite_data::fuzzy::fold(first.encode_utf8(&mut [0; 4]))
         .chars()
         .next()
@@ -278,7 +285,9 @@ impl CollectionView {
     /// The keys the Grid of a tab shows now (also for the layouts that reuse its filters).
     pub(crate) fn grid_keys(&mut self, tab: usize, spec: &TabSpec) -> Vec<SharedString> {
         let Some(lib) = self.lib.clone() else { return Vec::new() };
-        let mut games = self.console_games(&spec.source);
+        // Every copy, so a filter that only one copy of a game passes
+        // ("Installed", a store's smart category) still shows that copy.
+        let mut games = self.console_copies(&spec.source);
         let group = self.console.tab_navs.get(tab).map_or(0, |n| n.grid.filters.group);
         if let Some(group) = group.checked_sub(1).and_then(|i| self.smart_groups.groups.get(i)) {
             let facts = self.group_facts(&lib.statuses);
@@ -288,7 +297,7 @@ impl CollectionView {
         let cats = std::mem::take(&mut self.categories);
         let keys = self.tab_nav(tab).grid.keys(&games, &lib, &cats, &search);
         self.categories = cats;
-        keys
+        self.collapse_keys(&lib, keys)
     }
 
     /// LT / RT jump by letter: the theme asks for it and the games are
@@ -301,7 +310,7 @@ impl CollectionView {
 
     fn grid_cols(&self, window: &Window, panel: bool, rail: bool) -> usize {
         let (tw, _) = self.console_tile_size();
-        let vw = f32::from(crate::ui::content_size(window).width) / kit::scale();
+        let vw = super::body_width(window);
         let taken = if panel { panel_width(vw) + SIDE } else { 0. } + if rail { RAIL } else { 0. };
         (((vw - 2. * SIDE - taken + GAP) / (tw + GAP)).floor() as usize).max(2)
     }
@@ -408,7 +417,7 @@ impl CollectionView {
         };
         let list = div().flex().flex_col().flex_1().min_w_0().child(div().flex_none().children(title_line)).child(body);
         let side = game.filter(|_| panel && !keys.is_empty()).map(|g| {
-            let w = panel_width(f32::from(crate::ui::content_size(window).width) / kit::scale());
+            let w = panel_width(super::body_width(window));
             self.grid_panel(&g, w, window)
         });
         div()
@@ -475,7 +484,7 @@ impl CollectionView {
         let art = self.console_wide_art(&key, w, (w * 9. / 16.).round(), 200, window);
         let size = HeroSize { title: 26., logo: (w, 64.), max_w: w, overview: 0 };
         let name = self.console_name(g, size, window);
-        let last = g.last_played.as_deref().and_then(played_ago).unwrap_or_else(|| tr!("Never").to_string());
+        let last = self.console_last_played(g).as_deref().and_then(played_ago).unwrap_or_else(|| tr!("Never").to_string());
         let beat =
             self.wiki.hltb(&g.title, &g.game.title).map(|h| h.main_story).filter(|h| *h > 0.).map_or_else(|| "\u{2014}".into(), hours_text);
         let genres = if g.details.genres.is_empty() { "\u{2014}".to_string() } else { g.details.genres.join(", ") };

@@ -8,6 +8,7 @@
 
 mod hero;
 mod sheet;
+mod showcase;
 mod tabs;
 
 use hero::facts_table;
@@ -36,6 +37,10 @@ pub(super) struct GameNav {
     hero: hero::Nav,
     tabs: tabs::Nav,
     sheet: sheet::Nav,
+    /// The Showcase page: the focus of its sections (as on a Spotlight tab)
+    /// and the sheet of the game's actions (Options).
+    pub(in crate::collection::console) showcase: super::layouts::SpotNav,
+    showcase_more: Option<ListNav>,
 }
 
 impl Default for GameNav {
@@ -46,6 +51,8 @@ impl Default for GameNav {
             hero: Default::default(),
             tabs: Default::default(),
             sheet: Default::default(),
+            showcase: Default::default(),
+            showcase_more: None,
         }
     }
 }
@@ -69,7 +76,7 @@ fn classic_facts(f: &super::super::vm::FocusVm) -> Vec<(SharedString, String)> {
 }
 
 impl CollectionView {
-    fn game_rows(&mut self, g: &CollectionGame, cx: &mut Context<Self>) -> Vec<Row> {
+    pub(in crate::collection::console) fn game_rows(&mut self, g: &CollectionGame, cx: &mut Context<Self>) -> Vec<Row> {
         let playing = self.playing.contains_key(&g.app_name);
         let step = self.preparing.get(&g.app_name).cloned();
         let (label, ic) = self.primary_state(g);
@@ -78,6 +85,12 @@ impl CollectionView {
             primary = primary.desc(step.label());
         }
         let mut rows = vec![primary];
+        // A game owned on several stores: the copy Play starts (the desktop's
+        // star). Right under Play, so it keeps its place whichever copy the
+        // page shows after a change.
+        if let Some((_, names, index)) = self.default_copy_choices(g) {
+            rows.push(Row::choice("copy-default", tr!("Default copy"), names, index).icon(Icon::Star));
+        }
         // The actions the user added; one that plays waits for the game to end.
         for a in self.actions_of(&g.key) {
             if a.plays() && playing {
@@ -131,6 +144,7 @@ impl CollectionView {
                     .desc(tr!("Wine / Proton, launch options, Gamescope\u{2026}")),
             );
         }
+        rows.extend(self.achievements_row(g, cx));
         if !playing {
             rows.push(
                 Row::text("playtime", tr!("Playtime"), heronite_data::collection::playtime_label(g.playtime_minutes))
@@ -155,6 +169,11 @@ impl CollectionView {
             Row::action("x:pictures", tr!("Change pictures\u{2026}"))
                 .icon(Icon::Image)
                 .desc(tr!("Covers and backgrounds, from the web or a file")),
+        );
+        manage.push(
+            Row::action("x:background", tr!("Change background\u{2026}"))
+                .icon(Icon::Image)
+                .desc(tr!("The art behind the game in console mode")),
         );
         manage.push(
             Row::toggle("hidden", tr!("Hidden"), g.hidden).icon(Icon::VisibilityOff).desc(tr!("Hidden games stay out of the library")),
@@ -213,6 +232,54 @@ impl CollectionView {
         rows
     }
 
+    /// The copies of `g`'s game while they are grouped, for "Default copy":
+    /// their keys and names in a fixed order (so ◀ ▶ walk them while the
+    /// default changes) and the default's place among them.
+    fn default_copy_choices(&self, g: &CollectionGame) -> Option<(Vec<String>, Vec<SharedString>, usize)> {
+        let lib = self.lib.as_ref().filter(|_| self.ui.group_copies)?;
+        let group = lib.copies.get(&g.key)?;
+        let mut copies = lib.copies_of(&g.key);
+        copies.sort_by(|a, b| a.key.cmp(&b.key));
+        let details = heronite_data::copies::copy_details(&copies.iter().map(|g| &***g).collect::<Vec<_>>());
+        let names = copies
+            .iter()
+            .zip(details)
+            .map(|(c, detail)| {
+                let store = heronite_data::copies::store_label(c);
+                SharedString::from(match detail {
+                    // Versions of a ROM go by their names (every one is "Emulator").
+                    Some(version) if c.launch_kind.as_deref() == Some("emulator") => version,
+                    Some(detail) => format!("{store} \u{b7} {detail}"),
+                    None => store.to_string(),
+                })
+            })
+            .collect();
+        let index = copies.iter().position(|c| c.key == group.members[0]).unwrap_or(0);
+        Some((copies.iter().map(|c| c.key.clone()).collect(), names, index))
+    }
+
+    /// "Achievements" (with how many are unlocked), when the game has some
+    /// or its ROM needs the RetroAchievements account: it opens the
+    /// Achievements screen.
+    fn achievements_row(&self, g: &CollectionGame, cx: &mut Context<Self>) -> Option<Row> {
+        use heronite_achievements::{Problem, Source};
+        if !crate::services::achievements::enabled() {
+            return None;
+        }
+        let svc = crate::services::achievements::get(cx);
+        let svc = svc.read(cx);
+        let entry = svc.entry(&crate::services::achievements::key_of(&g.runner, &g.app_name))?;
+        let desc = match (entry.primary(), entry.problem()) {
+            (Some(set), _) => tr!("{unlocked} of {total} unlocked", unlocked = set.unlocked(), total = set.total()),
+            (None, Some((Source::RetroAchievements, Problem::NeedsAccount))) => tr!("Connect RetroAchievements").to_string(),
+            (None, Some((Source::RetroAchievements, Problem::Unmatched { .. }))) => {
+                tr!("This ROM doesn't match any RetroAchievements set.").to_string()
+            }
+            _ => return None,
+        };
+        Some(Row::action("achievements", tr!("Achievements")).icon(Icon::Trophy).desc(desc))
+    }
+
     /// What the main action of `g` is now: "Cancel launch", "Stop", "Play" or "Install", with its icon.
     pub(super) fn primary_state(&self, g: &CollectionGame) -> (&'static str, Icon) {
         if self.preparing.contains_key(&g.app_name) {
@@ -241,6 +308,7 @@ impl CollectionView {
             GamePage::Hero => self.render_game_hero(key, window, cx),
             GamePage::Tabs => self.render_game_tabs(key, window, cx),
             GamePage::Sheet => self.render_game_sheet(key, window, cx),
+            GamePage::Showcase => self.render_game_showcase(key, window, cx),
         }
     }
 
@@ -266,6 +334,7 @@ impl CollectionView {
             GamePage::Hero => self.game_pad_hero(key, pad, window, cx),
             GamePage::Tabs => self.game_pad_tabs(key, pad, window, cx),
             GamePage::Sheet => self.game_pad_sheet(key, pad, window, cx),
+            GamePage::Showcase => self.game_pad_showcase(key, pad, window, cx),
         }
     }
 
@@ -276,6 +345,7 @@ impl CollectionView {
             GamePage::Hero => self.game_hints_hero(key),
             GamePage::Tabs => self.game_hints_tabs(key),
             GamePage::Sheet => self.game_hints_sheet(key),
+            GamePage::Showcase => self.game_hints_showcase(key),
         }
     }
 
@@ -284,6 +354,9 @@ impl CollectionView {
         match look::theme().game_page {
             GamePage::Classic | GamePage::Tabs => Scrim::Classic,
             GamePage::Hero => Scrim::Spot,
+            // The theme's background (Minimal: its blurred cover), lightly
+            // shaded and never darkened at the bottom: its glass carries the text.
+            GamePage::Showcase => Scrim::Glass,
             GamePage::Sheet if self.console.game.sheet.full() => Scrim::Classic,
             GamePage::Sheet => super::layouts::scrim(spec.layout),
         }
@@ -292,7 +365,12 @@ impl CollectionView {
     /// Whether the page has long text the wheel scrolls (its lists take clicks);
     /// the Sheet is a list alone.
     pub(super) fn game_page_scrolls_text(&self) -> bool {
-        look::theme().game_page != GamePage::Sheet || self.console.game.sheet.full()
+        match look::theme().game_page {
+            // Showcase: the wheel moves the focus up and down its sections.
+            GamePage::Showcase => false,
+            GamePage::Sheet => self.console.game.sheet.full(),
+            _ => true,
+        }
     }
 
     /// The Sheet opens over the tab: its top bar stays.
@@ -476,6 +554,7 @@ impl CollectionView {
                 "x:manual-install" => self.open_manual_install(key, window, cx),
                 "x:saves" => self.open_saves_backup(key, cx),
                 "x:pictures" => self.open_covers_for(key, window, cx),
+                "x:background" => self.open_covers_at(key, Some(crate::dialogs::covers::Slot::Background), window, cx),
                 "x:steam-uninstall" => self.open_steam_uninstall(key, window, cx),
                 "x:steam-play" => self.play_with_steam(key, cx),
                 "x:open-client" => self.open_client_of(key, cx),
@@ -487,6 +566,7 @@ impl CollectionView {
                 }
                 "x:as-pc" => self.open_play_as_pc(key, window, cx),
                 "settings" => self.console_game_settings(key, window, cx),
+                "achievements" => self.open_console_achievements(key.clone(), cx),
                 "playtime" => self.console_edit_playtime(key, window, cx),
                 "recent" => {
                     if let Err(err) = heronite_data::config_games::remove_recent(&self.data_paths, &g.app_name) {
@@ -504,6 +584,13 @@ impl CollectionView {
                 ("status", Value::Choice { index, .. }) => {
                     if let Some(st) = self.lib.as_ref().and_then(|l| l.statuses.get(index)).cloned() {
                         self.set_status(key, st.id, cx);
+                    }
+                }
+                ("copy-default", Value::Choice { index, .. }) => {
+                    if let Some(copy) = self.default_copy_choices(&g).and_then(|(keys, _, _)| keys.into_iter().nth(index)) {
+                        self.make_default_copy(&copy, cx);
+                        // The page goes on with the copy that now plays.
+                        self.console.screen = super::Screen::Game(copy.into());
                     }
                 }
                 // Every copy, as on the desktop (the card may show another copy).
