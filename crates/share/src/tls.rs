@@ -16,6 +16,16 @@ pub struct TlsOptions {
     pub insecure: bool,
 }
 
+/// ring, named explicitly: the process often has aws-lc-rs in the tree too
+/// (ureq), and then rustls refuses to guess a default.
+macro_rules! builder {
+    () => {
+        rustls::ClientConfig::builder_with_provider(std::sync::Arc::new(rustls::crypto::ring::default_provider()))
+            .with_safe_default_protocol_versions()
+            .expect("ring supports the default protocol versions")
+    };
+}
+
 impl TlsOptions {
     /// ureq's TLS configuration for these options.
     pub fn tls_config(&self) -> Result<ureq::tls::TlsConfig> {
@@ -44,7 +54,7 @@ impl TlsOptions {
     pub fn rustls_config(&self) -> Result<std::sync::Arc<rustls::ClientConfig>> {
         use rustls::client::danger::{HandshakeSignatureValid, ServerCertVerified, ServerCertVerifier};
         use rustls::pki_types::{CertificateDer, ServerName, UnixTime};
-        use rustls::{ClientConfig, DigitallySignedStruct, Error as TlsError, SignatureScheme};
+        use rustls::{DigitallySignedStruct, Error as TlsError, SignatureScheme};
 
         if self.insecure {
             #[derive(Debug)]
@@ -90,8 +100,7 @@ impl TlsOptions {
                     ]
                 }
             }
-            let config =
-                ClientConfig::builder().dangerous().with_custom_certificate_verifier(std::sync::Arc::new(AcceptAll)).with_no_client_auth();
+            let config = builder!().dangerous().with_custom_certificate_verifier(std::sync::Arc::new(AcceptAll)).with_no_client_auth();
             return Ok(std::sync::Arc::new(config));
         }
         let mut store = rustls::RootCertStore::empty();
@@ -109,7 +118,7 @@ impl TlsOptions {
                 return Err(ShareError::config(heronite_i18n::tr!("The CA file {file} has no certificate in it", file = ca)));
             }
         }
-        let config = ClientConfig::builder().with_root_certificates(store).with_no_client_auth();
+        let config = builder!().with_root_certificates(store).with_no_client_auth();
         Ok(std::sync::Arc::new(config))
     }
 }

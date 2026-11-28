@@ -226,7 +226,8 @@ pub struct Ftp {
     pub user: String,
     #[serde(default, skip_serializing_if = "String::is_empty")]
     pub sealed_password: String,
-    #[serde(default)]
+    // "tlsMode": plain `tls` is the target's shared TlsOptions already.
+    #[serde(default, rename = "tlsMode")]
     pub tls: FtpTls,
 }
 

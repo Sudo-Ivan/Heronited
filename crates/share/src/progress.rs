@@ -58,7 +58,7 @@ impl<R: Read> Read for CountingReader<'_, R> {
             self.since_last = 0;
             if (self.progress)(Progress { sent: self.base + self.sent, total: self.total }).cancelled() {
                 self.failed = true;
-                return Err(std::io::Error::new(std::io::ErrorKind::Interrupted, "cancelled"));
+                return Err(std::io::Error::other("cancelled"));
             }
         }
         Ok(n)

@@ -135,7 +135,7 @@ fn put_file(
             return ShareError::Cancelled;
         }
         let err = send_error(e);
-        if matches!(&err, ShareError::Network(t) if t.contains("cancelled") || t.contains("Interrupted")) {
+        if matches!(&err, ShareError::Network(t) if t.contains("cancelled")) {
             ShareError::Cancelled
         } else {
             err

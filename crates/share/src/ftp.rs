@@ -46,7 +46,15 @@ fn map_err(e: FtpError) -> ShareError {
             }
         }
         FtpError::SecureError(t) => ShareError::Tls(t.clone()),
-        FtpError::ConnectionError(io) => ShareError::network(io),
+        // rustls surfaces a failed handshake lazily, as an io error on the
+        // first read: certificate problems still want the Tls kind.
+        FtpError::ConnectionError(io) => {
+            let text = io.to_string();
+            if text.contains("certificate") || text.contains("tls") || text.contains("UnknownIssuer") {
+                return ShareError::Tls(text);
+            }
+            ShareError::network(io)
+        }
         other => ShareError::network(other),
     }
 }
@@ -146,7 +154,7 @@ pub fn upload(
         Ok(_) => {}
         Err(e) => {
             let _ = with!(&mut stream, s, s.rm(&part));
-            if matches!(&e, ShareError::Network(t) if t.contains("Interrupted") || t.contains("cancelled")) {
+            if matches!(&e, ShareError::Network(t) if t.contains("cancelled")) {
                 return Err(ShareError::Cancelled);
             }
             return Err(e);

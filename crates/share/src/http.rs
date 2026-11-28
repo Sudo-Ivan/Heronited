@@ -164,7 +164,7 @@ pub fn upload(
                     std::thread::sleep(std::time::Duration::from_millis(150 * (attempt + 1) as u64));
                     continue;
                 }
-                if matches!(&err, ShareError::Network(t) if t.contains("Interrupted") || t.contains("cancelled")) {
+                if matches!(&err, ShareError::Network(t) if t.contains("cancelled")) {
                     return Err(ShareError::Cancelled);
                 }
                 return Err(err);

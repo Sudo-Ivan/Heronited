@@ -8,13 +8,27 @@ use crate::tls::TlsOptions;
 pub const CONNECT_TIMEOUT: Duration = Duration::from_secs(15);
 pub const STALL_TIMEOUT: Duration = Duration::from_secs(60);
 
+use std::sync::atomic::{AtomicU64, Ordering};
+
+#[doc(hidden)]
+pub static CONNECT_TIMEOUT_MS: AtomicU64 = AtomicU64::new(15_000);
+#[doc(hidden)]
+pub static STALL_TIMEOUT_MS: AtomicU64 = AtomicU64::new(60_000);
+
+/// Tests shorten the timeouts; production never calls this.
+#[doc(hidden)]
+pub fn set_timeouts(connect: Duration, stall: Duration) {
+    CONNECT_TIMEOUT_MS.store(connect.as_millis() as u64, Ordering::Relaxed);
+    STALL_TIMEOUT_MS.store(stall.as_millis() as u64, Ordering::Relaxed);
+}
+
 pub fn agent(tls: &TlsOptions) -> Result<ureq::Agent> {
     let tls_config = tls.tls_config()?;
     let config = ureq::Agent::config_builder()
-        .timeout_connect(Some(CONNECT_TIMEOUT))
+        .timeout_connect(Some(Duration::from_millis(CONNECT_TIMEOUT_MS.load(Ordering::Relaxed))))
         .timeout_global(None)
-        .timeout_recv_response(Some(STALL_TIMEOUT))
-        .timeout_recv_body(Some(STALL_TIMEOUT))
+        .timeout_recv_response(Some(Duration::from_millis(STALL_TIMEOUT_MS.load(Ordering::Relaxed))))
+        .timeout_recv_body(Some(Duration::from_millis(STALL_TIMEOUT_MS.load(Ordering::Relaxed))))
         .tls_config(tls_config)
         .user_agent(concat!("Heronited/", env!("CARGO_PKG_VERSION")))
         .http_status_as_error(false)

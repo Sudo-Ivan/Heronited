@@ -199,7 +199,7 @@ fn single_put(
         let mut reader = CountingReader::new(f, size, &mut *progress);
         match send_signed(ag, "PUT", signed, &headers, Some((size, &mut reader))) {
             Ok(_) => return Ok(()),
-            Err(e) if matches!(&e, ShareError::Network(t) if t.contains("cancelled") || t.contains("Interrupted")) || reader.failed => {
+            Err(e) if matches!(&e, ShareError::Network(t) if t.contains("cancelled")) || reader.failed => {
                 return Err(ShareError::Cancelled)
             }
             Err(e) if e.retryable() && attempt < 2 => {
@@ -297,9 +297,7 @@ fn upload_parts(
                         response.headers().get("ETag").and_then(|v| v.to_str().ok()).unwrap_or_default().trim_matches('"').to_string();
                     break etag;
                 }
-                Err(e)
-                    if counting.failed || matches!(&e, ShareError::Network(t) if t.contains("cancelled") || t.contains("Interrupted")) =>
-                {
+                Err(e) if counting.failed || matches!(&e, ShareError::Network(t) if t.contains("cancelled")) => {
                     return Err(ShareError::Cancelled)
                 }
                 Err(e) if e.retryable() && attempt < 2 => {
