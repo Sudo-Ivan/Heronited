@@ -86,7 +86,7 @@ fn noop() -> impl FnMut(Progress) -> Continue {
 fn http_multipart_upload_and_extraction() {
     setup();
     let server = serve(|_, _, _, _| (200, r#"{"data":{"url":"https://img.example/abc.png"}}"#.into()));
-    let mut t = http_target(&format!("{}/up", server.url), Extract::JsonPointer("/data/url".into()));
+    let mut t = http_target(&format!("{}/up", server.url), Extract::JsonPointer { pointer: "/data/url".into() });
     if let Kind::Http(h) = &mut t.kind {
         h.headers.push(HttpHeader {
             name: "X-Token".into(),
@@ -161,7 +161,7 @@ fn http_raw_put_and_body_link() {
 fn http_delete_uses_the_extracted_value() {
     setup();
     let server = serve(|m, _, _, _| if m == "DELETE" { (200, String::new()) } else { (200, r#"{"id":"xyz"}"#.into()) });
-    let mut t = http_target(&format!("{}/up", server.url), Extract::JsonPointer("/id".into()));
+    let mut t = http_target(&format!("{}/up", server.url), Extract::JsonPointer { pointer: "/id".into() });
     if let Kind::Http(h) = &mut t.kind {
         h.delete_url = format!("{}/del/{{value}}", server.url);
     }
@@ -353,4 +353,174 @@ fn nextcloud_share_link_from_ocs() {
     let mut progress = noop();
     let shared = webdav::upload(&t, w, &file, "shot.png", 27, &mut progress).unwrap();
     assert_eq!(shared.url, "https://cloud.example/s/abc123");
+}
+
+fn save_targets(paths: &heronite_data::DataPaths, t: Target) {
+    let mut targets = heronite_share::Targets::default();
+    targets.upsert(t);
+    targets.save(paths).unwrap();
+}
+
+#[test]
+fn webdav_end_to_end_share_delete_history() {
+    setup();
+    let server = serve(|m, _, _, _| match m {
+        "MKCOL" | "PUT" => (201, String::new()),
+        "DELETE" => (204, String::new()),
+        "PROPFIND" => (207, String::new()),
+        _ => (405, String::new()),
+    });
+    let mut t = target(
+        Kind::WebDav(WebDav {
+            url: format!("{}/dav/", server.url),
+            user: "me".into(),
+            sealed_password: seal_secret("pw").unwrap(),
+            ..Default::default()
+        }),
+        "https://files.example/{name}",
+    );
+    t.folder = "shots".into();
+    let dir = tempfile::tempdir().unwrap();
+    let paths = heronite_data::DataPaths::at(dir.path());
+    save_targets(&paths, t);
+    let (_fdir, file) = probe_file();
+    let record = heronite_share::share(&paths, "t", &file, &ShareContext::default(), &mut noop()).unwrap();
+    assert!(record.url.starts_with("https://files.example/shots/"));
+    let history = heronite_share::history(&paths);
+    assert_eq!(history.len(), 1);
+    assert_eq!(history[0].target_id, "t");
+    assert_eq!(history[0].remote, record.remote);
+    assert_eq!(history[0].size, 27);
+    assert!(matches!(history[0].kind, heronite_share::FileKind::Screenshot));
+    heronite_share::delete(&paths, &record.id).unwrap();
+    assert!(heronite_share::history(&paths).is_empty());
+    let reqs = server.requests.lock().unwrap();
+    assert!(reqs.iter().any(|(m, u, _, _)| m == "DELETE" && u.contains(&record.remote)), "{reqs:?}");
+}
+
+#[test]
+fn failing_remote_delete_keeps_the_record() {
+    setup();
+    let server = serve(|m, _, _, _| match m {
+        "PUT" | "MKCOL" => (201, String::new()),
+        "DELETE" => (500, "boom".into()),
+        _ => (405, String::new()),
+    });
+    let t = target(
+        Kind::WebDav(WebDav {
+            url: format!("{}/dav/", server.url),
+            user: "me".into(),
+            sealed_password: seal_secret("pw").unwrap(),
+            ..Default::default()
+        }),
+        "https://files.example/{name}",
+    );
+    let dir = tempfile::tempdir().unwrap();
+    let paths = heronite_data::DataPaths::at(dir.path());
+    save_targets(&paths, t);
+    let (_fdir, file) = probe_file();
+    let record = heronite_share::share(&paths, "t", &file, &ShareContext::default(), &mut noop()).unwrap();
+    let err = heronite_share::delete(&paths, &record.id).unwrap_err();
+    assert!(!format!("{err}").is_empty());
+    assert_eq!(heronite_share::history(&paths).len(), 1, "the record stays when the remote delete fails");
+}
+
+#[test]
+fn nextcloud_end_to_end_uses_the_ocs_link() {
+    setup();
+    let server = serve(|m, u, _, _| {
+        if u.contains("/ocs/v2.php/") {
+            return (200, r#"{"ocs":{"data":{"url":"https://cloud.example/s/xyzzy"}}}"#.into());
+        }
+        match m {
+            "PUT" | "MKCOL" => (201, String::new()),
+            "DELETE" => (204, String::new()),
+            _ => (405, String::new()),
+        }
+    });
+    let t = target(
+        Kind::WebDav(WebDav {
+            url: format!("{}/remote.php/dav/files/me/", server.url),
+            user: "me".into(),
+            sealed_password: seal_secret("pw").unwrap(),
+            nextcloud_share: true,
+            ..Default::default()
+        }),
+        "",
+    );
+    let dir = tempfile::tempdir().unwrap();
+    let paths = heronite_data::DataPaths::at(dir.path());
+    save_targets(&paths, t);
+    let (_fdir, file) = probe_file();
+    let record = heronite_share::share(&paths, "t", &file, &ShareContext::default(), &mut noop()).unwrap();
+    assert_eq!(record.url, "https://cloud.example/s/xyzzy");
+    heronite_share::delete(&paths, &record.id).unwrap();
+    assert!(heronite_share::history(&paths).is_empty());
+}
+
+#[test]
+fn http_end_to_end_with_and_without_delete_url() {
+    setup();
+    let server = serve(|m, u, _, _| {
+        if m == "DELETE" {
+            return (200, "ok".into());
+        }
+        if u.contains("/delete") {
+            return (200, "ok".into());
+        }
+        (200, r#"{"id":"img42"}"#.into())
+    });
+    let mut t = http_target(&format!("{}/up", server.url), Extract::JsonPointer { pointer: "/id".into() });
+    if let Kind::Http(h) = &mut t.kind {
+        h.link_template = "https://img.example/{value}.png".into();
+        h.delete_url = format!("{}/delete/{{value}}", server.url);
+    }
+    let dir = tempfile::tempdir().unwrap();
+    let paths = heronite_data::DataPaths::at(dir.path());
+    save_targets(&paths, t);
+    let (_fdir, file) = probe_file();
+    let record = heronite_share::share(&paths, "t", &file, &ShareContext::default(), &mut noop()).unwrap();
+    assert_eq!(record.url, "https://img.example/img42.png");
+    heronite_share::delete(&paths, &record.id).unwrap();
+    assert!(heronite_share::history(&paths).is_empty());
+    let reqs = server.requests.lock().unwrap();
+    assert!(reqs.iter().any(|(m, u, _, _)| m == "DELETE" && u.contains("img42")), "{reqs:?}");
+    drop(reqs);
+
+    // without a delete url the record alone goes away
+    let t2 = http_target(&format!("{}/up", server.url), Extract::JsonPointer { pointer: "/id".into() });
+    let dir2 = tempfile::tempdir().unwrap();
+    let paths2 = heronite_data::DataPaths::at(dir2.path());
+    save_targets(&paths2, t2);
+    let record2 = heronite_share::share(&paths2, "t", &file, &ShareContext::default(), &mut noop()).unwrap();
+    heronite_share::delete(&paths2, &record2.id).unwrap();
+    assert!(heronite_share::history(&paths2).is_empty());
+}
+
+#[test]
+fn history_caps_at_200_newest_first() {
+    setup();
+    let dir = tempfile::tempdir().unwrap();
+    let paths = heronite_data::DataPaths::at(dir.path());
+    let mut history = heronite_share::history::History::load(&paths);
+    for i in 0..230 {
+        history.push(heronite_share::Record {
+            id: format!("r{i}"),
+            target_id: "t".into(),
+            target_name: "t".into(),
+            file_name: "f.png".into(),
+            size: 1,
+            url: String::new(),
+            remote: String::new(),
+            delete: None,
+            at: String::new(),
+            game: None,
+            kind: heronite_share::FileKind::Other,
+        });
+    }
+    history.save(&paths).unwrap();
+    let loaded = heronite_share::history(&paths);
+    assert_eq!(loaded.len(), 200);
+    assert_eq!(loaded[0].id, "r229", "newest first");
+    assert_eq!(loaded[199].id, "r30");
 }

@@ -60,7 +60,7 @@ pub fn extract_link(http: &Http, body: &[u8]) -> Result<String> {
     let text = String::from_utf8_lossy(body);
     let value = match &http.extract {
         Extract::Body => text.trim().to_string(),
-        Extract::JsonPointer(pointer) => {
+        Extract::JsonPointer { pointer } => {
             let json: serde_json::Value =
                 serde_json::from_slice(body).map_err(|_| ShareError::Server { status: 0, body: tr!("the answer is not JSON").into() })?;
             json.pointer(pointer)
@@ -68,7 +68,7 @@ pub fn extract_link(http: &Http, body: &[u8]) -> Result<String> {
                 .ok_or_else(|| ShareError::Server { status: 0, body: tr!("the answer has no string at {pointer}", pointer = pointer) })?
                 .to_string()
         }
-        Extract::Regex(pattern) => {
+        Extract::Regex { pattern } => {
             let re = regex::Regex::new(pattern)
                 .map_err(|e| ShareError::config(tr!("The extraction regex does not compile: {error}", error = e.to_string())))?;
             re.captures(&text)
@@ -184,11 +184,11 @@ fn extract_link_value(http: &Http, body: &[u8]) -> Result<String> {
     let text = String::from_utf8_lossy(body);
     Ok(match &http.extract {
         Extract::Body => text.trim().to_string(),
-        Extract::JsonPointer(p) => serde_json::from_slice::<serde_json::Value>(body)
+        Extract::JsonPointer { pointer: p } => serde_json::from_slice::<serde_json::Value>(body)
             .ok()
             .and_then(|j| j.pointer(p).and_then(|v| v.as_str().map(str::to_string)))
             .unwrap_or_default(),
-        Extract::Regex(pattern) => regex::Regex::new(pattern)
+        Extract::Regex { pattern } => regex::Regex::new(pattern)
             .ok()
             .and_then(|re| re.captures(&text))
             .and_then(|c| c.get(1).map(|m| m.as_str().to_string()))
@@ -300,14 +300,14 @@ mod tests {
     fn extraction_modes() {
         let mut http = multipart_http();
         assert_eq!(extract_link(&http, b"  https://x/y \n").unwrap(), "https://x/y");
-        http.extract = Extract::JsonPointer("/data/url".into());
+        http.extract = Extract::JsonPointer { pointer: "/data/url".into() };
         assert_eq!(extract_link(&http, br#"{"data":{"url":"https://x/z"}}"#).unwrap(), "https://x/z");
         assert!(extract_link(&http, br#"{"data":{}}"#).is_err());
         assert!(extract_link(&http, b"not json").is_err());
-        http.extract = Extract::Regex(r#"src="([^"]+)""#.into());
+        http.extract = Extract::Regex { pattern: r#"src="([^"]+)""#.into() };
         assert_eq!(extract_link(&http, br#"<img src="https://x/i.png">"#).unwrap(), "https://x/i.png");
         assert!(extract_link(&http, b"nothing").is_err());
-        http.extract = Extract::JsonPointer("/id".into());
+        http.extract = Extract::JsonPointer { pointer: "/id".into() };
         http.link_template = "https://img.example/{value}.png".into();
         assert_eq!(extract_link(&http, br#"{"id":"abc"}"#).unwrap(), "https://img.example/abc.png");
     }
@@ -315,7 +315,7 @@ mod tests {
     #[test]
     fn extraction_failures_say_why() {
         let mut http = multipart_http();
-        http.extract = Extract::JsonPointer("/missing".into());
+        http.extract = Extract::JsonPointer { pointer: "/missing".into() };
         let err = extract_link(&http, br#"{"a":1}"#).unwrap_err();
         assert!(err.to_string().contains("/missing"), "{err}");
     }

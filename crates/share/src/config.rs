@@ -342,10 +342,11 @@ pub enum Extract {
     /// The trimmed response body is the link.
     #[default]
     Body,
-    /// RFC 6901 pointer into the JSON body (`/data/url`).
-    JsonPointer(String),
+    /// RFC 6901 pointer into the JSON body (`/data/url`). Struct variants:
+    /// internally tagged newtype variants do not serialize.
+    JsonPointer { pointer: String },
     /// First capture group of the pattern.
-    Regex(String),
+    Regex { pattern: String },
 }
 
 // ---- secrets ----
@@ -456,7 +457,7 @@ impl Target {
                 if m != "POST" && m != "PUT" {
                     return Err(ShareError::config(tr!("The method must be POST or PUT")));
                 }
-                if let Extract::Regex(p) = &h.extract {
+                if let Extract::Regex { pattern: p } = &h.extract {
                     if regex::Regex::new(p).is_err() {
                         return Err(ShareError::config(tr!("The extraction regex does not compile")));
                     }

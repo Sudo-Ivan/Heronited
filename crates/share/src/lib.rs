@@ -146,8 +146,9 @@ pub fn delete(paths: &DataPaths, record_id: &str) -> Result<()> {
             Kind::Http(h) => http::delete(target, h, &record),
         };
         if let Err(e) = outcome {
-            // Best effort: a gone server must not trap the record forever.
+            // The record stays so the user can retry the delete later.
             log::warn!("share: remote delete failed for {}: {e}", record.remote);
+            return Err(e);
         }
     }
     history.remove(record_id);

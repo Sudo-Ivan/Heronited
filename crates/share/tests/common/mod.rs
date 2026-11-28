@@ -377,3 +377,113 @@ fn split_bucket_key(path: &str, host: &str, buckets: &[String]) -> (String, Stri
         None => (trimmed.to_string(), String::new()),
     }
 }
+
+/// An HTTPS server with the same responder shape: rustls around the hand-
+/// read HTTP/1.1 requests, keep-alive, Content-Length framed.
+pub struct TlsServer {
+    pub url: String,
+    pub port: u16,
+    pub requests: Arc<Mutex<Vec<Request>>>,
+}
+
+pub fn serve_tls(
+    cert_pem: &std::path::Path,
+    key_pem: &std::path::Path,
+    responder: impl Fn(&str, &str, &[(String, String)], &[u8]) -> (u16, Vec<(String, String)>, Vec<u8>) + Send + Sync + 'static,
+) -> TlsServer {
+    use std::io::{Read, Write};
+    let certs: Vec<_> =
+        rustls_pemfile::certs(&mut std::io::BufReader::new(std::fs::File::open(cert_pem).unwrap())).collect::<Result<_, _>>().unwrap();
+    let key = rustls_pemfile::private_key(&mut std::io::BufReader::new(std::fs::File::open(key_pem).unwrap())).unwrap().unwrap();
+    let config = Arc::new(
+        rustls::ServerConfig::builder_with_provider(Arc::new(rustls::crypto::ring::default_provider()))
+            .with_safe_default_protocol_versions()
+            .unwrap()
+            .with_no_client_auth()
+            .with_single_cert(certs, key)
+            .unwrap(),
+    );
+    let listener = std::net::TcpListener::bind("127.0.0.1:0").unwrap();
+    let port = listener.local_addr().unwrap().port();
+    let requests: Arc<Mutex<Vec<Request>>> = Arc::new(Mutex::new(Vec::new()));
+    let reqs = requests.clone();
+    let responder = Arc::new(responder);
+    std::thread::spawn(move || {
+        for stream in listener.incoming() {
+            let stream = match stream {
+                Ok(s) => s,
+                Err(_) => continue,
+            };
+            let config = config.clone();
+            let reqs = reqs.clone();
+            let responder = responder.clone();
+            std::thread::spawn(move || {
+                let conn = match rustls::ServerConnection::new(config) {
+                    Ok(c) => c,
+                    Err(_) => return,
+                };
+                let mut io = rustls::StreamOwned::new(conn, stream);
+                loop {
+                    // headers, byte by byte up to the empty line
+                    let mut head = Vec::new();
+                    let mut byte = [0u8; 1];
+                    loop {
+                        match io.read(&mut byte) {
+                            Ok(0) | Err(_) => return,
+                            Ok(_) => {
+                                head.push(byte[0]);
+                                if head.len() > 64 * 1024 || head.ends_with(b"\r\n\r\n") {
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                    let head_text = String::from_utf8_lossy(&head).to_string();
+                    let mut lines = head_text.split("\r\n");
+                    let request_line = lines.next().unwrap_or("");
+                    let mut parts = request_line.split(' ');
+                    let method = parts.next().unwrap_or("").to_string();
+                    let url = parts.next().unwrap_or("").to_string();
+                    let mut headers = Vec::new();
+                    let mut length = 0usize;
+                    for line in lines {
+                        if let Some((name, value)) = line.split_once(':') {
+                            let value = value.trim().to_string();
+                            if name.eq_ignore_ascii_case("content-length") {
+                                length = value.parse().unwrap_or(0);
+                            }
+                            headers.push((name.trim().to_string(), value));
+                        }
+                    }
+                    let mut body = vec![0u8; length];
+                    if io.read_exact(&mut body).is_err() {
+                        return;
+                    }
+                    reqs.lock().unwrap().push((method.clone(), url.clone(), headers.clone(), body.clone()));
+                    let (status, out_headers, answer) = responder(&method, &url, &headers, &body);
+                    let mut response = format!("HTTP/1.1 {status} answer\r\nContent-Length: {}\r\n", answer.len());
+                    for (n, v) in &out_headers {
+                        response.push_str(&format!("{n}: {v}\r\n"));
+                    }
+                    response.push_str("\r\n");
+                    if io.write_all(response.as_bytes()).is_err() || io.write_all(&answer).is_err() || io.flush().is_err() {
+                        return;
+                    }
+                }
+            });
+        }
+    });
+    TlsServer { url: format!("https://127.0.0.1:{port}"), port, requests }
+}
+
+/// A self-signed certificate for 127.0.0.1, written into the directory:
+/// (cert.pem path, key.pem path).
+pub fn write_cert(dir: &std::path::Path) -> (std::path::PathBuf, std::path::PathBuf) {
+    let rcgen::CertifiedKey { cert, signing_key } =
+        rcgen::generate_simple_self_signed(vec!["127.0.0.1".to_string(), "localhost".to_string()]).unwrap();
+    let cert_path = dir.join("cert.pem");
+    let key_path = dir.join("key.pem");
+    std::fs::write(&cert_path, cert.pem()).unwrap();
+    std::fs::write(&key_path, signing_key.serialize_pem()).unwrap();
+    (cert_path, key_path)
+}
