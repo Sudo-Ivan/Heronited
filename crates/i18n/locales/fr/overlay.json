@@ -133,5 +133,7 @@
   "Off while Guide + Y takes the screenshot: pick another button for it above.": "Désactivé tant que Guide + Y prend la capture d’écran : choisissez un autre bouton ci-dessus.",
   "Hidden until you show it again or the game ends": "Masqué jusqu'à ce que vous le réaffichiez ou que le jeu se termine",
   "The overlay is off (Settings → Overlay)": "L'overlay est désactivé (Paramètres → Overlay)",
-  "This desktop cannot draw the overlay over a game": "Ce bureau ne peut pas afficher l'overlay sur un jeu"
+  "This desktop cannot draw the overlay over a game": "Ce bureau ne peut pas afficher l'overlay sur un jeu",
+  "Or bind a key to this command in your window manager or sxhkd: {command}": "Ou associez une touche à cette commande dans votre gestionnaire de fenêtres ou sxhkd : {command}",
+  "Open it from a key of the desktop": "L'ouvrir depuis une touche du bureau"
 }

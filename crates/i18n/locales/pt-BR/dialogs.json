@@ -570,5 +570,10 @@
   "Shown instead of the name in console mode": "Exibido no lugar do nome no modo console",
   "Console mode shows the name instead": "O modo console mostra o nome no lugar",
   "Set in Images": "Definido em Imagens",
-  "Your logo from Images is shown instead": "O logo escolhido em Imagens aparece no lugar"
+  "Your logo from Images is shown instead": "O logo escolhido em Imagens aparece no lugar",
+  "Could not connect to the X server: {error}": "Não foi possível conectar ao servidor X: {error}",
+  "Could not read the keyboard mapping: {error}": "Não foi possível ler o mapeamento do teclado: {error}",
+  "The key has no keycode in the keyboard's layout": "A tecla não tem código no layout do teclado",
+  "The keys are already taken by another program (sxhkd or the window manager?): bind it there to `heronite-rs` instead, or free them": "As teclas já estão em uso por outro programa (sxhkd ou o gerenciador de janelas?): vincule-as lá ao `heronite-rs` ou libere-as",
+  "Could not grab the keys on the X server: {error}": "Não foi possível registrar as teclas no servidor X: {error}"
 }

@@ -25,7 +25,8 @@ use crate::pages::PageCtx;
 use crate::services::replay::{Detected, Status};
 use crate::theme;
 use crate::ui::controls::{
-    button, caption, card, card_box, icon_button_sm, info_tip, row, tabs, toggle_row, toggle_row_info, with_sub_rows, ButtonKind, CAPTION_H,
+    button, button_sm, caption, card, card_box, icon_button_sm, info_tip, row, tabs, toggle_row, toggle_row_info, with_sub_rows,
+    ButtonKind, CAPTION_H,
 };
 use crate::ui::fields::{hotkey_box, hotkey_press, labeled, meta_text, needs_modifier_text, select_field, HotkeyPress};
 use crate::ui::icon;
@@ -54,6 +55,8 @@ pub struct State {
     hotkey: FocusHandle,
     /// The combination last pressed in it is another shortcut's.
     hotkey_taken: Option<String>,
+    /// What a key bound in the desktop's settings runs (Linux).
+    command: Option<String>,
 }
 
 impl State {
@@ -62,7 +65,17 @@ impl State {
         if let Some(service) = crate::services::replay::get(cx) {
             cx.observe(&service, |_, _, cx| cx.notify()).detach();
         }
-        Self { detected: None, looking: false, monitor_open: false, advanced: false, hotkey: cx.focus_handle(), hotkey_taken: None }
+        let command =
+            cfg!(target_os = "linux").then(|| super::screenshots::desktop_command(&crate::system::shortcuts::own_exe(), "--replay"));
+        Self {
+            detected: None,
+            looking: false,
+            monitor_open: false,
+            advanced: false,
+            hotkey: cx.focus_handle(),
+            hotkey_taken: None,
+            command,
+        }
     }
 }
 
@@ -689,9 +702,35 @@ fn keyboard_row(d: &SettingsPage, p: &ReplayPrefs, window: &Window, cx: &mut Con
         .child(meta_text(tr!(
             "Saves the replay like Guide + X, overlay or not. Click the field and press the key combination; Backspace removes it."
         )))
-        .children(status.map(|(text, error)| {
+        .children(status.clone().map(|(text, error)| {
             div().text_size(px(12.)).text_color(if error { theme::danger_text() } else { theme::success() }).child(text)
         }))
+        .children(replay_command_rows(d, status.as_ref().is_some_and(|(_, error)| *error)))
+}
+
+/// The row offering `<exe> --replay` for a key bound in the desktop's own
+/// settings (Linux). With a failed registration the line points at it.
+fn replay_command_rows(d: &SettingsPage, failed: bool) -> Vec<AnyElement> {
+    let Some(command) = d.replay.command.clone() else { return Vec::new() };
+    let description: String = if failed {
+        tr!("Or bind a key to this command in your window manager or sxhkd: {command}", command = &command)
+    } else {
+        tr!(
+            "Where the desktop takes no shortcut from Heronited, bind a key to this command in its keyboard settings: {command}",
+            command = &command
+        )
+    };
+    vec![div()
+        .flex()
+        .items_center()
+        .justify_between()
+        .gap(px(8.))
+        .child(div().flex_1().min_w_0().text_size(px(12.)).text_color(theme::text_dim()).child(description))
+        .child(
+            button_sm("replay-copy-command", ButtonKind::Glass, tr!("Copy command"))
+                .on_click(move |_, _, cx| cx.write_to_clipboard(ClipboardItem::new_string(command.clone()))),
+        )
+        .into_any_element()]
 }
 
 pub fn render(d: &mut SettingsPage, window: &mut Window, cx: &mut Context<SettingsPage>) -> AnyElement {

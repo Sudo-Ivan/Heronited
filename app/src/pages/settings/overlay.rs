@@ -18,7 +18,7 @@ use super::SettingsPage;
 use crate::overlay::{labels, HotkeyState};
 use crate::pages::PageCtx;
 use crate::theme;
-use crate::ui::controls::{caption, card, row, tabs, toggle_row, with_sub_rows};
+use crate::ui::controls::{button_sm, caption, card, row, tabs, toggle_row, with_sub_rows, ButtonKind};
 use crate::ui::fields::{hotkey_box, hotkey_press, labeled, meta_text, needs_modifier_text, select_field, HotkeyPress};
 
 pub struct State {
@@ -31,6 +31,8 @@ pub struct State {
     hotkey_refused: Option<String>,
     /// The menu of the screenshot button is open.
     button_open: bool,
+    /// What a key bound in the desktop's settings runs (Linux).
+    command: Option<String>,
 }
 
 impl State {
@@ -40,7 +42,16 @@ impl State {
             cx.observe(&service, |_, _, cx| cx.notify()).detach();
         }
         // A tiny file in the app's config folder.
-        Self { prefs: OverlayPrefs::load(&ctx.app), controllers: None, hotkey: cx.focus_handle(), hotkey_refused: None, button_open: false }
+        let command =
+            cfg!(target_os = "linux").then(|| super::screenshots::desktop_command(&crate::system::shortcuts::own_exe(), "--overlay"));
+        Self {
+            prefs: OverlayPrefs::load(&ctx.app),
+            controllers: None,
+            hotkey: cx.focus_handle(),
+            hotkey_refused: None,
+            button_open: false,
+            command,
+        }
     }
 }
 
@@ -380,6 +391,28 @@ pub fn render(d: &mut SettingsPage, window: &mut Window, cx: &mut Context<Settin
             .into_any_element()],
     )]);
 
+    let failed = matches!(hotkey_status(d, cx), Some((_, true))) && d.overlay.hotkey_refused.is_none();
+    let command_rows: Vec<AnyElement> = match d.overlay.command.clone() {
+        Some(command) => {
+            let description: String = if failed {
+                tr!("Or bind a key to this command in your window manager or sxhkd: {command}", command = &command)
+            } else {
+                tr!(
+                    "Where the desktop takes no shortcut from Heronited, bind a key to this command in its keyboard settings: {command}",
+                    command = &command
+                )
+            };
+            vec![row(
+                tr!("Open it from a key of the desktop"),
+                Some(&description),
+                button_sm("overlay-copy-command", ButtonKind::Glass, tr!("Copy command"))
+                    .on_click(move |_, _, cx| cx.write_to_clipboard(ClipboardItem::new_string(command.clone()))),
+            )
+            .into_any_element()]
+        }
+        None => Vec::new(),
+    };
+
     let shot = pad_shot_card(d, cx);
     let volume = card([
         toggle_row(
@@ -428,6 +461,7 @@ pub fn render(d: &mut SettingsPage, window: &mut Window, cx: &mut Context<Settin
         .child(main)
         .child(caption(tr!("Keyboard")))
         .child(dim(p.enabled, keyboard))
+        .when(!command_rows.is_empty(), |d| d.child(dim(p.enabled, card(command_rows))))
         .child(caption(tr!("Shortcuts without opening it")))
         .child(dim(
             p.enabled,

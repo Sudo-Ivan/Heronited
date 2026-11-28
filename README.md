@@ -34,7 +34,7 @@ Heronited tracks [Heronite](https://github.com/RafaelGoulartB/Heronite) and pick
 
 - **Saves backups** go to a saves server (saves.quad4.io by default, or your own) or a local folder, in place of Ludusavi. Backups can include the game's Wine prefix data, and a game whose saves are not detected can be pointed at a folder by hand.
 - **GOG offline installers are kept as backups.** Windows GOG games install from GOG's own offline files, which stay in `~/Games/GOG Offline Installers` so a reinstall needs no download.
-- **The overlay draws over games on X11**, and a global shortcut explains itself when the desktop has no GlobalShortcuts portal instead of showing a raw D-Bus error.
+- **The overlay draws over games on X11**, and its shortcut works everywhere: a native X11 grab on bare window managers, and commands you bind in sxhkd, i3, sway and similar where the desktop has no GlobalShortcuts portal ([docs/SHORTCUTS.md](docs/SHORTCUTS.md)).
 - **Secrets are sealed with the OS keyring** before they are stored.
 - **Packaging is ours:** AppImage, Flatpak, and the system packages under the app id `io.github.sudoivan.Heronited`. Upstream's COPR, Scoop, and Winget channels are not carried.
 - **CI and releases are hardened for this repository:** pinned actions, zizmor audits, minisign-signed updates.

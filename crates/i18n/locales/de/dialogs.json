@@ -570,5 +570,10 @@
   "Shown instead of the name in console mode": "Wird im Console mode statt des Namens angezeigt",
   "Console mode shows the name instead": "Der Console mode zeigt stattdessen den Namen",
   "Set in Images": "In „Bilder“ gewählt",
-  "Your logo from Images is shown instead": "Stattdessen wird dein Logo aus „Bilder“ gezeigt"
+  "Your logo from Images is shown instead": "Stattdessen wird dein Logo aus „Bilder“ gezeigt",
+  "Could not connect to the X server: {error}": "Keine Verbindung zum X-Server: {error}",
+  "Could not read the keyboard mapping: {error}": "Die Tastaturbelegung konnte nicht gelesen werden: {error}",
+  "The key has no keycode in the keyboard's layout": "Die Taste hat keinen Keycode in der Tastaturbelegung",
+  "The keys are already taken by another program (sxhkd or the window manager?): bind it there to `heronite-rs` instead, or free them": "Die Tasten sind schon von einem anderen Programm belegt (sxhkd oder dem Fensterverwalter?): binde sie dort auf `heronite-rs` oder gib sie frei",
+  "Could not grab the keys on the X server: {error}": "Die Tasten konnten auf dem X-Server nicht belegt werden: {error}"
 }
