@@ -303,7 +303,10 @@ fn live_ftps_rclone() {
     // by the in-process libunftp tests instead.
     let name = "ftps-rclone";
     let Some(addr) = env("SHARE_LIVE_FTPS") else {
-        skip(name, "rclone serve ftp TLS is implicit and leaves the data channel plaintext (goftp); FTPS runs against libunftp in-process instead");
+        skip(
+            name,
+            "rclone serve ftp TLS is implicit and leaves the data channel plaintext (goftp); FTPS runs against libunftp in-process instead",
+        );
         return;
     };
     let (host, port) = addr.split_once(':').unwrap();

@@ -4262,7 +4262,6 @@ dependencies = [
  "heronite-overlay",
  "heronite-platform",
  "heronite-saves",
- "heronite-share",
  "heronite-shortcuts",
  "heronite-steam",
  "heronite-storage",
