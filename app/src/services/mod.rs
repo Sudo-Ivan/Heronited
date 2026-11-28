@@ -176,3 +176,27 @@ pub fn share(cx: &mut App) -> Entity<share::ShareService> {
     cx.set_global(ShareGlobal(entity.clone()));
     entity
 }
+
+/// The sharing service when something started it already (read-only callers
+/// that must not start it, e.g. a tile drawing its in-progress state).
+pub fn share_started(cx: &App) -> Option<Entity<share::ShareService>> {
+    cx.try_global::<ShareGlobal>().map(|g| g.0.clone())
+}
+
+/// A job moving the file `file_name` right now (queued or uploading).
+pub fn share_active(cx: &App, file_name: &str) -> bool {
+    let Some(svc) = share_started(cx) else { return false };
+    svc.read(cx).jobs().iter().any(|j| j.file_name == file_name && matches!(j.state, share::JobState::Queued | share::JobState::Uploading))
+}
+
+/// [`share_active`], plus the names a view queued itself: the service's
+/// snapshot lags the queueing by a poll (250 ms) and a key repeating or a
+/// quick second click would share the file twice. A `pending` name stops
+/// mattering once any job of the file shows in the snapshot.
+pub fn share_busy(cx: &App, file_name: &str, pending: &std::collections::HashSet<String>) -> bool {
+    if share_active(cx, file_name) {
+        return true;
+    }
+    let known = share_started(cx).is_some_and(|svc| svc.read(cx).jobs().iter().any(|j| j.file_name == file_name));
+    !known && pending.contains(file_name)
+}
