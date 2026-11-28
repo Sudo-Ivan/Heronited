@@ -162,7 +162,7 @@ impl russh_sftp::server::Handler for FsHandler {
     }
 
     async fn realpath(&mut self, id: u32, path: russh_sftp::protocol::SftpString) -> Result<russh_sftp::protocol::Name, Self::Error> {
-        Ok(russh_sftp::protocol::Name { id, files: vec![russh_sftp::protocol::File::dummy(&path.to_string())] })
+        Ok(russh_sftp::protocol::Name { id, files: vec![russh_sftp::protocol::File::dummy(path.to_string())] })
     }
 
     async fn stat(&mut self, id: u32, path: russh_sftp::protocol::SftpString) -> Result<russh_sftp::protocol::Attrs, Self::Error> {

@@ -317,7 +317,7 @@ pub fn upload(
     Ok(Shared { url: target.link_of(remote), remote: remote.to_string(), delete: Some(remote.to_string()) })
 }
 
-pub fn delete(target: &Target, sftp: &Sftp, record: &Record) -> Result<()> {
+pub fn delete(_target: &Target, sftp: &Sftp, record: &Record) -> Result<()> {
     block_on(async {
         let handle = connect_session(sftp).await?;
         let session = sftp_of(&handle).await?;
