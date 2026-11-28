@@ -71,3 +71,5 @@ riverctl map normal Super G spawn 'heronite-rs --overlay'
 KDE: System Settings, Shortcuts, Custom Shortcuts. New, Global Shortcut, Command/URL. Set the trigger and the command `heronite-rs --overlay`.
 
 GNOME: Settings, Keyboard, Keyboard Shortcuts, Custom Shortcuts. Add one with the command `heronite-rs --overlay` and press the keys.
+
+Xfce: Settings, Keyboard, Application Shortcuts. Add the command `heronite-rs --overlay` and press the keys. Xfce grabs its own keys through xfsettingsd, so a key that is already bound there is refused by the native grab: pick a free combination or bind it here.
