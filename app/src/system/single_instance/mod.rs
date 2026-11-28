@@ -41,6 +41,10 @@ pub struct Message {
     pub screenshot: bool,
     /// Open or close the quick launcher (`heronite://quick-launch`).
     pub quick_launch: bool,
+    /// Open or close the in-game overlay (`heronite://overlay`).
+    pub overlay: bool,
+    /// Save the replay of the running game (`heronite://replay`).
+    pub replay: bool,
     /// The second invocation's `XDG_ACTIVATION_TOKEN` (Wayland), which lets
     /// the quick launcher it opens take the focus (GNOME refuses it a window
     /// opened without one).
@@ -85,6 +89,12 @@ impl Message {
         if self.quick_launch {
             line["quickLaunch"] = true.into();
         }
+        if self.overlay {
+            line["overlay"] = true.into();
+        }
+        if self.replay {
+            line["replay"] = true.into();
+        }
         if let Some(token) = &self.activation_token {
             line["activationToken"] = token.as_str().into();
         }
@@ -117,6 +127,8 @@ impl Message {
             stop: request("stop"),
             screenshot: flag("screenshot"),
             quick_launch: flag("quickLaunch"),
+            overlay: flag("overlay"),
+            replay: flag("replay"),
             activation_token: v.get("activationToken").and_then(Value::as_str).filter(|t| !t.is_empty()).map(str::to_string),
             no_gui: flag("noGui"),
             console: flag("console"),
@@ -341,6 +353,8 @@ mod tests {
             stop: None,
             screenshot: false,
             quick_launch: false,
+            overlay: false,
+            replay: false,
             activation_token: Some("gnome-shell/Heronited/1234-0-host_TIME5678".into()),
             no_gui: true,
             console: true,
@@ -358,9 +372,15 @@ mod tests {
         assert_eq!(Message::from_line(&shot.to_line()), Some(shot));
         let launcher = Message { quick_launch: true, ..Default::default() };
         assert_eq!(Message::from_line(&launcher.to_line()), Some(launcher));
+        let overlay = Message { overlay: true, ..Default::default() };
+        assert_eq!(Message::from_line(&overlay.to_line()), Some(overlay));
+        let replay = Message { replay: true, ..Default::default() };
+        assert_eq!(Message::from_line(&replay.to_line()), Some(replay));
         // An instance that does not know the key yet reads the rest.
         assert!(!Message::default().to_line().contains("screenshot"));
         assert!(!Message::default().to_line().contains("quickLaunch"));
+        assert!(!Message::default().to_line().contains("overlay"));
+        assert!(!Message::default().to_line().contains("replay"));
         assert!(!Message::default().to_line().contains("activationToken"));
         assert_eq!(Message::from_line("garbage"), None);
         assert!(!msg().to_line().contains('\n'));

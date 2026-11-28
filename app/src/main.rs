@@ -104,6 +104,16 @@ fn main() {
             log::info!("screenshot request: Heronited is not running, nothing to capture");
             return;
         }
+        // `heronite://overlay` with no instance running: no game to open it over.
+        SingleInstance::Primary { .. } if cli.overlay && cli.launch.is_none() => {
+            log::info!("overlay request: Heronited is not running, no game to open the overlay over");
+            return;
+        }
+        // `heronite://replay` with no instance running: no game recording.
+        SingleInstance::Primary { .. } if cli.replay && cli.launch.is_none() => {
+            log::info!("replay request: Heronited is not running, no game recording");
+            return;
+        }
         // `--handoff` (Sunshine's entries) with no instance running: the
         // instance starts on its own and this process exits at once, so
         // Sunshine sees a detached launch and its stream does not own
@@ -211,6 +221,8 @@ fn single_instance(cli: &system::cli::Cli) -> SingleInstance {
         stop: cli.stop.clone(),
         screenshot: cli.screenshot,
         quick_launch: cli.quick_launch,
+        overlay: cli.overlay,
+        replay: cli.replay,
         // Read before GPUI starts, which takes it out of the environment.
         activation_token: cli.quick_launch.then(|| env::value("XDG_ACTIVATION_TOKEN")).flatten(),
         no_gui: cli.no_gui,

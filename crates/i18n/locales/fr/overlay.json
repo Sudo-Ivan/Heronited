@@ -131,5 +131,7 @@
   "Adds the time and a screenshot to the game's journal, to write about later in the overlay's Notes tab or the game's Journal.": "Ajoute l’heure et une capture d’écran au journal du jeu pour y ajouter du texte plus tard dans l’onglet Notes de l’overlay ou le Journal du jeu.",
   "Guide + Y: mark a moment": "Guide + Y : marquer un moment",
   "Off while Guide + Y takes the screenshot: pick another button for it above.": "Désactivé tant que Guide + Y prend la capture d’écran : choisissez un autre bouton ci-dessus.",
-  "Hidden until you show it again or the game ends": "Masqué jusqu'à ce que vous le réaffichiez ou que le jeu se termine"
+  "Hidden until you show it again or the game ends": "Masqué jusqu'à ce que vous le réaffichiez ou que le jeu se termine",
+  "The overlay is off (Settings → Overlay)": "L'overlay est désactivé (Paramètres → Overlay)",
+  "This desktop cannot draw the overlay over a game": "Ce bureau ne peut pas afficher l'overlay sur un jeu"
 }

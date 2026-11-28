@@ -486,6 +486,29 @@ impl OverlayService {
         cx.notify();
     }
 
+    /// `heronite://overlay` (`--overlay`): toggles like the keyboard
+    /// shortcut, whether or not one registered (a desktop without a portal,
+    /// a key daemon that grabbed the keys first). The keyboard shortcut's
+    /// setting does not gate this. Says why when it cannot act: silence
+    /// would look like a broken bind.
+    pub fn toggle_requested(&mut self, cx: &mut Context<Self>) {
+        if self.panel.is_none() {
+            if !self.prefs.enabled {
+                crate::system::notify::send("Heronited", tr!("The overlay is off (Settings → Overlay)"));
+                return;
+            }
+            if self.games.is_empty() && !self.prefs.without_game {
+                crate::system::notify::send("Heronited", tr!("No game running"));
+                return;
+            }
+            if !self.can_draw && !self.debug_window {
+                crate::system::notify::send("Heronited", tr!("This desktop cannot draw the overlay over a game"));
+                return;
+            }
+        }
+        self.toggle_from_keyboard(cx);
+    }
+
     /// The keyboard shortcut: opens the panel (taking the keyboard) or closes it.
     fn toggle_from_keyboard(&mut self, cx: &mut Context<Self>) {
         if self.panel.is_some() {

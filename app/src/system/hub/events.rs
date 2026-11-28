@@ -241,6 +241,30 @@ fn take_screenshot(cx: &mut App) {
     .detach();
 }
 
+/// `heronite://overlay`: opens or closes the overlay like its keyboard
+/// shortcut does. The service says why when it cannot act (the key that
+/// asked is bound outside the app: silence would look like a broken bind).
+fn toggle_overlay(cx: &mut App) {
+    let Some(overlay) = crate::overlay::get(cx) else {
+        log::info!("overlay request: no overlay service");
+        return;
+    };
+    log::info!("overlay request");
+    overlay.update(cx, |o, cx| o.toggle_requested(cx));
+}
+
+/// `heronite://replay`: saves the replay of the running game like Guide + X
+/// does, and says why when there is none.
+fn save_replay(cx: &mut App) {
+    let Some(overlay) = crate::overlay::get(cx) else {
+        log::info!("replay request: no overlay service");
+        crate::system::notify::send("Heronited", tr!("No game to save a replay of"));
+        return;
+    };
+    log::info!("replay request");
+    overlay.update(cx, |o, cx| o.save_replay_requested(cx));
+}
+
 /// A second invocation reached this instance.
 pub(super) fn on_message(cx: &mut App, msg: Message) {
     if hub(cx).0.borrow().quitting {
@@ -265,6 +289,18 @@ pub(super) fn on_message(cx: &mut App, msg: Message) {
     }
     if msg.screenshot {
         take_screenshot(cx);
+        if msg.launch.is_none() && msg.open_client.is_none() {
+            return;
+        }
+    }
+    if msg.overlay {
+        toggle_overlay(cx);
+        if msg.launch.is_none() && msg.open_client.is_none() {
+            return;
+        }
+    }
+    if msg.replay {
+        save_replay(cx);
         if msg.launch.is_none() && msg.open_client.is_none() {
             return;
         }

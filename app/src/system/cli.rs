@@ -22,6 +22,11 @@
 //!   settings stands in for its shortcut. With no instance running, one
 //!   starts without its window.
 //!
+//! * `heronite://overlay` (or `--overlay`) opens the in-game overlay of the
+//!   running instance, or closes it, like its keyboard shortcut.
+//!   `heronite://replay` (or `--replay`) saves the replay of the game it has
+//!   running. With no instance running they do nothing (there is no game).
+//!
 //! Mod links (`nxm://` from Nexus Mods' "Mod manager download", `ror2mm://`
 //! from Thunderstore's "Install with mod manager") go to the mods service.
 //!
@@ -66,6 +71,10 @@ pub enum UrlAction {
     Screenshot,
     /// Open (or close) the quick launcher.
     QuickLaunch,
+    /// Open (or close) the in-game overlay.
+    Overlay,
+    /// Save the replay of the running game.
+    Replay,
     Ping,
 }
 
@@ -85,6 +94,12 @@ pub struct Cli {
     /// `--quick-launch` or `heronite://quick-launch`: open (or close) the
     /// quick launcher.
     pub quick_launch: bool,
+    /// `--overlay` or `heronite://overlay`: open (or close) the in-game
+    /// overlay of the running instance.
+    pub overlay: bool,
+    /// `--replay` or `heronite://replay`: save the replay of the game the
+    /// running instance has open.
+    pub replay: bool,
     /// `--no-gui`.
     pub no_gui: bool,
     /// `--console`: switch to console mode.
@@ -115,6 +130,8 @@ Usage:
   heronite-rs --open-client <client>  open battlenet, ea, ubisoft or rockstar (no window)
   heronite-rs --screenshot            capture the running game (for a key bound in the desktop's settings)
   heronite-rs --quick-launch          open or close the quick launcher (for a key bound in the desktop's settings)
+  heronite-rs --overlay               open or close the in-game overlay (for a key bound in the desktop's settings)
+  heronite-rs --replay                save the replay of the running game (for a key bound in the desktop's settings)
   --no-gui                            do not show the window (the process exits when the game ends)
   --console                           open in console mode (it stays on until you leave it)
   --fullscreen                        open the window fullscreen (F11 switches back)
@@ -200,6 +217,8 @@ pub fn parse_url(url: &str) -> Option<UrlAction> {
         "ping" => Some(UrlAction::Ping),
         "screenshot" => Some(UrlAction::Screenshot),
         "quick-launch" => Some(UrlAction::QuickLaunch),
+        "overlay" => Some(UrlAction::Overlay),
+        "replay" => Some(UrlAction::Replay),
         host @ ("launch" | "stop") => {
             let mut req = LaunchRequest { gui_false: param("gui").is_some_and(|g| gui_false(&g)), ..Default::default() };
             let (app_name, runner);
@@ -242,6 +261,8 @@ pub fn parse<I: IntoIterator<Item = String>>(args: I) -> Cli {
             "--autostart" => cli.autostart = true,
             "--screenshot" => cli.screenshot = true,
             "--quick-launch" => cli.quick_launch = true,
+            "--overlay" => cli.overlay = true,
+            "--replay" => cli.replay = true,
             "-h" | "--help" => cli.help = true,
             "--launch" => {
                 let first = args.get(i + 1).filter(|s| !s.starts_with("--"));
@@ -294,6 +315,8 @@ pub fn parse<I: IntoIterator<Item = String>>(args: I) -> Cli {
                     Some(UrlAction::Stop(req)) => cli.stop = Some(req),
                     Some(UrlAction::Screenshot) => cli.screenshot = true,
                     Some(UrlAction::QuickLaunch) => cli.quick_launch = true,
+                    Some(UrlAction::Overlay) => cli.overlay = true,
+                    Some(UrlAction::Replay) => cli.replay = true,
                     _ => {}
                 }
             }
@@ -491,6 +514,26 @@ mod tests {
         let c = p(&["--quick-launch"]);
         assert!(c.quick_launch && c.launch.is_none() && c.errors.is_empty());
         assert!(!p(&[]).quick_launch);
+    }
+
+    #[test]
+    fn overlay_requests() {
+        assert_eq!(parse_url("heronite://overlay"), Some(UrlAction::Overlay));
+        assert_eq!(parse_url("heronite://overlay/"), Some(UrlAction::Overlay));
+        assert!(p(&["heronite://overlay"]).overlay);
+        let c = p(&["--overlay"]);
+        assert!(c.overlay && c.launch.is_none() && c.errors.is_empty());
+        assert!(!p(&[]).overlay);
+    }
+
+    #[test]
+    fn replay_requests() {
+        assert_eq!(parse_url("heronite://replay"), Some(UrlAction::Replay));
+        assert_eq!(parse_url("heronite://replay/"), Some(UrlAction::Replay));
+        assert!(p(&["heronite://replay"]).replay);
+        let c = p(&["--replay"]);
+        assert!(c.replay && c.launch.is_none() && c.errors.is_empty());
+        assert!(!p(&[]).replay);
     }
 
     #[test]

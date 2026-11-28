@@ -37,6 +37,21 @@ impl OverlayService {
         }
     }
 
+    /// `heronite://replay` (`--replay`): saves like Guide + X, and says why
+    /// when it cannot (the key that asked is bound outside the app: silence
+    /// would look like a broken bind).
+    pub fn save_replay_requested(&mut self, cx: &mut Context<Self>) {
+        if self.current().is_none() {
+            crate::system::notify::send("Heronited", tr!("No game to save a replay of"));
+            return;
+        }
+        match Self::replay_panel(cx) {
+            Some(panel) if panel.on => self.save_replay(cx),
+            Some(_) => crate::system::notify::send("Heronited", tr!("Replay is off until the game ends: turn it on in the overlay")),
+            None => crate::system::notify::send("Heronited", tr!("Replay is off (Settings → Replay)")),
+        }
+    }
+
     /// Saves the replay of the running game and marks it in its journal.
     /// Nothing happens (no notice either) when the replay does not record:
     /// off in Settings, for this game or until it ends, or no game.
