@@ -50,6 +50,20 @@ through `[patch.crates-io]` in the workspace `Cargo.toml`. Changes, in
   does not manage. The focus reverts to the pointer root, so it goes back to
   the game when the window closes. Two fields on `X11WindowState`
   (`override_redirect`, `focus_on_map`) carry what `map_window` needs.
+- X11 idle frames (`src/linux/x11/client.rs`, `src/linux/x11/window.rs`): upstream
+  runs the window's refresh timer at the display's refresh rate for as long as
+  the window is visible, so an idle window wakes the main loop 60+ times a
+  second forever (measured: 60.5 wakeups/s on the main thread with nothing on
+  screen changing). X11 has no frame callback to pace it with, but gpui calls
+  `PlatformWindow::schedule_frame` every time the window is dirtied, which is
+  all the timer needs: it now parks after two ticks without a new invalidation
+  (`RefreshState::Parked`, zero wakeups while idle) and `schedule_frame`
+  restarts it through a calloop ping (`frame_ping`, like the Wayland client's),
+  since the call can run with the client state already borrowed. The demand
+  counter is `X11WindowState::frame_demand`, `refresh_parked` keeps quiet
+  periods free of ping traffic, and expose events present outside the timer
+  as before. `X11WindowState::new` and `X11Window::new` take the ping as their
+  last parameter.
 - Wayland frame pacing (`src/linux/wayland/client.rs`, `src/linux/wayland/window.rs`):
   Zed's open PR #65013 (https://github.com/zed-industries/zed/pull/65013), applied
   unchanged. Compositors that apply a commit only once its buffer is rendered (KWin,

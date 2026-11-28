@@ -258,6 +258,15 @@ pub struct Callbacks {
 
 pub struct X11WindowState {
     parent: Option<X11WindowStatePtr>,
+    /// Bumped by every `schedule_frame`: the client's refresh timer parks
+    /// itself when this stops moving.
+    pub(crate) frame_demand: std::cell::Cell<u64>,
+    /// Wakes the client's loop when the refresh timer is parked; `None` for
+    /// the dummy state of tests.
+    pub(crate) frame_ping: Option<calloop::ping::Ping>,
+    /// Whether the client's refresh timer is parked: only then does
+    /// `schedule_frame` ping (an active timer sees the demand bump itself).
+    pub(crate) refresh_parked: std::cell::Cell<bool>,
     children: FxHashSet<xproto::Window>,
     client: X11ClientStatePtr,
     executor: ForegroundExecutor,
@@ -479,6 +488,7 @@ impl X11WindowState {
         parent_window: Option<X11WindowStatePtr>,
         supports_xinput_gestures: bool,
         is_bgr: bool,
+        frame_ping: Option<calloop::ping::Ping>,
     ) -> anyhow::Result<Self> {
         // Native popups are not implemented on X11 yet. Rejecting lets callers fall back to
         // gpui's in-window popovers.
@@ -836,6 +846,9 @@ impl X11WindowState {
                 parent,
                 children: FxHashSet::default(),
                 client,
+                frame_demand: std::cell::Cell::new(0),
+                frame_ping,
+                refresh_parked: std::cell::Cell::new(false),
                 executor,
                 display,
                 x_root_window: visual_set.root,
@@ -944,6 +957,7 @@ impl X11Window {
         parent_window: Option<X11WindowStatePtr>,
         supports_xinput_gestures: bool,
         is_bgr: bool,
+        frame_ping: Option<calloop::ping::Ping>,
     ) -> anyhow::Result<Self> {
         let ptr = X11WindowStatePtr {
             state: Rc::new(RefCell::new(X11WindowState::new(
@@ -963,6 +977,7 @@ impl X11Window {
                 parent_window,
                 supports_xinput_gestures,
                 is_bgr,
+                frame_ping,
             )?)),
             callbacks: Rc::new(RefCell::new(Callbacks::default())),
             xcb: xcb.clone(),
@@ -1190,6 +1205,21 @@ impl X11WindowStatePtr {
         }
     }
 
+    /// gpui calls this when the window is dirtied: the client's refresh
+    /// timer runs while invalidations keep coming and parks when they stop.
+    /// Parking is undone through the client's frame ping rather than a borrow
+    /// of its state: this can run with that state already borrowed.
+    pub(crate) fn schedule_frame(&self) {
+        let ping = {
+            let state = self.state.borrow_mut();
+            state.frame_demand.set(state.frame_demand.get().wrapping_add(1));
+            state.refresh_parked.get().then(|| state.frame_ping.clone()).flatten()
+        };
+        if let Some(ping) = ping {
+            ping.ping();
+        }
+    }
+
     pub fn refresh(&self, mut request_frame_options: RequestFrameOptions) {
         let callback = self.callbacks.borrow_mut().request_frame.take();
         if let Some(mut fun) = callback {
@@ -1395,6 +1425,10 @@ impl X11WindowStatePtr {
 }
 
 impl PlatformWindow for X11Window {
+    fn schedule_frame(&self) {
+        self.0.schedule_frame();
+    }
+
     fn bounds(&self) -> Bounds<Pixels> {
         self.0.state.borrow().bounds
     }

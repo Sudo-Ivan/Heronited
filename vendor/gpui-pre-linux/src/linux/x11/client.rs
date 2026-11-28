@@ -119,6 +119,12 @@ enum RefreshState {
         refresh_rate: Duration,
         event_loop_token: RegistrationToken,
     },
+    /// Visible but idle: nothing invalidated for a few frames, so the
+    /// refresh timer is off. `schedule_frame` (called by gpui when the
+    /// window is dirtied) starts it again.
+    Parked {
+        refresh_rate: Duration,
+    },
 }
 
 #[derive(Debug)]
@@ -182,6 +188,11 @@ struct ScrollAxisState {
 pub struct X11ClientState {
     /// A weak pointer to this state, for event-loop callbacks registered by its methods.
     this: X11ClientStatePtr,
+    /// Wakes the loop when a parked window is dirtied (`schedule_frame` can
+    /// come from a context the state's `RefCell` is borrowed in). Its source
+    /// is registered once in `register_sources`.
+    pub(crate) frame_ping: calloop::ping::Ping,
+    frame_ping_source: Option<calloop::ping::PingSource>,
     pub(crate) loop_handle: LoopHandle<'static, ()>,
     /// Long-lived sources this client registered on the loop, removed when its
     /// [`X11Connection`] drops.
@@ -506,9 +517,12 @@ impl X11Connection {
         };
 
         let background_executor = common.borrow().background_executor.clone();
+        let (frame_ping, frame_ping_source) = calloop::ping::make_ping().context("failed to create the X11 frame ping")?;
         let connection = X11Connection(X11Client(Rc::new_cyclic(|this| {
             RefCell::new(X11ClientState {
                 this: X11ClientStatePtr(this.clone()),
+                frame_ping,
+                frame_ping_source: Some(frame_ping_source),
                 registrations: Vec::new(),
                 graphical_environment: GraphicalEnvironment {
                     activation_token: None,
@@ -606,6 +620,33 @@ impl X11Client {
             )
             .map_err(|err| anyhow!("Failed to initialize X11 event source: {err:?}"))?;
         self.0.borrow_mut().registrations.push(token);
+
+        let frame_ping_source = self.0.borrow_mut().frame_ping_source.take();
+        if let Some(source) = frame_ping_source {
+            let token = handle
+                .insert_source(source, {
+                    let this = this.clone();
+                    move |_, _, _| {
+                        if let Some(client) = this.get_client() {
+                            // A dirtied parked window restarts its refresh timer here.
+                            let windows: Vec<xproto::Window> = client
+                                .0
+                                .borrow()
+                                .windows
+                                .iter()
+                                .filter(|(_, w)| matches!(w.refresh_state, Some(RefreshState::Parked { .. })))
+                                .map(|(x, _)| *x)
+                                .collect();
+                            let mut state = client.0.borrow_mut();
+                            for x_window in windows {
+                                state.ensure_refresh_loop(x_window);
+                            }
+                        }
+                    }
+                })
+                .map_err(|err| anyhow!("Failed to initialize X11 frame ping source: {err:?}"))?;
+            self.0.borrow_mut().registrations.push(token);
+        }
 
         let token = handle
             .insert_source(XDPEventSource::new(&background_executor), {
@@ -1717,6 +1758,7 @@ impl X11Client {
             .resource_database
             .get_string("Xft.rgba", "Xft.Rgba")
             .is_some_and(|v| v.eq_ignore_ascii_case("bgr"));
+        let frame_ping = state.frame_ping.clone();
         let window = X11Window::new(
             handle,
             X11ClientStatePtr(Rc::downgrade(&self.0)),
@@ -1734,6 +1776,7 @@ impl X11Client {
             parent_window,
             supports_xinput_gestures,
             is_bgr,
+            Some(frame_ping),
         )?;
         check_reply(
             || "Failed to set XdndAware property",
@@ -1989,8 +2032,10 @@ impl X11ClientState {
         let is_visible = window_ref.visibility().is_visible();
         match (is_visible, window_ref.refresh_state.take()) {
             (false, refresh_state @ Some(RefreshState::Hidden { .. }))
+            | (false, refresh_state @ Some(RefreshState::Parked { .. }))
             | (false, refresh_state @ None)
-            | (true, refresh_state @ Some(RefreshState::PeriodicRefresh { .. })) => {
+            | (true, refresh_state @ Some(RefreshState::PeriodicRefresh { .. }))
+            | (true, refresh_state @ Some(RefreshState::Parked { .. })) => {
                 window_ref.refresh_state = refresh_state;
             }
             (
@@ -2062,12 +2107,43 @@ impl X11ClientState {
         }
     }
 
+    /// Restarts the refresh timer of a parked window. gpui calls
+    /// `schedule_frame` when the window is dirtied, so a parked window
+    /// repaints one frame after invalidation and parks again once nothing
+    /// new invalidates for a few frames.
+    pub(crate) fn ensure_refresh_loop(&mut self, x_window: xproto::Window) {
+        let Some(window_ref) = self.windows.get_mut(&x_window) else {
+            return;
+        };
+        let visible = window_ref.visibility().is_visible();
+        match (visible, window_ref.refresh_state.take()) {
+            (true, Some(RefreshState::Parked { refresh_rate })) => {
+                let event_loop_token = self.start_refresh_loop(x_window, refresh_rate);
+                let Some(window_ref) = self.windows.get_mut(&x_window) else {
+                    return;
+                };
+                window_ref.window.state.borrow().refresh_parked.set(false);
+                window_ref.refresh_state = Some(RefreshState::PeriodicRefresh {
+                    refresh_rate,
+                    event_loop_token,
+                });
+            }
+            (_, state) => {
+                if let Some(window_ref) = self.windows.get_mut(&x_window) {
+                    window_ref.refresh_state = state;
+                }
+            }
+        }
+    }
+
     #[must_use]
     fn start_refresh_loop(
         &self,
         x_window: xproto::Window,
         refresh_rate: Duration,
     ) -> RegistrationToken {
+        let last_demand = std::cell::Cell::new(u64::MAX);
+        let idle_ticks = std::cell::Cell::new(0u32);
         self.loop_handle
             .insert_source(calloop::timer::Timer::immediate(), {
                 let this = self.this.clone();
@@ -2081,12 +2157,37 @@ impl X11ClientState {
                         if let Some(window) = state.windows.get_mut(&x_window) {
                             let window = window.window.clone();
                             drop(state);
+                            let demand = window.state.borrow().frame_demand.get();
+                            // First tick after (re)starting always counts as
+                            // active: `last_demand` starts at u64::MAX.
+                            if demand == last_demand.get() {
+                                idle_ticks.set(idle_ticks.get() + 1);
+                            } else {
+                                idle_ticks.set(0);
+                            }
+                            last_demand.set(demand);
                             window.refresh(RequestFrameOptions {
                                 require_presentation: false,
                                 force_render: false,
                                 signal_at: PlatformFrameSignal::capture(|| instant),
                                 signal_source: FrameRequestSource::LocalSchedule,
                             });
+                            let invalidated_while_drawing = window.state.borrow().frame_demand.get() != demand;
+                            if idle_ticks.get() >= 2 && !invalidated_while_drawing {
+                                // Nothing invalidated for two frames: stop the
+                                // timer. The next `schedule_frame` restarts it,
+                                // and expose events present outside it already.
+                                let mut state = client.0.borrow_mut();
+                                if let Some(window_ref) = state.windows.get_mut(&x_window)
+                                    && matches!(window_ref.refresh_state, Some(RefreshState::PeriodicRefresh { .. }))
+                                {
+                                    window_ref.refresh_state = Some(RefreshState::Parked { refresh_rate });
+                                    window_ref.window.state.borrow().refresh_parked.set(true);
+                                }
+                                drop(state);
+                                client.process_x11_events(&xcb_connection).log_err();
+                                return calloop::timer::TimeoutAction::Drop;
+                            }
                         }
                         xcb_connection
                     };
