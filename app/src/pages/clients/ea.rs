@@ -147,7 +147,7 @@ impl<K: ClientKind> ClientPage<K> {
                     .line_height(px(17.))
                     .text_color(theme::text_dim())
                     .child(tr!(
-                        "Heronite signs in on EA's own page and only reads the list of your games: it never sees your password, and never buys, installs or changes anything in your account. If EA changes its service, your installed games keep showing as they do now."
+                        "Heronited signs in on EA's own page and only reads the list of your games: it never sees your password, and never buys, installs or changes anything in your account. If EA changes its service, your installed games keep showing as they do now."
                     ))
                     .into_any_element(),
             );

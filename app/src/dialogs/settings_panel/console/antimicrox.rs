@@ -5,7 +5,7 @@ use gpui_kit::prelude::*;
 use gpui_kit::*;
 use heronite_i18n::tr;
 
-use super::{grouped, item, Act, Item};
+use super::Item;
 use crate::console::list::Row;
 use crate::console::sheet::{Sheet, SheetEvent};
 use crate::dialogs::settings_panel::antimicrox::player_label;
@@ -21,9 +21,7 @@ fn profile_exts() -> Vec<String> {
 impl SettingsPanel {
     pub(super) fn c_antimicrox(&self) -> Vec<Item> {
         let list = self.antimicrox_profiles();
-        let names: Vec<String> = list.iter().map(|p| file_name(p)).collect();
-        let summary = if names.is_empty() { tr!("None").to_string() } else { names.join(", ") };
-        let mut v = vec![item(Row::group("grp:antimicrox", tr!("AntiMicroX profiles")).summary(summary), Act::None)];
+        let mut v = vec![Self::c_header(tr!("AntiMicroX profiles"))];
         for (i, path) in list.iter().enumerate() {
             v.push(
                 Self::c_do(&format!("antimicrox:{i}"), &player_label(i), Icon::SportsEsports, true, move |this, window, cx| {
@@ -45,7 +43,7 @@ impl SettingsPanel {
                 this.console_antimicrox_remove(window, cx)
             }));
         }
-        grouped(v)
+        v
     }
 
     fn console_antimicrox_remove(&mut self, window: &mut Window, cx: &mut Context<Self>) {

@@ -797,7 +797,7 @@ impl SettingsPanel {
                 KEY_START_SILENT,
                 true,
                 tr!("Start Steam in the background"),
-                Some(tr!("Keep Steam's window out of the way when Heronite opens it for a game")),
+                Some(tr!("Keep Steam's window out of the way when Heronited opens it for a game")),
                 false,
             ),
             self.c_toggle(

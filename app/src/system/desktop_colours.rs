@@ -130,18 +130,9 @@ fn windows_colours(accent: Option<u32>, apps_use_light: Option<u32>) -> DesktopC
 fn read_windows() -> DesktopColours {
     use heronite_platform::registry::{dword, Hive};
 
-    let accent = dword(Hive::CurrentUser, r"Software\Microsoft\Windows\DWM", "ColorizationColor").or_else(|| {
-        dword(
-            Hive::CurrentUser,
-            r"Software\Microsoft\Windows\CurrentVersion\Explorer\Accent",
-            "AccentColorMenu",
-        )
-    });
-    let apps_use_light = dword(
-        Hive::CurrentUser,
-        r"Software\Microsoft\Windows\CurrentVersion\Themes\Personalize",
-        "AppsUseLightTheme",
-    );
+    let accent = dword(Hive::CurrentUser, r"Software\Microsoft\Windows\DWM", "ColorizationColor")
+        .or_else(|| dword(Hive::CurrentUser, r"Software\Microsoft\Windows\CurrentVersion\Explorer\Accent", "AccentColorMenu"));
+    let apps_use_light = dword(Hive::CurrentUser, r"Software\Microsoft\Windows\CurrentVersion\Themes\Personalize", "AppsUseLightTheme");
     windows_colours(accent, apps_use_light)
 }
 
@@ -295,9 +286,6 @@ mod tests {
             DesktopColours { accent: Some((0, 120, 215)), window_dark: Some(WINDOWS_DARK), window_light: None }
         );
         assert_eq!(windows_colours(None, None), DesktopColours::default());
-        assert_eq!(
-            windows_colours(None, Some(2)),
-            DesktopColours { accent: None, window_dark: None, window_light: None }
-        );
+        assert_eq!(windows_colours(None, Some(2)), DesktopColours { accent: None, window_dark: None, window_light: None });
     }
 }

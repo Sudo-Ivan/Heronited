@@ -235,7 +235,7 @@ impl StoreFolder {
             }
             (Owner::Client(_), None) => tr!("Choose a folder to keep the games of {client} out of its Wine prefix.", client = name),
             (Owner::Client(c), Some(_)) if heronite_clients::games_folder::sets_it(c) => tr!(
-                "Heronite sets this folder in {client} each time it opens it, so new games go here. Games already installed stay where they are.",
+                "Heronited sets this folder in {client} each time it opens it, so new games go here. Games already installed stay where they are.",
                 client = name
             ),
             (Owner::Client(_), Some(_)) => {

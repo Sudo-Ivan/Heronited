@@ -54,7 +54,7 @@ fn choose(paths: &AppPaths) -> Applied {
             if let Err(e) = interface_gpu::save(paths, None) {
                 log::warn!("interface GPU: could not reset the choice: {e:#}");
             }
-            set_notice(tr!("The graphics card chosen for the interface was not kept, so Heronite went back to Automatic."), true);
+            set_notice(tr!("The graphics card chosen for the interface was not kept, so Heronited went back to Automatic."), true);
             return Applied::default();
         }
         if let Err(e) = interface_gpu::mark_tried(paths, saved) {
@@ -63,7 +63,7 @@ fn choose(paths: &AppPaths) -> Applied {
             return Applied::default();
         }
         set_notice(
-            tr!("Heronite now draws with the graphics card you chose. If it looks right, keep it in Settings → Advanced; otherwise the next start goes back to Automatic."),
+            tr!("Heronited now draws with the graphics card you chose. If it looks right, keep it in Settings → Advanced; otherwise the next start goes back to Automatic."),
             false,
         );
     }

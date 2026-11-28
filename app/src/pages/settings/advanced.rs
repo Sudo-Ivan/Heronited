@@ -376,7 +376,7 @@ impl SettingsPage {
             },
         );
         let mut col = div().flex().flex_col().gap(px(6.)).py(px(11.)).child(select).child(meta_text(tr!(
-            "The card that draws Heronite's own windows; games keep their own setting. Automatic uses the card the desktop draws on. On a laptop with two cards, if scrolling stutters, try the card the screen is connected to."
+            "The card that draws Heronited's own windows; games keep their own setting. Automatic uses the card the desktop draws on. On a laptop with two cards, if scrolling stutters, try the card the screen is connected to."
         )));
         let applied = crate::system::interface_gpu::applied();
         if applied.from_environment {
@@ -384,7 +384,7 @@ impl SettingsPage {
         } else if saved.is_some() && saved == applied.gpu && saved_state.is_some_and(|s| !s.confirmed) {
             col = col.child(row(
                 tr!("Keep this card?"),
-                Some(tr!("Heronite is drawing with it now. If it looks right, keep it; otherwise the next start goes back to Automatic.")),
+                Some(tr!("Heronited is drawing with it now. If it looks right, keep it; otherwise the next start goes back to Automatic.")),
                 action_button(
                     "adv-interface-gpu-keep",
                     ButtonKind::Primary,

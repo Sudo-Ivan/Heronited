@@ -91,7 +91,7 @@ pub(super) fn wait_note() -> String {
 fn not_read(e: &Error) -> String {
     match e {
         Error::Changed(_) => tr!(
-            "EA changed how its service answers, so your EA library cannot be read for now; a Heronite update may be needed. Your installed EA games are not affected."
+            "EA changed how its service answers, so your EA library cannot be read for now; a Heronited update may be needed. Your installed EA games are not affected."
         )
         .to_string(),
         e => tr!("Could not read your EA library: {error}. Your installed EA games are not affected.", error = e.to_string()),
