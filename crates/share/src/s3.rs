@@ -237,9 +237,17 @@ fn multipart(
     let mut response = retried_send(ag, "POST", &sign, &headers_c, &mut || None::<Vec<u8>>)?;
     let mut body = Vec::new();
     let _ = response.body_mut().as_reader().take(64 * 1024).read_to_end(&mut body);
-    let created = CreateMultipartUpload::parse_response(&String::from_utf8_lossy(&body))
-        .map_err(|_| ShareError::Server { status: 0, body: tr!("the multipart answer is not XML").into() })?;
-    let upload_id = created.upload_id().to_string();
+    // The upload id, read tolerantly: AWS and MinIO answer
+    // `<InitiateMultipartUploadResult xmlns="...">` but rclone's server sends
+    // `<InitiateMultipartUpload>` without a namespace, which rusty-s3's
+    // strict parser rejects. The id itself is all this needs.
+    let text = String::from_utf8_lossy(&body);
+    let upload_id = text
+        .split_once("<UploadId>")
+        .and_then(|(_, rest)| rest.split_once("</UploadId>"))
+        .map(|(id, _)| id.trim().to_string())
+        .filter(|id| !id.is_empty())
+        .ok_or_else(|| ShareError::Server { status: 0, body: tr!("the multipart answer is not XML").into() })?;
 
     let part_size = PART_SIZE.load(Ordering::Relaxed).max(1024);
     let outcome = upload_parts(ag, bucket, credentials, file, remote, size, part_size, &upload_id, progress);
