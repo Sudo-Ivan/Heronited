@@ -173,7 +173,7 @@ pub fn upload(
                 break;
             }
             Err(ShareError::Cancelled) => {
-                let _ = delete_remote(&ag, w, remote, &auth);
+                cleanup_delete(&ag, w, remote, &auth);
                 return Err(ShareError::Cancelled);
             }
             Err(e @ (ShareError::NotFound(_) | ShareError::Server { .. }))
@@ -188,7 +188,7 @@ pub fn upload(
             }
             Err(e) => {
                 if matches!(e, ShareError::Network(_)) {
-                    let _ = delete_remote(&ag, w, remote, &auth);
+                    cleanup_delete(&ag, w, remote, &auth);
                 }
                 return Err(e);
             }
@@ -241,6 +241,38 @@ fn ocs_share(agent: &ureq::Agent, w: &WebDav, remote: &str, auth: &[(String, Str
         .and_then(|v| v.as_str())
         .map(str::to_string)
         .ok_or_else(|| ShareError::Server { status: 0, body: tr!("the share answer has no link").into() })
+}
+
+/// Cleanup after a cancelled or broken upload. The server often finishes
+/// noticing the broken pipe a moment after the client has moved on, so the
+/// partial object can appear *after* a first delete: retry a missing file a
+/// few times before giving up. Best effort, errors are swallowed by callers.
+fn cleanup_delete(agent: &ureq::Agent, w: &WebDav, remote: &str, auth: &[(String, String)]) {
+    // A cancelled upload can still be flushing server-side: the DELETE lands before
+    // the partial file even exists, so verify absence and delete again if it reappears.
+    for _ in 0..12 {
+        let _ = delete_remote(agent, w, remote, auth);
+        std::thread::sleep(std::time::Duration::from_millis(200));
+        if !remote_exists(agent, w, remote, auth) {
+            std::thread::sleep(std::time::Duration::from_millis(250));
+            if !remote_exists(agent, w, remote, auth) {
+                return;
+            }
+        }
+    }
+}
+
+fn remote_exists(agent: &ureq::Agent, w: &WebDav, remote: &str, auth: &[(String, String)]) -> bool {
+    let url = file_url(&w.url, remote);
+    let mut req = agent.head(&url);
+    for (n, v) in auth {
+        req = req.header(n, v);
+    }
+    match req.call() {
+        Ok(response) => response.status().is_success(),
+        Err(ureq::Error::StatusCode(404)) => false,
+        Err(_) => true,
+    }
 }
 
 fn delete_remote(agent: &ureq::Agent, w: &WebDav, remote: &str, auth: &[(String, String)]) -> Result<()> {
