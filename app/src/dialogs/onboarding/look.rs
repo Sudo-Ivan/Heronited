@@ -24,6 +24,10 @@ const PREVIEW_W: f32 = 600.;
 /// switch): here the view is chosen on its own, so it neither changes nor
 /// breaks a profile.
 pub(super) fn is_preset(look: Appearance, preset: Appearance) -> bool {
+    // A look built on a custom palette only matches with its palette on.
+    if preset.theme == Theme::Custom && (look.theme != Theme::Custom || look.custom != preset.custom) {
+        return false;
+    }
     Appearance { start_view: preset.start_view, ..look }.with_window_choices_of(&preset) == preset
 }
 
@@ -32,6 +36,13 @@ pub(super) fn preset_name(id: &str) -> &'static str {
         "cinema" => tr!("Cinema"),
         "minimal" => tr!("Minimal"),
         "contrast" => tr!("High contrast"),
+        "void" => tr!("Void"),
+        "oled" => tr!("OLED"),
+        "nord" => tr!("Nord"),
+        "dracula" => tr!("Dracula"),
+        "mocha" => tr!("Catppuccin Mocha"),
+        "gruvbox" => tr!("Gruvbox Dark"),
+        "latte" => tr!("Catppuccin Latte"),
         _ => tr!("Standard"),
     }
 }
@@ -41,6 +52,13 @@ fn preset_note(id: &str) -> &'static str {
         "cinema" => tr!("The art comes first"),
         "minimal" => tr!("Solid and quiet"),
         "contrast" => tr!("Easy to read"),
+        "void" => tr!("Near-black with a teal accent, the Quad4 look"),
+        "oled" => tr!("Pure black, so OLED pixels switch off"),
+        "nord" => tr!("Cool blue greys"),
+        "dracula" => tr!("Dark with a purple accent"),
+        "mocha" => tr!("Dark with a mauve accent"),
+        "gruvbox" => tr!("Warm retro dark"),
+        "latte" => tr!("Light with a blue accent"),
         _ => tr!("Today's look"),
     }
 }
@@ -68,10 +86,21 @@ pub(super) fn accent_dot(a: Accent, size: f32) -> Div {
     }
 }
 
-/// A small picture of a built-in look (44x32).
-fn swatch(id: &str) -> Div {
+fn rgb8((r, g, b): (u8, u8, u8)) -> u32 {
+    ((r as u32) << 16) | ((g as u32) << 8) | b as u32
+}
+
+/// A small picture of a built-in look (44x32). A look on a custom palette
+/// shows its own colours.
+fn swatch(id: &str, look: &heronite_data::appearance::Appearance) -> Div {
     let base = div().relative().flex_none().w(px(44.)).h(px(32.)).rounded(px(8.)).overflow_hidden();
     let panel = || div().absolute().left(px(5.)).top(px(5.)).bottom(px(5.)).w(relative(0.38)).rounded(px(3.));
+    if look.theme == Theme::Custom {
+        return base
+            .bg(rgb(rgb8(look.custom.page)))
+            .child(panel().bg(rgb(rgb8(look.custom.panel))))
+            .child(div().absolute().right(px(5.)).bottom(px(5.)).size(px(5.)).rounded_full().bg(rgb(rgb8(look.custom.accent))));
+    }
     match id {
         "cinema" => base
             .bg(linear_gradient(120., linear_color_stop(rgb(0x3a2a52), 0.), linear_color_stop(rgb(0xffcf8f), 1.)))
@@ -110,9 +139,19 @@ impl OnboardingDialog {
                 .cursor_pointer()
                 .hover(|s| s.bg(theme::ink_a(0.07)))
                 .on_click(cx.listener(move |this, _, _, cx| {
-                    this.set_look(|l| *l = Appearance { start_view: l.start_view, ..look }.with_window_choices_of(l), cx)
+                    this.set_look(
+                        |l| {
+                            let mut applied = Appearance { start_view: l.start_view, ..look }.with_window_choices_of(l);
+                            if look.theme == Theme::Custom {
+                                applied.theme = look.theme;
+                                applied.custom = look.custom;
+                            }
+                            *l = applied;
+                        },
+                        cx,
+                    )
                 }))
-                .child(swatch(p.id))
+                .child(swatch(p.id, &p.look))
                 .child(
                     div()
                         .flex()

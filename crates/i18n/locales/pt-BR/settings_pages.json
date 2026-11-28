@@ -597,5 +597,19 @@
   "Heronited now draws with the graphics card you chose. If it looks right, keep it in Settings → Advanced; otherwise the next start goes back to Automatic.": "O Heronited agora desenha com a placa de vídeo que você escolheu. Se estiver tudo certo, mantenha-a em Configurações → Avançado; senão, o próximo início volta para Automático.",
   "Keep this card?": "Manter esta placa?",
   "Heronited is drawing with it now. If it looks right, keep it; otherwise the next start goes back to Automatic.": "O Heronited está desenhando com ela agora. Se estiver tudo certo, mantenha; senão, o próximo início volta para Automático.",
-  "Keep this card": "Manter esta placa"
+  "Keep this card": "Manter esta placa",
+  "Void": "Void",
+  "OLED": "OLED",
+  "Nord": "Nord",
+  "Dracula": "Dracula",
+  "Catppuccin Mocha": "Catppuccin Mocha",
+  "Gruvbox Dark": "Gruvbox Dark",
+  "Catppuccin Latte": "Catppuccin Latte",
+  "Near-black with a teal accent, the Quad4 look": "Quase preto com acento azul-petróleo, o visual Quad4",
+  "Pure black, so OLED pixels switch off": "Preto puro, para os pixels OLED desligarem",
+  "Cool blue greys": "Cinzas azulados frios",
+  "Dark with a purple accent": "Escuro com acento roxo",
+  "Dark with a mauve accent": "Escuro com acento malva",
+  "Warm retro dark": "Escuro retrô quente",
+  "Light with a blue accent": "Claro com acento azul"
 }

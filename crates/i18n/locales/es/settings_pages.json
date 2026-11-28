@@ -597,5 +597,19 @@
   "Heronited now draws with the graphics card you chose. If it looks right, keep it in Settings → Advanced; otherwise the next start goes back to Automatic.": "Heronited ahora dibuja con la tarjeta gráfica que elegiste. Si se ve bien, mantenla en Ajustes → Avanzado; si no, el próximo inicio vuelve a Automático.",
   "Keep this card?": "¿Mantener esta tarjeta?",
   "Heronited is drawing with it now. If it looks right, keep it; otherwise the next start goes back to Automatic.": "Heronited está dibujando con ella ahora. Si se ve bien, mantenla; si no, el próximo inicio vuelve a Automático.",
-  "Keep this card": "Mantener esta tarjeta"
+  "Keep this card": "Mantener esta tarjeta",
+  "Void": "Void",
+  "OLED": "OLED",
+  "Nord": "Nord",
+  "Dracula": "Dracula",
+  "Catppuccin Mocha": "Catppuccin Mocha",
+  "Gruvbox Dark": "Gruvbox Dark",
+  "Catppuccin Latte": "Catppuccin Latte",
+  "Near-black with a teal accent, the Quad4 look": "Casi negro con acento turquesa, el look de Quad4",
+  "Pure black, so OLED pixels switch off": "Negro puro, para que los píxeles OLED se apaguen",
+  "Cool blue greys": "Grises azulados fríos",
+  "Dark with a purple accent": "Oscuro con acento púrpura",
+  "Dark with a mauve accent": "Oscuro con acento malva",
+  "Warm retro dark": "Oscuro cálido retro",
+  "Light with a blue accent": "Claro con acento azul"
 }

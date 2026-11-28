@@ -3,7 +3,7 @@
 
 use gpui_kit::prelude::*;
 use gpui_kit::*;
-use heronite_data::appearance::{export_look, import_look, load_profiles, presets, save_profiles, Accent, Appearance, Profile};
+use heronite_data::appearance::{export_look, import_look, load_profiles, presets, save_profiles, Accent, Appearance, Profile, Theme};
 use heronite_i18n::tr;
 
 use super::look::set_look;
@@ -19,6 +19,13 @@ pub(super) fn preset_name(id: &str) -> &'static str {
         "cinema" => tr!("Cinema"),
         "minimal" => tr!("Minimal"),
         "contrast" => tr!("High contrast"),
+        "void" => tr!("Void"),
+        "oled" => tr!("OLED"),
+        "nord" => tr!("Nord"),
+        "dracula" => tr!("Dracula"),
+        "mocha" => tr!("Catppuccin Mocha"),
+        "gruvbox" => tr!("Gruvbox Dark"),
+        "latte" => tr!("Catppuccin Latte"),
         _ => tr!("Standard"),
     }
 }
@@ -28,8 +35,27 @@ fn preset_note(id: &str) -> &'static str {
         "cinema" => tr!("The art comes first"),
         "minimal" => tr!("Solid and quiet"),
         "contrast" => tr!("Easy to read"),
+        "void" => tr!("Near-black with a teal accent, the Quad4 look"),
+        "oled" => tr!("Pure black, so OLED pixels switch off"),
+        "nord" => tr!("Cool blue greys"),
+        "dracula" => tr!("Dark with a purple accent"),
+        "mocha" => tr!("Dark with a mauve accent"),
+        "gruvbox" => tr!("Warm retro dark"),
+        "latte" => tr!("Light with a blue accent"),
         _ => tr!("Today's look"),
     }
+}
+
+/// `preset` as clicking its tile applies it: the window's layout, scale and
+/// theme stay the user's, except that a look built on a custom palette
+/// brings its theme and palette (they are the look).
+pub(super) fn applied_look(preset: &Appearance, current: &Appearance) -> Appearance {
+    let mut a = preset.with_window_choices_of(current);
+    if preset.theme == Theme::Custom {
+        a.theme = preset.theme;
+        a.custom = preset.custom;
+    }
+    a
 }
 
 /// The user's profiles, read off the UI thread the first time the section shows.
@@ -56,7 +82,7 @@ pub(super) fn apply_look(d: &mut SettingsPage, look: Appearance, window: &mut Wi
         (Field::PanelBlur, look.interface_blur),
     ];
     set_sliders(&d.appearance, &values, window, cx);
-    set_look(d, cx, |a| *a = look.with_window_choices_of(a));
+    set_look(d, cx, |a| *a = applied_look(&look, a));
 }
 
 fn store(d: &mut SettingsPage, cx: &mut Context<SettingsPage>) {
@@ -83,8 +109,15 @@ fn add_profile(d: &mut SettingsPage, name: String, look: Appearance, cx: &mut Co
 
 /// A tile: a band in the look's colours on the current theme, its name and a note.
 fn tile(id: SharedString, look: &Appearance, name: SharedString, note: SharedString, active: bool) -> Stateful<Div> {
-    let (tr_, tg, tb) = if theme::is_light() { look.solid_tint_light.rgb() } else { look.solid_tint.rgb() };
-    let (ar, ag, ab) = theme::look_accent(look).unwrap_or((240, 138, 44));
+    // A look on a custom palette is drawn in its own colours, not the ones on screen.
+    let (tr_, tg, tb) = if look.theme == Theme::Custom {
+        look.custom.panel
+    } else if theme::is_light() {
+        look.solid_tint_light.rgb()
+    } else {
+        look.solid_tint.rgb()
+    };
+    let (ar, ag, ab) = if look.theme == Theme::Custom { look.custom.accent } else { theme::look_accent(look).unwrap_or((240, 138, 44)) };
     // Its own top corners: `overflow_hidden` clips to a rectangle, not to the tile's rounded border.
     let band = div().h(px(40.)).w_full().rounded_t(px(theme::R_ITEM - 1.)).bg(linear_gradient(
         120.,
@@ -115,7 +148,7 @@ pub(super) fn profiles_group(d: &mut SettingsPage, cx: &mut Context<SettingsPage
     let mut tiles = div().flex().flex_wrap().gap(px(10.));
     let mut matched = false;
     for p in presets() {
-        let active = p.look.with_window_choices_of(&current) == current;
+        let active = applied_look(&p.look, &current) == current;
         matched |= active;
         let look = p.look;
         tiles = tiles.child(
@@ -124,7 +157,7 @@ pub(super) fn profiles_group(d: &mut SettingsPage, cx: &mut Context<SettingsPage
         );
     }
     for (i, p) in d.appearance.profiles.clone().unwrap_or_default().into_iter().enumerate() {
-        let active = p.look.with_window_choices_of(&current) == current;
+        let active = applied_look(&p.look, &current) == current;
         matched |= active;
         let look = p.look;
         tiles = tiles.child(
