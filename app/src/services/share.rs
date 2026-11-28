@@ -17,7 +17,7 @@ use std::time::Duration;
 use gpui_kit::*;
 use heronite_data::DataPaths;
 use heronite_i18n::tr;
-use heronite_share::{Continue, Progress, Record, ShareContext, ShareError, Targets};
+use heronite_share::{Continue, Naming, Progress, Record, ShareContext, ShareError, Target, Targets};
 
 /// How a caller wants the result reported: the capture list and the viewer
 /// take the desktop notification, the overlay may not (it shows the link
@@ -55,6 +55,7 @@ pub struct Job {
     pub file_name: String,
     pub bytes: u64,
     pub total: u64,
+    pub target_id: String,
     pub target_name: String,
     pub state: JobState,
 }
@@ -176,6 +177,47 @@ impl ShareService {
         .detach();
     }
 
+    fn save_targets(&mut self, before: Targets, cx: &mut Context<Self>) -> anyhow::Result<()> {
+        match self.targets.save(&self.paths) {
+            Ok(()) => {
+                cx.notify();
+                Ok(())
+            }
+            Err(e) => {
+                self.targets = before;
+                Err(e)
+            }
+        }
+    }
+
+    /// Adds or replaces a target and writes `share.json`.
+    pub fn upsert_target(&mut self, target: Target, cx: &mut Context<Self>) -> anyhow::Result<()> {
+        let before = self.targets.clone();
+        self.targets.upsert(target);
+        self.save_targets(before, cx)
+    }
+
+    /// Removes a target and its default marker.
+    pub fn remove_target(&mut self, id: &str, cx: &mut Context<Self>) -> anyhow::Result<()> {
+        let before = self.targets.clone();
+        self.targets.remove(id);
+        self.save_targets(before, cx)
+    }
+
+    /// Pins the default target (`None`: the first enabled one).
+    pub fn set_default(&mut self, id: Option<String>, cx: &mut Context<Self>) -> anyhow::Result<()> {
+        let before = self.targets.clone();
+        self.targets.default = id;
+        self.save_targets(before, cx)
+    }
+
+    /// Saves how uploaded files are named.
+    pub fn set_naming(&mut self, naming: Naming, cx: &mut Context<Self>) -> anyhow::Result<()> {
+        let before = self.targets.clone();
+        self.targets.naming = naming;
+        self.save_targets(before, cx)
+    }
+
     /// Snapshot of the jobs, newest batch last. Handoff B watches them.
     #[allow(dead_code)]
     pub fn jobs(&self) -> &[Job] {
@@ -272,6 +314,7 @@ impl ShareService {
                     file_name,
                     bytes: 0,
                     total,
+                    target_id: target_id.clone(),
                     target_name: target_name.clone(),
                     state: JobState::Queued,
                 },
