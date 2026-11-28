@@ -1,0 +1,43 @@
+[package]
+name = "heronite-share"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "Sharing screenshots and clips to self-hosted servers: S3, SFTP, WebDAV, FTP and custom HTTP uploaders"
+
+[dependencies]
+heronite-data = { path = "../data" }
+heronite-platform = { path = "../platform" }
+heronite-i18n = { path = "../i18n" }
+log.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+ureq = "3"
+base64 = "0.22"
+url = "2"
+chrono = { version = "0.4", default-features = false, features = ["std", "clock"] }
+rusty-s3 = { version = "0.10.2", features = ["xml"] }
+regex = "1"
+russh = { version = "0.65.1", default-features = false, features = ["ring", "rsa"] }
+russh-sftp = "4.0.0"
+tokio = { version = "1", default-features = false, features = ["rt", "time", "net", "io-util", "macros"] }
+suppaftp = { version = "12.2.1", features = ["rustls-ring", "deprecated"] }
+rustls = "0.23"
+rustls-pemfile = "2"
+webpki-roots = "1"
+sha2 = "0.10"
+hmac = "0.12"
+hex = "0.4"
+getrandom = "0.3"
+anyhow = "1"
+
+[dev-dependencies]
+tempfile = "3"
+tiny_http = "0.12"
+libunftp = "0.24.0"
+unftp-sbe-fs = "0.4.1"
+rcgen = "0.14"
+tokio = { version = "1", features = ["full"] }
+
+[lints]
+workspace = true
