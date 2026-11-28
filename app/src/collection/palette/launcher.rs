@@ -161,7 +161,7 @@ mod tests {
         assert_eq!(chosen(&act, running.game.as_ref()), Chosen::BackToGame("k".into()));
         // Where it cannot (KDE, GNOME on Wayland): its actions, where Stop is.
         assert_eq!(enter_act_with(&running, false), Act::GameActions("k".into()));
-        assert!(runs_alone(&running), "neither opens Heronite");
+        assert!(runs_alone(&running), "neither opens Heronited");
     }
 
     #[test]
@@ -195,8 +195,8 @@ mod tests {
         let other = &statuses[1].id;
         let pick = picks.iter().find(|e| e.id.as_ref() == format!("game:k:st-{other}")).unwrap();
         assert_eq!(chosen(&pick.act, Some(&b)), Chosen::Status("k".into(), other.clone()));
-        // After the verbs and "Show in Heronite".
-        let show = level.iter().position(|e| e.title.as_ref() == "Show Control in Heronite").unwrap();
+        // After the verbs and "Show in Heronited".
+        let show = level.iter().position(|e| e.title.as_ref() == "Show Control in Heronited").unwrap();
         assert!(level.iter().position(|e| e.id == pick.id).unwrap() > show);
     }
 
@@ -212,7 +212,7 @@ mod tests {
                 "Hide Control",
                 "Control log",
                 "Stop Control",
-                "Show Control in Heronite"
+                "Show Control in Heronited"
             ]
         );
         assert_eq!(chosen(&level[0].act, Some(&bits(true, true))), Chosen::BackToGame("k".into()));

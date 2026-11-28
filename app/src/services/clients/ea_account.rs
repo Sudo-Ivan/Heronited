@@ -52,7 +52,7 @@ impl EaAccount {
             Self { name: prefs.accounts.get(&Client::Ea).cloned(), owned: prefs.owned.get(&Client::Ea).cloned(), ..Default::default() };
         if let Some(state) = crate::env::value("HERONITE_DEBUG_EA_ACCOUNT") {
             this.debug = true;
-            this.name = (state != "out").then(|| "Heronite Player".into());
+            this.name = (state != "out").then(|| "Heronited Player".into());
             this.owned = this.name.as_ref().map(|_| LastSync { at: chrono::Utc::now().to_rfc3339(), games: 42 });
             if state == "error" {
                 this.last = Some(Err(not_read(&Error::Changed("Cannot query field \"ownedGameProducts\"".into()))));

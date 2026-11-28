@@ -607,7 +607,7 @@ fn show_bar(d: &SettingsPage, cx: &mut Context<SettingsPage>) -> Div {
         )
         .to_string(),
         Show::Outside => tr!("On this PC, while no game runs. Click a shortcut to change it.").to_string(),
-        Show::Desktop => tr!("Outside console mode, in Heronite's window, while no game runs. The keys do the same.").to_string(),
+        Show::Desktop => tr!("Outside console mode, in Heronited's window, while no game runs. The keys do the same.").to_string(),
         Show::Overlay => tr!("While the overlay is on screen. Only the confirm button changes; the others are fixed.").to_string(),
         Show::Console => {
             let name = console_theme(d).name;

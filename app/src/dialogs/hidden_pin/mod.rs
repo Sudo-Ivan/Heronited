@@ -152,7 +152,7 @@ impl HiddenPinDialog {
             (Step::Current, PinMode::Unlock) => tr!("Enter your PIN to show the hidden games."),
             (Step::Current, PinMode::Remove) => tr!("Enter your PIN. Hidden games then show with the switch alone."),
             (Step::Current, _) => tr!("Enter your current PIN."),
-            (Step::New, PinMode::Set) => tr!("Choose a PIN of 4 to 8 digits. Heronite asks for it before it shows hidden games."),
+            (Step::New, PinMode::Set) => tr!("Choose a PIN of 4 to 8 digits. Heronited asks for it before it shows hidden games."),
             (Step::New, _) => tr!("Enter the new PIN, 4 to 8 digits."),
             (Step::Confirm, _) => tr!("Enter the PIN again to confirm it."),
         }
@@ -339,7 +339,7 @@ impl HiddenPinDialog {
     fn manual_reset_text(&self) -> SharedString {
         let file = self.app.hidden_lock();
         tr!(
-            "Heronite cannot ask for this computer's password here. To turn the PIN off, delete {file} and start Heronite again. Hidden games stay hidden.",
+            "Heronited cannot ask for this computer's password here. To turn the PIN off, delete {file} and start Heronited again. Hidden games stay hidden.",
             file = file.display().to_string()
         )
         .into()

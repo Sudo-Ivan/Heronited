@@ -38,7 +38,7 @@ impl SettingsPage {
         let pin = toggle_row(
             "lib-hidden-pin",
             tr!("Ask for a PIN to show hidden games"),
-            Some(tr!("Hidden games stay out of sight until the PIN is typed, and again once the switch is off or Heronite restarts. This keeps them private in Heronite; their files are not encrypted.")),
+            Some(tr!("Hidden games stay out of sight until the PIN is typed, and again once the switch is off or Heronited restarts. This keeps them private in Heronited; their files are not encrypted.")),
             snap.pin,
         )
         .on_click(cx.listener(|this, _, _, cx| this.toggle_hidden_pin(cx)))

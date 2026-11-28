@@ -129,7 +129,7 @@ fn ensure_pinned(paths: &DataPaths, net: &dyn Net, cancel: Cancel, pin: &str, on
     if !net.is_online() {
         if target.exists() {
             return Err(format!(
-                "{EXE_NAME} in Heronite's data folder is not the release Heronite expects, and there is no internet connection to download it again"
+                "{EXE_NAME} in Heronited's data folder is not the release Heronited expects, and there is no internet connection to download it again"
             ));
         }
         return Err(format!("{EXE_NAME} is not downloaded and there is no internet connection"));
@@ -477,7 +477,7 @@ mod tests {
         fs::create_dir_all(cached_exe(&paths).parent().unwrap()).unwrap();
         fs::write(cached_exe(&paths), b"stale").unwrap();
         let err = ensure(&paths, &offline, &|| false).unwrap_err();
-        assert!(err.contains("not the release Heronite expects"), "{err}");
+        assert!(err.contains("not the release Heronited expects"), "{err}");
     }
 
     #[test]

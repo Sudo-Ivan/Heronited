@@ -449,7 +449,7 @@ The "Install folder" card (`pages::store_folder`, one entity per page, also its 
 new games go: the default install folder ("Default install folder, from Settings → General", Change…) until one is
 chosen, then that folder ("Only for <store>", Open, Change…, Use default); the install dialogs start in it. Under
 Wine a client's page has it under its installed games ("Inside its Wine prefix", Choose…; chosen, also "Path in
-<client>" with the `Z:\` path and Copy), and the note says whether Heronite sets it in the client (EA app, Ubisoft
+<client>" with the `Z:\` path and Copy), and the note says whether Heronited sets it in the client (EA app, Ubisoft
 Connect) or the client asks for each game (Battle.net, Rockstar Games); changed while the client is open, it says to
 close and reopen it (`HERONITE_DEBUG_STORE_FOLDER=reopen` with `HERONITE_DEBUG_CLIENT=<id>:running`). Steam and Xbox
 have none. A client's page
