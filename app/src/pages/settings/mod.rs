@@ -59,6 +59,7 @@ mod saves_restore;
 mod screenshots;
 mod search;
 mod section;
+mod share;
 mod shortcuts;
 mod storage;
 pub mod sysinfo;
@@ -191,6 +192,7 @@ pub struct SettingsPage {
     integrations: integrations::State,
     overlay: overlay::State,
     replay: replay::State,
+    share: share::State,
     quick_launch: quick_launch::State,
     mods: mods::State,
     gamehub: gamehub::State,
@@ -299,6 +301,7 @@ impl SettingsPage {
             integrations: integrations::State::new(window, cx),
             overlay: overlay::State::new(&ctx, cx),
             replay: replay::State::new(&ctx, cx),
+            share: share::State::new(window, cx),
             quick_launch: quick_launch::State::new(cx),
             mods: mods::State::new(window, cx),
             gamehub: gamehub::State::new(window, cx),
@@ -474,7 +477,8 @@ impl SettingsPage {
         let gamehub = self.gamehub.dismiss();
         let gameyfin = self.gameyfin.dismiss();
         let drop = self.drop.dismiss();
-        launchers || library || gamehub || gameyfin || drop
+        let share = self.share.dismiss();
+        launchers || library || gamehub || gameyfin || drop || share
     }
 
     fn select(&mut self, section: Section, window: &mut Window, cx: &mut Context<Self>) {
@@ -511,6 +515,7 @@ impl SettingsPage {
             Section::Overlay => overlay::shown(cx),
             Section::Launchers => launchers::shown(self, cx),
             Section::Replay => replay::shown(self, cx),
+            Section::Sharing => share::shown(cx),
             Section::Saves => saves::State::shown(self, window, cx),
             Section::Storage => storage::State::shown(self, cx),
             Section::Mods => mods::shown(cx),
@@ -929,6 +934,7 @@ impl SettingsPage {
             Section::Launchers => launchers::render(self, cx),
             Section::Integrations => integrations::render(self, window, cx),
             Section::Replay => replay::render(self, window, cx),
+            Section::Sharing => share::render(self, window, cx),
             Section::QuickLauncher => quick_launch::render(self, window, cx),
             Section::Appearance => Self::collection_section(appearance::render(self, window, cx), self.error.clone()),
             Section::Metadata => Self::collection_section(metadata::render(self, window, cx), self.error.clone()),

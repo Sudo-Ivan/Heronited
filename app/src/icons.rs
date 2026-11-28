@@ -133,6 +133,7 @@ pub enum Icon {
     Image,
     InfoOutlined,
     Link,
+    Share,
     Computer,
     /// An achievement.
     Trophy,
@@ -229,6 +230,7 @@ impl Icon {
             Image => "icons/image.svg",
             InfoOutlined => "icons/info-outlined.svg",
             Link => "icons/link.svg",
+            Share => "icons/share.svg",
             Computer => "icons/computer.svg",
             ExpandMore => "icons/expand-more.svg",
             ExpandLess => "icons/expand-less.svg",

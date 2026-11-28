@@ -7,6 +7,7 @@
 
 pub mod config;
 pub mod error;
+pub mod form;
 pub mod ftp;
 pub mod history;
 pub mod http;
@@ -26,6 +27,7 @@ use heronite_data::DataPaths;
 
 pub use config::{Extract, Ftp, FtpTls, Http, HttpBody, HttpHeader, Kind, Sftp, SftpAuth, Target, Targets, WebDav, S3};
 pub use error::{Result, ShareError};
+pub use form::{form_to_target, target_to_form, FormState};
 pub use history::{FileKind, History, Record};
 pub use naming::{NameMode, Naming};
 pub use progress::{Continue, Progress};

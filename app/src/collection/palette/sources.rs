@@ -238,6 +238,7 @@ fn section_help(s: Section) -> &'static str {
         Section::Controls => tr!("What every controller button does, and changing them"),
         Section::Overlay => crate::overlay::labels::palette_help(),
         Section::Replay => tr!("Last seconds of a game, saved with Guide + X"),
+        Section::Sharing => tr!("Upload targets, links and share history"),
         Section::Metadata => tr!("Sources of details and pictures, their order and keys"),
         Section::Achievements => tr!("RetroAchievements account, Steam key, notifications"),
         Section::Screenshots => tr!("Folder, capture shortcut, preview cache"),

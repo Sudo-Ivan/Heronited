@@ -295,6 +295,7 @@ impl ShareService {
             Resolve::Target(id) => id,
             Resolve::NoTargets => {
                 crate::system::notify::send(tr!("Nothing to share with"), tr!("Set up a sharing target in Settings > Sharing"));
+                crate::pages::settings::request_section(crate::pages::settings::Section::Sharing, cx);
                 crate::system::show_main_window(cx);
                 return;
             }

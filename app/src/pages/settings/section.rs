@@ -40,6 +40,8 @@ pub enum Section {
     Overlay,
     /// The replay buffer: the last seconds of a game, saved on request.
     Replay,
+    /// Uploads of screenshots and clips to the user's own server.
+    Sharing,
     Metadata,
     /// The RetroAchievements account, the optional Steam Web API key and
     /// how achievements show.
@@ -74,13 +76,13 @@ impl Section {
             ],
         ),
         (n_!("Collection"), &[Section::Library, Section::Metadata, Section::Achievements]),
-        (n_!("While playing"), &[Section::Overlay, Section::Screenshots, Section::Replay]),
+        (n_!("While playing"), &[Section::Overlay, Section::Screenshots, Section::Replay, Section::Sharing]),
         (n_!("Data"), &[Section::Storage, Section::Saves, Section::Backups, Section::Cloud]),
         (n_!("System"), &[Section::Advanced, Section::Logs, Section::About]),
     ];
 
     /// Same order as [`Section::GROUPS`].
-    pub const ALL: [Section; 26] = [
+    pub const ALL: [Section; 27] = [
         Section::General,
         Section::Appearance,
         Section::ConsoleMode,
@@ -100,6 +102,7 @@ impl Section {
         Section::Overlay,
         Section::Screenshots,
         Section::Replay,
+        Section::Sharing,
         Section::Storage,
         Section::Saves,
         Section::Backups,
@@ -148,6 +151,7 @@ impl Section {
             Section::Controls => tr!("Controller"),
             Section::Overlay => tr!("Overlay"),
             Section::Replay => tr!("Replay"),
+            Section::Sharing => tr!("Sharing"),
             Section::Metadata => tr!("Metadata"),
             Section::Achievements => tr!("Achievements"),
             Section::Screenshots => tr!("Screenshots"),
@@ -179,6 +183,7 @@ impl Section {
             Section::Controls => Icon::SportsEsports,
             Section::Overlay => Icon::SportsEsports,
             Section::Replay => Icon::Videocam,
+            Section::Sharing => Icon::Share,
             Section::Metadata => Icon::TravelExplore,
             Section::Achievements => Icon::Trophy,
             Section::Screenshots => Icon::Fullscreen,
@@ -214,6 +219,7 @@ impl Section {
             Section::Controls => tr!("What every button does, where it works, and what you can change."),
             Section::Overlay => crate::overlay::labels::section_blurb(),
             Section::Replay => tr!("The last seconds of a game kept in memory and saved as a moment with Guide + X, and the memory that takes."),
+            Section::Sharing => tr!("Upload screenshots and clips to your own server: S3, SFTP, WebDAV, FTP or a custom HTTP endpoint."),
             Section::Metadata => tr!("Where the details and pictures of your games come from. Sources are asked from the top of each list down; a field stays with the first one that has it."),
             Section::Achievements => tr!("Achievements from Steam, GOG, Epic Games and RetroAchievements. Heronited keeps its own copy of them, so your history stays even if a store or an account goes away."),
             Section::Screenshots => tr!("Where your captures live, the in-game shortcut and the preview cache of the gallery."),
@@ -246,6 +252,7 @@ impl Section {
             Section::Controls => "controls controller gamepad buttons shortcuts guide back start chord bindings console checks steam input conflict controles controle botoes atalhos conflito",
             Section::Overlay => "overlay guide button controller gamepad keyboard in-game volume screenshot shortcut botao guia controle teclado sobreposicao no jogo volume captura atalho",
             Section::Replay => "replay clip video record recording buffer last seconds guide gpu-screen-recorder memory ram vram vulkan nvenc vaapi encoder disk gravar gravacao clipe video ultimos segundos memoria codificador disco",
+            Section::Sharing => "sharing share upload link s3 sftp ftp webdav nextcloud http server screenshots clips url compartilhar envio enviar link servidor capturas clipes",
             Section::Achievements => "achievements trophies retroachievements retro emulator rom steam gog epic unlocked rare points hardcore web api key conquistas trofeus emulador desbloqueadas raras pontos chave",
             Section::Metadata => "metadata sources igdb twitch steam lutris steamgriddb howlongtobeat protondb tags covers backgrounds fill download update images order priority age ratings metadados fontes capas fundos preencher baixar atualizar imagens ordem prioridade classificacao etaria",
             Section::Screenshots => "screenshots capture shortcut hotkey folder thumbnails cache gallery capturas de tela atalho pasta miniaturas galeria",
@@ -286,6 +293,7 @@ impl Section {
             "controls" | "shortcuts" | "controller" => Some(Section::Controls),
             "overlay" => Some(Section::Overlay),
             "replay" => Some(Section::Replay),
+            "sharing" => Some(Section::Sharing),
             "metadata" => Some(Section::Metadata),
             "achievements" | "retroachievements" => Some(Section::Achievements),
             "screenshots" => Some(Section::Screenshots),
