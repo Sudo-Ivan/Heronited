@@ -26,7 +26,7 @@ use heronite_i18n::{n_, tr};
 
 use super::{
     about, advanced, backup, console_mode, drop, gamehub, gameyfin, launchers, library, logs, metadata, mods, overlay, replay, saves,
-    screenshots, storage, Section, SettingsPage,
+    screenshots, share, storage, Section, SettingsPage,
 };
 use crate::console::kit::{self, u};
 use crate::console::list::{Outcome, Row, RowStyle};
@@ -75,7 +75,10 @@ const GROUPS: [(&str, &[CSec]); 7] = [
         ],
     ),
     (n_!("Collection"), &[CSec::Rows(Section::Library), CSec::Rows(Section::Metadata)]),
-    (n_!("While playing"), &[CSec::Rows(Section::Overlay), CSec::Rows(Section::Screenshots), CSec::Rows(Section::Replay)]),
+    (
+        n_!("While playing"),
+        &[CSec::Rows(Section::Overlay), CSec::Rows(Section::Screenshots), CSec::Rows(Section::Replay), CSec::Rows(Section::Sharing)],
+    ),
     (n_!("Data"), &[CSec::Rows(Section::Storage), CSec::Rows(Section::Saves), CSec::Rows(Section::Backups)]),
     (n_!("System"), &[CSec::Panel(Section::Advanced), CSec::Extras, CSec::Rows(Section::Logs), CSec::Rows(Section::About)]),
 ];
@@ -256,6 +259,7 @@ impl SettingsPage {
             CSec::Rows(Section::Drop) => drop::console_rows(self, cx),
             CSec::Rows(Section::Overlay) => overlay::console_rows(self, cx),
             CSec::Rows(Section::Replay) => replay::console_rows(self, cx),
+            CSec::Rows(Section::Sharing) => share::console_rows(self, cx),
             CSec::Rows(Section::About) => about::console_rows(self, cx),
             CSec::Rows(Section::Logs) => logs::console_rows(self),
             CSec::Rows(Section::ConsoleMode) => console_mode::console_rows(self),
@@ -279,6 +283,7 @@ impl SettingsPage {
             CSec::Rows(Section::Drop) => drop::console_apply(self, outcome, cx),
             CSec::Rows(Section::Overlay) => overlay::console_apply(self, outcome, cx),
             CSec::Rows(Section::Replay) => replay::console_apply(self, outcome, cx),
+            CSec::Rows(Section::Sharing) => share::console_apply(self, outcome, cx),
             CSec::Rows(Section::About) => about::console_apply(self, outcome, cx),
             CSec::Rows(Section::Logs) => logs::console_apply(self, outcome, cx),
             CSec::Rows(Section::ConsoleMode) => console_mode::send(self, outcome, window, cx),

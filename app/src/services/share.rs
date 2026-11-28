@@ -241,6 +241,11 @@ impl ShareService {
         records
     }
 
+    /// The cached history rows loaded by Settings.
+    pub fn history_snapshot(&self) -> &[Record] {
+        &self.history
+    }
+
     /// Mark the cache stale after the Settings page or a delete changed the history.
     #[allow(dead_code)]
     pub fn invalidate_history(&mut self) {

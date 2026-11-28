@@ -165,5 +165,9 @@
   "User": "Benutzer",
   "User (empty for anonymous)": "Benutzer (leer für anonym)",
   "Uses the OCS API. The URL needs the /remote.php/dav/files/<user>/ path of the account.": "Nutzt die OCS-API. Die URL braucht den Pfad /remote.php/dav/files/<user>/ des Kontos.",
-  "Virtual host": "Virtueller Host"
+  "Virtual host": "Virtueller Host",
+  "Add and edit targets on the desktop": "Ziele auf dem Desktop hinzufügen und bearbeiten",
+  "Use {target}": "{target} verwenden",
+  "Set as default": "Als Standard festlegen",
+  "Recent shares": "Letzte Freigaben"
 }

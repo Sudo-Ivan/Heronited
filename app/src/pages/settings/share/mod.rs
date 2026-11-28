@@ -14,6 +14,8 @@ use heronite_i18n::tr;
 use heronite_share::{Kind, NameMode, Naming, Target};
 
 use super::SettingsPage;
+use crate::console::list::{Outcome, Row, Value};
+use crate::icons::Icon;
 use crate::services::share::{JobState, ShareService};
 use crate::theme;
 use crate::ui::controls::{button_sm, caption, card, row, tabs, toggle, ButtonKind};
@@ -87,7 +89,10 @@ impl State {
 }
 
 pub fn shown(cx: &mut Context<SettingsPage>) {
-    crate::services::share(cx).update(cx, |s, cx| s.reload(cx));
+    crate::services::share(cx).update(cx, |s, cx| {
+        s.reload(cx);
+        s.history(cx);
+    });
 }
 
 pub(super) fn clear_form(d: &mut SettingsPage, window: &mut Window, cx: &mut Context<SettingsPage>) {
@@ -375,6 +380,93 @@ fn options_card(d: &SettingsPage, cx: &mut Context<SettingsPage>) -> AnyElement 
         .child(meta_text(tr!("Template placeholders: {game} {date} {time} {name} {stem} {ext} {rand}")))
         .child(meta_text(tr!("Links are unlisted, not private. Anyone who has a link can open the file.")))
         .into_any_element()
+}
+
+/// Console rows: the forms stay desktop-only, but targets can be enabled,
+/// tested and chosen here, and recent links copied.
+pub(super) fn console_rows(d: &SettingsPage, cx: &App) -> Vec<Row> {
+    let svc = d.share.svc.read(cx);
+    let targets = svc.targets();
+    let mut rows = vec![Row::header(tr!("Sharing"))];
+    rows.push(Row::info("desktop", tr!("Targets"), tr!("Add and edit targets on the desktop")).icon(Icon::Share));
+    for target in &targets.targets {
+        let mut desc = format!("{} · {}", target.kind.label(), target_descriptor(target));
+        if targets.default.as_deref() == Some(target.id.as_str()) {
+            desc.push_str(" · ");
+            desc.push_str(tr!("Default target"));
+        }
+        if let Some(test) = d.share.tests.get(&target.id) {
+            desc.push_str(" · ");
+            if test.testing {
+                desc.push_str(tr!("Testing…"));
+            } else if let Some(outcome) = &test.outcome {
+                match outcome {
+                    Ok(text) => desc.push_str(text),
+                    Err(text) => desc.push_str(text),
+                }
+            }
+        }
+        rows.push(Row::info(format!("target:{}", target.id), target.label(), desc));
+        rows.push(Row::action(format!("test:{}", target.id), tr!("Test connection")).icon(Icon::Refresh));
+        rows.push(Row::toggle(format!("enabled:{}", target.id), tr!("Use {target}", target = target.label()), target.enabled));
+        rows.push(Row::action(format!("default:{}", target.id), tr!("Set as default")));
+    }
+    let naming_options = vec![tr!("Random").into(), tr!("Keep file name").into(), tr!("Template").into()];
+    let (naming_index, naming_desc) = match &targets.naming.mode {
+        NameMode::Random => (0, tr!("Random").to_string()),
+        NameMode::Original => (1, tr!("Keep file name").to_string()),
+        NameMode::Template(template) => (2, template.clone()),
+    };
+    rows.push(Row::choice("naming", tr!("File names"), naming_options, naming_index).desc(naming_desc));
+    rows.push(Row::header(tr!("Recent shares")));
+    for record in svc.history_snapshot().iter().take(5) {
+        rows.push(Row::info(format!("share:{}", record.id), record.file_name.clone(), record.url.clone()));
+        rows.push(Row::action(format!("copy:{}", record.id), tr!("Copy link")).icon(Icon::ContentCopy));
+    }
+    rows
+}
+
+pub(super) fn console_apply(d: &mut SettingsPage, outcome: Outcome, cx: &mut Context<SettingsPage>) {
+    match outcome {
+        Outcome::Activate(id) if id.as_ref().starts_with("test:") => {
+            let tid = id.trim_start_matches("test:").to_string();
+            if let Some(target) = d.share.svc.read(cx).targets().get(&tid).cloned() {
+                test_target(d, target, cx);
+            }
+        }
+        Outcome::Activate(id) if id.as_ref().starts_with("default:") => {
+            let tid = id.trim_start_matches("default:").to_string();
+            let svc = d.share.svc.clone();
+            let _ = svc.update(cx, |s, cx| s.set_default(Some(tid), cx));
+        }
+        Outcome::Activate(id) if id.as_ref().starts_with("copy:") => {
+            let rid = id.trim_start_matches("copy:").to_string();
+            if let Some(url) = d.share.svc.read(cx).history_snapshot().iter().find(|r| r.id == rid).map(|r| r.url.clone()) {
+                crate::services::share::copy_link(cx, &url);
+            }
+        }
+        Outcome::Changed(id, Value::Toggle(on)) if id.as_ref().starts_with("enabled:") => {
+            let tid = id.trim_start_matches("enabled:").to_string();
+            let svc = d.share.svc.clone();
+            if let Some(mut target) = svc.read(cx).targets().get(&tid).cloned() {
+                target.enabled = on;
+                let _ = svc.update(cx, |s, cx| s.upsert_target(target, cx));
+            }
+        }
+        Outcome::Changed(id, Value::Choice { index, .. }) if id.as_ref() == "naming" => {
+            let mode = match index {
+                0 => NameMode::Random,
+                1 => NameMode::Original,
+                _ => match &d.share.svc.read(cx).targets().naming.mode {
+                    NameMode::Template(template) => NameMode::Template(template.clone()),
+                    _ => NameMode::Template("{game}-{stem}-{rand}.{ext}".into()),
+                },
+            };
+            let svc = d.share.svc.clone();
+            let _ = svc.update(cx, |s, cx| s.set_naming(Naming { mode }, cx));
+        }
+        _ => {}
+    }
 }
 
 pub fn render(d: &mut SettingsPage, _window: &mut Window, cx: &mut Context<SettingsPage>) -> AnyElement {
