@@ -313,6 +313,11 @@ fn upload_parts(
         sent_before += len;
         offset += len;
         part_number += 1;
+        // ureq reads exactly Content-Length, so small parts never report
+        // through the counting reader: report per finished part instead.
+        if progress(Progress { sent: sent_before, total: size }).cancelled() {
+            return Err(ShareError::Cancelled);
+        }
     }
     if progress(Progress { sent: size, total: size }).cancelled() {
         return Err(ShareError::Cancelled);
