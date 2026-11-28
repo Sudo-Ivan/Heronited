@@ -148,7 +148,7 @@ fn named_keysym(key: &str) -> Option<&'static str> {
 }
 
 /// Electron key name -> XKB keysym name.
-fn keysym_name(key: &str) -> String {
+pub(crate) fn keysym_name(key: &str) -> String {
     if let Some(mapped) = named_keysym(key) {
         return mapped.to_owned();
     }

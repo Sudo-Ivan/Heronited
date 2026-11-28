@@ -56,6 +56,8 @@ mod service;
 mod unsupported;
 #[cfg(windows)]
 mod win;
+#[cfg(target_os = "linux")]
+mod x11;
 
 #[cfg(target_os = "linux")]
 pub use hotkey::GlobalHotkey;
@@ -247,6 +249,9 @@ pub enum CaptureOutcome {
 pub enum ShortcutBackend {
     Hyprland,
     Portal,
+    /// A grab on the X server (XGrabKey).
+    #[cfg(target_os = "linux")]
+    X11,
     /// `RegisterHotKey`.
     #[cfg(windows)]
     Windows,

@@ -35,6 +35,8 @@ pollster = "1"
 async-io = "2"
 signal-hook = "0.4"
 notify-rust = "4"
+# XGrabKey on bare X11 desktops (same version gpui-pre-linux uses).
+x11rb = { version = "0.13.2", default-features = false }
 
 [target.'cfg(windows)'.dependencies]
 heronite-platform = { path = "../platform" }

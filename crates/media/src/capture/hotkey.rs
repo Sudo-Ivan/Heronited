@@ -1,6 +1,7 @@
 //! A global keyboard shortcut besides the screenshot one (the in-game
-//! overlay's), registered the same two ways: a temporary Hyprland bind that
-//! sends this process a signal, else the XDG GlobalShortcuts portal.
+//! overlay's), registered the same ways: a temporary Hyprland bind that
+//! sends this process a signal, a grab on the X server of a bare X11
+//! session (`x11`), else the XDG GlobalShortcuts portal.
 //! Like the rest of the service, not exercised by the unit tests.
 
 use std::sync::atomic::{AtomicBool, Ordering};
@@ -9,7 +10,7 @@ use std::sync::{Arc, Mutex};
 use heronite_i18n::tr;
 
 use super::portal::PortalShortcut;
-use super::{hyprland, to_hyprland_binding, to_portal_trigger, HotkeySpec, ShortcutBackend};
+use super::{hyprland, to_hyprland_binding, to_portal_trigger, x11, HotkeySpec, ShortcutBackend};
 
 #[derive(Default)]
 struct Shared {
@@ -18,6 +19,7 @@ struct Shared {
     hyprland: Mutex<Option<String>>,
     portal: Mutex<Option<PortalShortcut>>,
     signals: Mutex<Option<signal_hook::iterator::Handle>>,
+    x11: Mutex<Option<x11::X11Grab>>,
 }
 
 /// A registered shortcut. Dropping it removes it, which blocks briefly
@@ -35,6 +37,8 @@ impl GlobalHotkey {
         let shared = Arc::new(Shared::default());
         if hyprland::is_hyprland_session() {
             start_hyprland(&shared, spec, on_press, on_ready);
+        } else if x11::is_x11_session() {
+            start_x11(&shared, spec, on_press, on_ready);
         } else if let Some(trigger) = to_portal_trigger(&spec.accelerator) {
             let portal = PortalShortcut::start(
                 spec.portal_app_id,
@@ -128,6 +132,77 @@ fn start_hyprland(shared: &Arc<Shared>, spec: HotkeySpec, on_press: Arc<dyn Fn()
     }
 }
 
+/// X11 before the portal on a bare X11 session: the grab is answered at
+/// once, the portal usually is not there at all. Failing both, the portal's
+/// error is the one reported (it is the more general answer).
+fn start_x11(shared: &Arc<Shared>, spec: HotkeySpec, on_press: Arc<dyn Fn() + Send + Sync>, on_ready: Ready) {
+    let Some(trigger) = x11::to_x11_trigger(&spec.accelerator) else {
+        // A key the grab table does not know: straight to the portal.
+        if let Some(trigger) = to_portal_trigger(&spec.accelerator) {
+            let portal = PortalShortcut::start(
+                spec.portal_app_id,
+                (spec.id, spec.description),
+                trigger,
+                on_press,
+                Box::new(move |r| on_ready(r.map(|_| ShortcutBackend::Portal))),
+            );
+            *shared.portal.lock().unwrap() = Some(portal);
+        } else {
+            on_ready(Err(tr!("The shortcut {accelerator} is unavailable", accelerator = &spec.accelerator)));
+        }
+        return;
+    };
+    let weak = Arc::downgrade(shared);
+    let spawned = std::thread::Builder::new().name("heronite-hotkey-x11".into()).spawn(move || {
+        match x11::X11Grab::grab(trigger, on_press.clone()) {
+            Ok(grab) => {
+                let Some(shared) = weak.upgrade() else {
+                    // Dropped while connecting: the grab dies with it here.
+                    return;
+                };
+                let mut slot = shared.x11.lock().unwrap();
+                if shared.stopped.load(Ordering::SeqCst) {
+                    drop(slot);
+                    drop(grab);
+                    return;
+                }
+                *slot = Some(grab);
+                drop(slot);
+                on_ready(Ok(ShortcutBackend::X11));
+            }
+            Err(grab_error) => {
+                log::warn!("X11 key grab failed ({grab_error}); trying the desktop portal");
+                let Some(trigger) = to_portal_trigger(&spec.accelerator) else {
+                    return on_ready(Err(grab_error));
+                };
+                let Some(shared) = weak.upgrade() else { return };
+                if shared.stopped.load(Ordering::SeqCst) {
+                    return;
+                }
+                let mut slot = shared.portal.lock().unwrap();
+                *slot = Some(PortalShortcut::start(
+                    spec.portal_app_id,
+                    (spec.id, spec.description),
+                    trigger,
+                    on_press,
+                    Box::new(move |r| {
+                        on_ready(match r {
+                            Ok(_) => Ok(ShortcutBackend::Portal),
+                            Err(portal_error) => Err(format!("{grab_error}; {portal_error}")),
+                        })
+                    }),
+                ));
+                let stale = if shared.stopped.load(Ordering::SeqCst) { slot.take() } else { None };
+                drop(slot);
+                drop(stale);
+            }
+        }
+    });
+    if let Err(e) = spawned {
+        log::warn!("could not start the shortcut thread: {e}");
+    }
+}
+
 impl Drop for GlobalHotkey {
     fn drop(&mut self) {
         let keys = {
@@ -140,6 +215,8 @@ impl Drop for GlobalHotkey {
                 log::warn!("Could not remove the Hyprland shortcut {keys}: {e}");
             }
         }
+        // Ungrabs the keys and joins the reader thread.
+        drop(self.shared.x11.lock().unwrap().take());
         // Joins the portal thread.
         drop(self.shared.portal.lock().unwrap().take());
         if let Some(handle) = self.shared.signals.lock().unwrap().take() {
