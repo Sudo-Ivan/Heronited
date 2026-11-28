@@ -94,7 +94,7 @@ fn cancelling() -> impl FnMut(Progress) -> Continue {
 }
 
 fn sha256_of(path: &std::path::Path) -> String {
-    hex::encode(Sha256::digest(&std::fs::read(path).unwrap()))
+    hex::encode(Sha256::digest(std::fs::read(path).unwrap()))
 }
 
 fn record_of(shared: &heronite_share::Shared, size: u64) -> heronite_share::Record {
@@ -116,6 +116,31 @@ fn record_of(shared: &heronite_share::Shared, size: u64) -> heronite_share::Reco
 /// Reads a file back over plain HTTP from the rclone webdav server (which
 /// shares the same root as the rclone ftp/sftp servers), with basic auth.
 fn webdav_get(base: &str, remote: &str) -> Option<Vec<u8>> {
+    // rclone caches directory listings briefly (the script sets 500 ms), so
+    // a fresh upload can 404 for the first moments: poll a little.
+    for _ in 0..30 {
+        if let Some(bytes) = webdav_get_once(base, remote) {
+            return Some(bytes);
+        }
+        std::thread::sleep(std::time::Duration::from_millis(150));
+    }
+    None
+}
+
+/// Absence is polled too: the same cache lag applies after a delete.
+fn webdav_absent(base: &str, remote: &str) -> bool {
+    for _ in 0..30 {
+        if webdav_get_once(base, remote).is_none() {
+            // confirmed absent for two cache rounds
+            std::thread::sleep(std::time::Duration::from_millis(600));
+            return webdav_get_once(base, remote).is_none();
+        }
+        std::thread::sleep(std::time::Duration::from_millis(150));
+    }
+    false
+}
+
+fn webdav_get_once(base: &str, remote: &str) -> Option<Vec<u8>> {
     let url = format!("{}/{}", base.trim_end_matches('/'), remote);
     let user = env("SHARE_LIVE_USER").unwrap();
     let pass = env("SHARE_LIVE_PASS").unwrap();
@@ -180,13 +205,13 @@ fn live_webdav_rclone() {
     let err = webdav::upload(&t, w, &big, "live-test/cancelled.bin", size, &mut cancelling()).unwrap_err();
     assert!(matches!(err, ShareError::Cancelled), "{err}");
     std::thread::sleep(std::time::Duration::from_millis(300));
-    assert!(webdav_get(&base, "live-test/cancelled.bin").is_none(), "the partial must be gone");
+    assert!(webdav_absent(&base, "live-test/cancelled.bin"), "the partial must be gone");
 
     // delete
     let shared = webdav::upload(&t, w, &file, "live-test/gone.png", 15, &mut noop()).unwrap();
     let record = record_of(&shared, 15);
     webdav::delete(&t, w, &record).unwrap();
-    assert!(webdav_get(&base, "live-test/gone.png").is_none());
+    assert!(webdav_absent(&base, "live-test/gone.png"));
 
     // wrong password
     let mut bad = w.clone();
@@ -252,14 +277,14 @@ fn live_ftp_rclone() {
     // cancel: neither the part nor the final name stays
     let err = ftp::upload(&t, f, &big, "live-test/cancelled.bin", size, &mut cancelling()).unwrap_err();
     assert!(matches!(err, ShareError::Cancelled), "{err}");
-    assert!(webdav_get(&base, "live-test/cancelled.bin").is_none());
-    assert!(webdav_get(&base, "live-test/.cancelled.bin.part").is_none());
+    assert!(webdav_absent(&base, "live-test/cancelled.bin"));
+    assert!(webdav_absent(&base, "live-test/.cancelled.bin.part"));
 
     // delete
     let shared = ftp::upload(&t, f, &file, "live-test/gone.png", 15, &mut noop()).unwrap();
     let record = record_of(&shared, 15);
     ftp::delete(&t, f, &record).unwrap();
-    assert!(webdav_get(&base, "live-test/gone.png").is_none());
+    assert!(webdav_absent(&base, "live-test/gone.png"));
 
     // wrong password
     let mut bad = f.clone();
@@ -271,11 +296,14 @@ fn live_ftp_rclone() {
 
 #[test]
 #[ignore]
-fn live_ftps_explicit_rclone() {
+fn live_ftps_rclone() {
     setup();
-    let name = "ftps-explicit-rclone";
+    // rclone serve ftp --cert speaks implicit FTPS, not explicit AUTH TLS:
+    // the banner only exists inside the TLS session. Explicit FTPS is covered
+    // by the in-process libunftp tests instead.
+    let name = "ftps-rclone";
     let Some(addr) = env("SHARE_LIVE_FTPS") else {
-        skip(name, "rclone ftp with TLS did not start");
+        skip(name, "rclone serve ftp TLS is implicit and leaves the data channel plaintext (goftp); FTPS runs against libunftp in-process instead");
         return;
     };
     let (host, port) = addr.split_once(':').unwrap();
@@ -284,7 +312,7 @@ fn live_ftps_explicit_rclone() {
         port: port.parse().unwrap(),
         user: env("SHARE_LIVE_USER").unwrap(),
         sealed_password: seal_secret(&env("SHARE_LIVE_PASS").unwrap()).unwrap(),
-        tls: FtpTls::Explicit,
+        tls: FtpTls::Implicit,
     };
 
     // untrusted by default
@@ -363,14 +391,14 @@ fn live_sftp_rclone() {
     // cancel cleanup: the .part must go away
     let err = sftp::upload(&t, s, &big, "live-test/cancelled.bin", size, &mut cancelling()).unwrap_err();
     assert!(matches!(err, ShareError::Cancelled), "{err}");
-    assert!(webdav_get(&base, "live-test/cancelled.bin").is_none());
-    assert!(webdav_get(&base, "live-test/.cancelled.bin.part").is_none());
+    assert!(webdav_absent(&base, "live-test/cancelled.bin"));
+    assert!(webdav_absent(&base, "live-test/.cancelled.bin.part"));
 
     // delete
     let shared = sftp::upload(&t, s, &file, "live-test/gone.png", 15, &mut noop()).unwrap();
     let record = record_of(&shared, 15);
     sftp::delete(&t, s, &record).unwrap();
-    assert!(webdav_get(&base, "live-test/gone.png").is_none());
+    assert!(webdav_absent(&base, "live-test/gone.png"));
 
     // wrong pin is HostKeyChanged
     let mut wrong_pin = s.clone();
@@ -489,7 +517,7 @@ fn live_s3_rclone() {
     };
     let access = env("SHARE_LIVE_S3_KEY").unwrap();
     let secret = env("SHARE_LIVE_S3_SECRET").unwrap();
-    let t = s3_target(&base, &access, &secret, "root");
+    let t = s3_target(&base, &access, &secret, "bucket");
     let s = s3_of(&t);
 
     let report = heronite_share::s3::check(&t, s).unwrap();

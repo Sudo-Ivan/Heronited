@@ -72,7 +72,7 @@ fi
 ROOT="$WORK/root"
 rm -rf "$ROOT"
 mkdir -p "$ROOT/bucket"
-USER=liveuser
+LIVEUSER=liveuser
 PASS=livepass123
 S3KEY=liveaccess
 
@@ -98,20 +98,26 @@ start_rclone() { # name port extra-args...
     return 0
 }
 
-start_rclone webdav "$WEBDAV_PORT" serve webdav "$ROOT" --addr "127.0.0.1:$WEBDAV_PORT" --user "$USER" --pass "$PASS" || true
-start_rclone sftp "$SFTP_PORT" serve sftp "$ROOT" --addr "127.0.0.1:$SFTP_PORT" --user "$USER" --pass "$PASS" || true
-start_rclone ftp "$FTP_PORT" serve ftp "$ROOT" --addr "127.0.0.1:$FTP_PORT" --user "$USER" --pass "$PASS" || true
+# a short dir cache: files written through the other rclone servers must
+# become visible for the readback within a second
+start_rclone webdav "$WEBDAV_PORT" serve webdav "$ROOT" --addr "127.0.0.1:$WEBDAV_PORT" --user "$LIVEUSER" --pass "$PASS" --dir-cache-time 500ms || true
+start_rclone sftp "$SFTP_PORT" serve sftp "$ROOT" --addr "127.0.0.1:$SFTP_PORT" --user "$LIVEUSER" --pass "$PASS" || true
+start_rclone ftp "$FTP_PORT" serve ftp "$ROOT" --addr "127.0.0.1:$FTP_PORT" --user "$LIVEUSER" --pass "$PASS" || true
 start_rclone s3 "$S3_PORT" serve s3 "$ROOT" --addr "127.0.0.1:$S3_PORT" --auth-key "$S3KEY,$PASS" || true
 
-# explicit FTPS: same ftp server with a self-signed certificate
+# FTPS: same ftp server with a self-signed certificate. rclone speaks
+# implicit FTPS here (verified with openssl s_client), not explicit AUTH TLS.
 FTPS_CERT="$WORK/ftps-cert.pem"
 FTPS_KEY="$WORK/ftps-key.pem"
-openssl req -x509 -newkey rsa:2048 -keyout "$FTPS_KEY" -out "$FTPS_CERT" -days 2 -nodes -subj "/CN=127.0.0.1" -addext "subjectAltName=IP:127.0.0.1" >/dev/null 2>&1
-start_rclone ftps "$FTPS_PORT" serve ftp "$ROOT" --addr "127.0.0.1:$FTPS_PORT" --user "$USER" --pass "$PASS" --cert "$FTPS_CERT" --key "$FTPS_KEY" || true
+openssl req -x509 -newkey rsa:2048 -keyout "$FTPS_KEY" -out "$FTPS_CERT" -days 2 -nodes -subj "/CN=127.0.0.1" -addext "subjectAltName=IP:127.0.0.1" -addext "basicConstraints=critical,CA:FALSE" >/dev/null 2>&1
+# not started on purpose: rclone's FTP TLS is implicit and the data channel
+# stays plaintext, so a conforming client cannot round-trip a file through it
+SKIP[ftps]="rclone serve ftp TLS leaves the data channel plaintext (goftp limitation)"
 
 # ---- real OpenSSH sshd, unprivileged, key auth only ----
 # (password auth would need a system user or PAM, neither exists unprivileged)
 SSHROOT="$WORK/sshroot"
+rm -rf "$SSHROOT"
 mkdir -p "$SSHROOT"
 if [[ -x /usr/sbin/sshd ]]; then
     SSHD_BIN=/usr/sbin/sshd
@@ -185,7 +191,7 @@ export SHARE_LIVE_FTPS_CA="$FTPS_CERT"
 export SHARE_LIVE_SSH_KEY="$WORK/ssh/user_key"
 export SHARE_LIVE_SSH_ROOT="$SSHROOT"
 [[ -z "${SKIP[minio]}" && -n "$MINIO_PORT" ]] && export SHARE_LIVE_MINIO="http://127.0.0.1:$MINIO_PORT" || true
-export SHARE_LIVE_USER="$USER"
+export SHARE_LIVE_USER="$LIVEUSER"
 export SHARE_LIVE_PASS="$PASS"
 export SHARE_LIVE_S3_KEY="$S3KEY"
 export SHARE_LIVE_S3_SECRET="$PASS"
@@ -197,14 +203,15 @@ cargo test -p heronite-share --test live -- --ignored --test-threads=1 --nocaptu
 echo
 echo "== live results =="
 printf '%-24s %-6s %s\n' TEST RESULT DETAIL
-TESTS="live_webdav_rclone live_ftp_rclone live_ftps_explicit_rclone live_sftp_rclone live_sftp_openssh_key live_s3_rclone live_s3_minio_multipart"
+TESTS="live_webdav_rclone live_ftp_rclone live_ftps_rclone live_sftp_rclone live_sftp_openssh_key live_s3_rclone live_s3_minio_multipart"
 FAILED=0
 for testname in $TESTS; do
-    line=$(grep "LIVE-RESULT $testname " "$LOG" | head -1 || true)
+    line=$(grep "^test $testname .*LIVE-RESULT " "$LOG" | head -1 || true)
     if [[ -n "$line" ]]; then
-        rest=${line#*LIVE-RESULT $testname }
-        result=${rest%% *}
-        detail=${rest#* }
+        after=${line#*LIVE-RESULT }
+        # after is "<short-name> <RESULT> [detail...]"
+        result=$(echo "$after" | awk '{print $2}')
+        detail=$(echo "$after" | cut -d' ' -f3-)
         [[ "$detail" == "$result" ]] && detail=""
         printf '%-24s %-6s %s\n' "$testname" "$result" "$detail"
     elif grep -q "^test $testname ... FAILED" "$LOG"; then
