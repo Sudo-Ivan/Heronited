@@ -238,9 +238,11 @@ async fn sftp_of(handle: &russh::client::Handle<Client>) -> std::result::Result<
 /// mkdir -p: every parent of the remote file path, errors ignored where the
 /// directory already exists.
 async fn mkdirs(session: &SftpSession, folder: &str) -> std::result::Result<(), ShareError> {
-    let mut path = String::new();
+    // absolute paths keep their leading slash, or every level is made
+    // relative to the home directory instead
+    let mut path = if folder.starts_with('/') { "/".to_string() } else { String::new() };
     for segment in folder.split('/').filter(|s| !s.is_empty()) {
-        if !path.is_empty() {
+        if !path.is_empty() && !path.ends_with('/') {
             path.push('/');
         }
         path.push_str(segment);
@@ -307,8 +309,13 @@ pub fn upload(
             return Err(e);
         }
         if let Err(e) = session.rename(&part_path, &remote_path).await {
-            let _ = session.remove_file(&part_path).await;
-            return Err(ShareError::network(e.to_string()));
+            // OpenSSH's sftp-server refuses to rename over an existing file:
+            // drop the destination and try once more before giving up.
+            let _ = session.remove_file(&remote_path).await;
+            if session.rename(&part_path, &remote_path).await.is_err() {
+                let _ = session.remove_file(&part_path).await;
+                return Err(ShareError::network(e.to_string()));
+            }
         }
         let _ = session.close().await;
         Ok(())
