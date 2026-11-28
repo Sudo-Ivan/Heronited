@@ -267,7 +267,7 @@ fn a_code_in_the_title_finds_the_product_surely_and_fills_its_fields() {
 
     // It says who it is, asks in the interface's language, and sends nothing but the code.
     let api_reqs: Vec<Req> = s.server.log.lock().iter().filter(|r| r.path() == API).cloned().collect();
-    assert!(api_reqs[0].header("user-agent").is_some_and(|ua| ua.starts_with("Heronite/")), "{:?}", api_reqs[0].header("user-agent"));
+    assert!(api_reqs[0].header("user-agent").is_some_and(|ua| ua.starts_with("Heronited/")), "{:?}", api_reqs[0].header("user-agent"));
     assert_eq!((api_reqs[0].method.as_str(), api_reqs[0].query("locale").as_deref()), ("GET", Some("en_US")));
     assert_eq!(api_reqs.last().unwrap().query("locale").as_deref(), Some("pt_BR"));
     assert!(api_reqs.iter().all(|r| r.query("workno").is_some() && r.query("title").is_none()));

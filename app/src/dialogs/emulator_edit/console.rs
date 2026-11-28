@@ -143,7 +143,6 @@ impl EmulatorEditDialog {
         rows
     }
 
-
     fn console_rows(&self, cx: &App) -> Vec<Row> {
         if self.form.is_some() {
             self.console_profile_rows(cx)
