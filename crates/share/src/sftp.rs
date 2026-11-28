@@ -113,13 +113,18 @@ struct Client {
     host: String,
     port: u16,
     pin: String,
+    seen: Arc<Mutex<Option<PublicKey>>>,
 }
 
 impl Handler for Client {
     type Error = russh::Error;
 
     async fn check_server_key(&mut self, key: &russh::keys::PublicKeyOrCertificate) -> std::result::Result<bool, Self::Error> {
-        match judge_key(&key.public_key(), &self.host, self.port, &self.pin) {
+        let public = key.public_key();
+        if let Ok(mut seen) = self.seen.lock() {
+            *seen = Some(public.clone());
+        }
+        match judge_key(&public, &self.host, self.port, &self.pin) {
             KeyVerdict::Accept => Ok(true),
             _ => Ok(false),
         }
@@ -135,37 +140,26 @@ fn block_on<F: std::future::Future>(future: F) -> F::Output {
     runtime.block_on(future)
 }
 
-/// A connect failed before authentication; find out whether the key was the
-/// problem by reading it once more (no authentication).
-fn key_error(host: &str, port: u16, pin: &str, err: impl std::fmt::Debug) -> ShareError {
-    if let Some(key) = fetch_key_public(host, port) {
-        match judge_key(&key, host, port, pin) {
-            KeyVerdict::Unknown { fingerprint, algorithm } => return ShareError::HostKeyUnknown { fingerprint, algorithm },
-            KeyVerdict::Changed { fingerprint, algorithm } => return ShareError::HostKeyChanged { fingerprint, algorithm },
-            KeyVerdict::Accept => {}
-        }
-    }
-    ShareError::network(format!("{err:?}"))
-}
-
-fn fetch_key_public(host: &str, port: u16) -> Option<PublicKey> {
-    let host = host.to_string();
-    block_on(async move {
-        let found = Arc::new(Mutex::new(None));
-        let handler = KeySniffer { found: found.clone() };
-        let config = Arc::new(config());
-        let _ = russh::client::connect(config, (host.as_str(), port), handler).await;
-        found.lock().ok().and_then(|g| g.clone())
-    })
-}
-
 async fn connect_session(sftp: &Sftp) -> std::result::Result<russh::client::Handle<Client>, ShareError> {
-    let handler = Client { host: sftp.host.clone(), port: sftp.port, pin: sftp.host_key.clone() };
+    let seen = Arc::new(Mutex::new(None));
+    let handler = Client { host: sftp.host.clone(), port: sftp.port, pin: sftp.host_key.clone(), seen: seen.clone() };
     let config = Arc::new(config());
     let connect_future = russh::client::connect(config, (sftp.host.as_str(), sftp.port), handler);
     let mut handle = match tokio::time::timeout(Duration::from_secs(15), connect_future).await {
         Ok(Ok(h)) => h,
-        Ok(Err(e)) => return Err(key_error(&sftp.host, sftp.port, &sftp.host_key, e)),
+        Ok(Err(e)) => {
+            // The key the server showed decides the failure kind; the handler
+            // captured it during the handshake, no second connection needed.
+            let captured = seen.lock().ok().and_then(|g| g.clone());
+            if let Some(key) = captured {
+                match judge_key(&key, &sftp.host, sftp.port, &sftp.host_key) {
+                    KeyVerdict::Unknown { fingerprint, algorithm } => return Err(ShareError::HostKeyUnknown { fingerprint, algorithm }),
+                    KeyVerdict::Changed { fingerprint, algorithm } => return Err(ShareError::HostKeyChanged { fingerprint, algorithm }),
+                    KeyVerdict::Accept => {}
+                }
+            }
+            return Err(ShareError::network(format!("{e:?}")));
+        }
         Err(_) => return Err(ShareError::network(tr!("the server did not answer within 15 seconds"))),
     };
     // Authenticate.
@@ -271,10 +265,11 @@ pub fn upload(
     let result = block_on(async {
         let handle = connect_session(sftp).await?;
         let session = sftp_of(&handle).await?;
-        let folder = target.folder.trim_matches('/');
-        let remote_path = crate::join_remote(&target.folder, remote);
-        if !folder.is_empty() {
-            mkdirs(&session, folder).await?;
+        // `remote` arrives with the target's folder prefix already joined;
+        // the parents of the file path are what mkdir -p makes.
+        let remote_path = remote.to_string();
+        if let Some((parent, _)) = remote_path.rsplit_once('/') {
+            mkdirs(&session, parent).await?;
         }
         // `.part` next to the final name: dir/.name.part
         let part_path = match remote_path.rsplit_once('/') {
@@ -319,17 +314,15 @@ pub fn upload(
         Ok(())
     });
     result?;
-    Ok(Shared { url: target.link_of(remote), remote: remote.to_string(), delete: Some(crate::join_remote(&target.folder, remote)) })
+    Ok(Shared { url: target.link_of(remote), remote: remote.to_string(), delete: Some(remote.to_string()) })
 }
 
 pub fn delete(target: &Target, sftp: &Sftp, record: &Record) -> Result<()> {
     block_on(async {
         let handle = connect_session(sftp).await?;
         let session = sftp_of(&handle).await?;
-        let path = match &record.delete {
-            Some(hint) => hint.clone(),
-            None => crate::join_remote(&target.folder, &record.remote),
-        };
+        // The delete hint is the full remote path, folder included.
+        let path = record.delete.clone().unwrap_or_else(|| record.remote.clone());
         // Best effort: a missing file is fine.
         let _ = session.remove_file(&path).await;
         let _ = session.close().await;
@@ -342,11 +335,10 @@ pub fn check(target: &Target, sftp: &Sftp) -> Result<crate::CheckReport> {
         let handle = connect_session(sftp).await?;
         let session = sftp_of(&handle).await?;
         let mut steps = vec![tr!("Connected, host key accepted, logged in").into()];
-        let folder = target.folder.trim_matches('/');
-        if !folder.is_empty() {
-            mkdirs(&session, folder).await?;
-        }
         let probe = crate::join_remote(&target.folder, "heronite-probe.txt");
+        if let Some((parent, _)) = probe.rsplit_once('/') {
+            mkdirs(&session, parent).await?;
+        }
         use tokio::io::AsyncWriteExt;
         let mut f = session.create(&probe).await.map_err(|e| ShareError::network(e.to_string()))?;
         f.write_all(b"probe").await.map_err(|e| ShareError::network(e.to_string()))?;

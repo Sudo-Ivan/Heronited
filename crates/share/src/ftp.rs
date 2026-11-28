@@ -129,8 +129,8 @@ pub fn upload(
     size: u64,
     progress: &mut dyn FnMut(Progress) -> Continue,
 ) -> Result<Shared> {
-    let folder = crate::join_remote(&target.folder, remote.rsplit_once('/').map(|(d, _)| d).unwrap_or(""));
-    let folder = folder.trim_matches('/').to_string();
+    // `remote` arrives with the target's folder prefix already joined.
+    let folder = remote.rsplit_once('/').map(|(d, _)| d).unwrap_or("").trim_matches('/').to_string();
     let (name, part) = part_name(remote);
     let mut stream = connect(target, f)?;
     finish_login(&mut stream, f)?;
@@ -169,8 +169,8 @@ pub fn upload(
         }
     };
     let _ = with!(&mut stream, s, s.quit());
-    let full_remote = if folder.is_empty() { final_name.clone() } else { format!("{folder}/{final_name}") };
-    Ok(Shared { url: target.link_of(remote), remote: remote.to_string(), delete: Some(full_remote) })
+    let _ = final_name;
+    Ok(Shared { url: target.link_of(remote), remote: remote.to_string(), delete: Some(remote.to_string()) })
 }
 
 pub fn delete(target: &Target, f: &Ftp, record: &Record) -> Result<()> {
