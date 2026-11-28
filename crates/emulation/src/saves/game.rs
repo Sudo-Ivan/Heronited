@@ -101,9 +101,15 @@ impl SavesGame {
         slug_id("game", &self.title, &self.app_name)
     }
 
-    /// The names the game list may know the game by.
+    /// The names the game list may know the game by. An emulator with its own
+    /// saves entry set (`UserEmulator::ludusavi_entry`) backs every game up
+    /// under that one name.
     pub fn names(&self, paths: &DataPaths) -> Vec<String> {
-        let engine = super::emulator_engine(paths, self.emulator_id.as_deref());
+        let emulator = super::user_emulator(paths, self.emulator_id.as_deref());
+        if let Some(entry) = emulator.as_ref().and_then(|e| e.ludusavi_entry()) {
+            return vec![entry.to_owned()];
+        }
+        let engine = emulator.map(|e| crate::save_states::engine_id_for(&e));
         let mut out = vec![self.title.clone()];
         out.extend(super::titles::emulator_names(engine.as_deref(), &self.title, self.rom_path.as_deref()));
         out
@@ -263,5 +269,28 @@ mod tests {
         assert_eq!(game(|g| g.runner = "legendary".into()).store(), Some("epic"));
         assert_eq!(game(|g| g.steam_app_id = Some("1".into())).store(), Some("steam"));
         assert_eq!(game(|_| {}).store(), None);
+    }
+
+    #[test]
+    fn an_emulator_saves_entry_is_the_only_name() {
+        let d = tempfile::tempdir().unwrap();
+        let paths = DataPaths::at(d.path());
+        std::fs::create_dir_all(paths.emulators().parent().unwrap()).unwrap();
+        std::fs::write(
+            paths.emulators(),
+            r#"{"emulators":[{"id":"my-pcsx2","definitionId":"pcsx2","name":"PCSX2","ludusaviEntry":"My PS2 games"}]}"#,
+        )
+        .unwrap();
+        let with = game(|g| g.emulator_id = Some("my-pcsx2".into()));
+        assert_eq!(with.names(&paths), vec!["My PS2 games".to_string()]);
+        // Without the entry the game keeps its own names.
+        std::fs::write(
+            paths.emulators(),
+            r#"{"emulators":[{"id":"my-pcsx2","definitionId":"pcsx2","name":"PCSX2"}]}"#,
+        )
+        .unwrap();
+        let names = with.names(&paths);
+        assert_eq!(names[0], "Hollow Knight");
+        assert!(names.len() > 1, "pcsx2 suffix names: {names:?}");
     }
 }

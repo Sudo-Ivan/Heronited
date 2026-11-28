@@ -287,12 +287,6 @@
   "{problem}: its games cannot start until it is fixed.": "{problem}: os jogos dele não abrem até isso ser corrigido.",
   "Backed up after playing any game of this emulator. Empty backs up each game under its own name.": "Recebe o backup depois de jogar qualquer jogo deste emulador. Vazio faz o backup de cada jogo com o nome dele.",
   "Each game under its own name": "Cada jogo com o próprio nome",
-  "Ludusavi entry": "Entrada do Ludusavi",
-  "Ludusavi entry (optional)": "Entrada do Ludusavi (opcional)",
-  "The name of a game or custom entry in Ludusavi that holds the saves of every game this emulator runs. After playing any of them, that entry is backed up. Leave empty to back up each game under its own name.": "O nome de um jogo ou entrada personalizada do Ludusavi que guarda os saves de todos os jogos que este emulador roda. Depois de jogar qualquer um deles, é dessa entrada que o backup é feito. Deixe vazio para fazer o backup de cada jogo com o nome dele.",
-  "Your Ludusavi custom entries": "Suas entradas personalizadas do Ludusavi",
-  "Your Ludusavi custom entries:": "Suas entradas personalizadas do Ludusavi:",
-  "◀ ▶ picks one for the entry.": "◀ ▶ escolhe uma para a entrada.",
   "Already configured": "Já configurado",
   "Any subfolder": "Qualquer subpasta",
   "Bring over emulators, ROM folders and globs": "Trazer emuladores, pastas de ROMs e globs",
@@ -336,5 +330,8 @@
   "Unknown glob placeholder '{name}'. Use {expected}.": "Variável de glob desconhecida '{name}'. Use {expected}.",
   "Unnamed parser": "Parser sem nome",
   "{label}: skipped (missing ROM folder, glob, or executable)": "{label}: ignorado (falta pasta de ROMs, glob ou executável)",
-  "{label}: unsupported Steam ROM Manager variable(s) in arguments ({vars})": "{label}: variável(is) do Steam ROM Manager não suportada(s) nos argumentos ({vars})"
+  "{label}: unsupported Steam ROM Manager variable(s) in arguments ({vars})": "{label}: variável(is) do Steam ROM Manager não suportada(s) nos argumentos ({vars})",
+  "Saves entry (optional)": "Entrada de saves (opcional)",
+  "Saves entry": "Entrada de saves",
+  "The entry that holds the saves of every game this emulator runs. After playing any of them, that entry is backed up. Leave empty to back up each game under its own name.": "A entrada que guarda os saves de todos os jogos deste emulador. Depois de jogar qualquer um deles, essa entrada é copiada. Deixe vazio para copiar cada jogo com o próprio nome."
 }

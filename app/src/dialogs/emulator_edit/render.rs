@@ -158,33 +158,14 @@ impl EmulatorEditDialog {
         body.child(adders)
     }
 
-    /// The Ludusavi entry that backs up the saves of all its games, and the
-    /// user's Ludusavi custom games to pick it from.
-    pub(super) fn render_saves(&self, body: Div, cx: &mut Context<Self>) -> Div {
+    /// The saves entry that backs up the saves of all its games.
+    pub(super) fn render_saves(&self, body: Div, _cx: &mut Context<Self>) -> Div {
         if !super::offers_saves() {
             return body;
         }
-        let mut body =
-            body.child(caption(tr!("Saves"))).child(text_field(tr!("Ludusavi entry (optional)"), &self.ludusavi_entry)).child(meta_text(tr!(
-                "The name of a game or custom entry in Ludusavi that holds the saves of every game this emulator runs. After playing any of them, that entry is backed up. Leave empty to back up each game under its own name."
-            )));
-        if !self.ludusavi_games.is_empty() {
-            let current = text_of(&self.ludusavi_entry, cx);
-            let mut picks = div().flex().flex_wrap().items_center().gap(px(8.)).child(meta_text(tr!("Your Ludusavi custom entries:")));
-            for (i, name) in self.ludusavi_games.iter().enumerate() {
-                let kind = if *name == current { ButtonKind::Primary } else { ButtonKind::Glass };
-                let value = name.clone();
-                picks = picks.child(button_sm(SharedString::from(format!("emu-ludusavi-{i}")), kind, name.clone()).on_click(cx.listener(
-                    move |this, _, window, cx| {
-                        let value = value.clone();
-                        this.ludusavi_entry.update(cx, |s, cx| s.set_value(value, window, cx));
-                        cx.notify();
-                    },
-                )));
-            }
-            body = body.child(picks);
-        }
-        body
+        body.child(caption(tr!("Saves"))).child(text_field(tr!("Saves entry (optional)"), &self.ludusavi_entry)).child(meta_text(tr!(
+            "The entry that holds the saves of every game this emulator runs. After playing any of them, that entry is backed up. Leave empty to back up each game under its own name."
+        )))
     }
 
     fn render_profile_card(&self, i: usize, cx: &mut Context<Self>) -> Div {

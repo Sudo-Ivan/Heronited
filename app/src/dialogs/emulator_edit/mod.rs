@@ -41,12 +41,6 @@ fn offers_saves() -> bool {
     heronite_platform::supported(heronite_platform::Feature::SaveBackups)
 }
 
-/// The fork backs saves up to its own saves server, not through Ludusavi:
-/// there is no custom-games list to match emulator entries against.
-fn ludusavi_games(_paths: &DataPaths) -> Vec<String> {
-    Vec::new()
-}
-
 /// RetroArch's core files on this system.
 const CORE_EXT: &str = if cfg!(windows) { "dll" } else { "so" };
 
@@ -92,8 +86,6 @@ pub struct EmulatorEditDialog {
     flatpak_id: Entity<InputState>,
     /// `UserEmulator::ludusavi_entry`.
     ludusavi_entry: Entity<InputState>,
-    /// The custom games of the user's Ludusavi, offered for the entry.
-    ludusavi_games: Vec<String>,
     open_profile: Option<usize>,
     form: Option<ProfileForm>,
     menu: Option<Menu>,
@@ -132,7 +124,6 @@ impl EmulatorEditDialog {
             install_dir: new_input(window, cx, base.install_dir.as_deref().unwrap_or(""), ""),
             flatpak_id: new_input(window, cx, base.flatpak_id.as_deref().unwrap_or(""), "org.example.Emulator"),
             ludusavi_entry: new_input(window, cx, base.ludusavi_entry().unwrap_or(""), tr!("Each game under its own name")),
-            ludusavi_games: vec![],
             base,
             open_profile: None,
             form: None,
@@ -147,7 +138,6 @@ impl EmulatorEditDialog {
         };
         // Folders that point at this emulator (profiles in use) and, for new
         // emulators, what is installed on this PC (prefills the executable).
-        let paths_for_games = paths.clone();
         let (p, want_detect) = (paths, create);
         let load = move || {
             let scanners = list_rom_scanners(&p).unwrap_or_default();
@@ -164,21 +154,9 @@ impl EmulatorEditDialog {
             let (scanners, detected) = load();
             this.scanners = scanners;
             this.detected = detected;
-            this.ludusavi_games = ludusavi_games(&paths_for_games);
             this.prefill_executable(cx);
             return this;
         }
-        // Apart from the load above: Ludusavi is spawned to find its config,
-        // and a slow one must not hold up the executable's prefill.
-        cx.spawn(async move |this, cx| {
-            let games = cx.background_spawn(async move { ludusavi_games(&paths_for_games) }).await;
-            this.update(cx, |this, cx| {
-                this.ludusavi_games = games;
-                cx.notify();
-            })
-            .ok();
-        })
-        .detach();
         cx.spawn(async move |this, cx| {
             let (scanners, detected) = cx.background_spawn(async move { load() }).await;
             this.update(cx, |this, cx| {

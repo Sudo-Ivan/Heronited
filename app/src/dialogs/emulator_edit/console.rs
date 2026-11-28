@@ -88,17 +88,10 @@ impl EmulatorEditDialog {
         if super::offers_saves() {
             rows.push(Row::header(tr!("Saves")));
             rows.push(
-                Row::text("ludusavi", tr!("Ludusavi entry (optional)"), text_of(&self.ludusavi_entry, cx))
+                Row::text("ludusavi", tr!("Saves entry (optional)"), text_of(&self.ludusavi_entry, cx))
                     .icon(Icon::Edit)
                     .desc(tr!("Backed up after playing any game of this emulator. Empty backs up each game under its own name.")),
             );
-            if !self.ludusavi_games.is_empty() {
-                let (options, index) = self.console_ludusavi_choices(cx);
-                rows.push(
-                    Row::choice("ludusavi-pick", tr!("Your Ludusavi custom entries"), options, index)
-                        .desc(tr!("◀ ▶ picks one for the entry.")),
-                );
-            }
         }
         rows.push(Row::action("cancel", tr!("Cancel")));
         let label = if self.saving {
@@ -150,19 +143,6 @@ impl EmulatorEditDialog {
         rows
     }
 
-    /// The choice of a custom game for the entry: "None" (each game under
-    /// its own name), the user's custom games, and the entry typed when it is
-    /// none of them.
-    fn console_ludusavi_choices(&self, cx: &App) -> (Vec<SharedString>, usize) {
-        let current = text_of(&self.ludusavi_entry, cx);
-        let mut options: Vec<SharedString> = vec![tr!("None").into()];
-        options.extend(self.ludusavi_games.iter().map(|g| SharedString::from(g.clone())));
-        if !current.is_empty() && !self.ludusavi_games.contains(&current) {
-            options.push(current.clone().into());
-        }
-        let index = if current.is_empty() { 0 } else { options.iter().position(|o| o.as_ref() == current).unwrap_or(0) };
-        (options, index)
-    }
 
     fn console_rows(&self, cx: &App) -> Vec<Row> {
         if self.form.is_some() {
@@ -233,7 +213,7 @@ impl EmulatorEditDialog {
         match id {
             "name" => self.console_type(tr!("Name"), self.name.clone(), window, cx),
             "flatpak" => self.console_type(tr!("Flatpak application id"), self.flatpak_id.clone(), window, cx),
-            "ludusavi" => self.console_type(tr!("Ludusavi entry"), self.ludusavi_entry.clone(), window, cx),
+            "ludusavi" => self.console_type(tr!("Saves entry"), self.ludusavi_entry.clone(), window, cx),
             "exe" => {
                 self.console_pick(tr!("Emulator executable"), PickKind::File(vec![]), self.executable.clone(), window, cx, |this, p, _| {
                     this.launch_kind = super::kind_of_pick(p, &this.launch_kind);
@@ -298,12 +278,6 @@ impl EmulatorEditDialog {
                         self.set_later(&input, fid);
                     }
                 }
-            }
-            ("ludusavi-pick", Value::Choice { index, .. }) => {
-                let (options, _) = self.console_ludusavi_choices(cx);
-                let value = if index == 0 { String::new() } else { options.get(index).map(|o| o.to_string()).unwrap_or_default() };
-                let input = self.ludusavi_entry.clone();
-                self.set_later(&input, value);
             }
             ("pf-wd", Value::Choice { index, .. }) => {
                 if let Some(f) = self.form.as_mut() {

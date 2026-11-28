@@ -287,12 +287,6 @@
   "{problem}: its games cannot start until it is fixed.": "{problem}: Seine Spiele starten erst, wenn das behoben ist.",
   "Backed up after playing any game of this emulator. Empty backs up each game under its own name.": "Wird nach jedem Spiel dieses Emulators gesichert. Leer sichert jedes Spiel unter seinem eigenen Namen.",
   "Each game under its own name": "Jedes Spiel unter seinem eigenen Namen",
-  "Ludusavi entry": "Ludusavi-Eintrag",
-  "Ludusavi entry (optional)": "Ludusavi-Eintrag (optional)",
-  "The name of a game or custom entry in Ludusavi that holds the saves of every game this emulator runs. After playing any of them, that entry is backed up. Leave empty to back up each game under its own name.": "Der Name eines Spiels oder eigenen Eintrags in Ludusavi, der die Spielstände aller Spiele dieses Emulators enthält. Nach dem Spielen eines davon wird dieser Eintrag gesichert. Leer lassen, um jedes Spiel unter seinem eigenen Namen zu sichern.",
-  "Your Ludusavi custom entries": "Deine eigenen Ludusavi-Einträge",
-  "Your Ludusavi custom entries:": "Deine eigenen Ludusavi-Einträge:",
-  "◀ ▶ picks one for the entry.": "◀ ▶ wählt einen für den Eintrag.",
   "Already configured": "Bereits eingerichtet",
   "Any subfolder": "Beliebiger Unterordner",
   "Bring over emulators, ROM folders and globs": "Emulatoren, ROM-Ordner und Globs übernehmen",
@@ -336,5 +330,8 @@
   "Unknown glob placeholder '{name}'. Use {expected}.": "Unbekannter Glob-Platzhalter '{name}'. Verwende {expected}.",
   "Unnamed parser": "Unbenannter Parser",
   "{label}: skipped (missing ROM folder, glob, or executable)": "{label}: übersprungen (ROM-Ordner, Glob oder ausführbare Datei fehlt)",
-  "{label}: unsupported Steam ROM Manager variable(s) in arguments ({vars})": "{label}: nicht unterstützte Steam ROM Manager-Variable(n) in Argumenten ({vars})"
+  "{label}: unsupported Steam ROM Manager variable(s) in arguments ({vars})": "{label}: nicht unterstützte Steam ROM Manager-Variable(n) in Argumenten ({vars})",
+  "Saves entry (optional)": "Spielstand-Eintrag (optional)",
+  "Saves entry": "Spielstand-Eintrag",
+  "The entry that holds the saves of every game this emulator runs. After playing any of them, that entry is backed up. Leave empty to back up each game under its own name.": "Der Eintrag, der die Spielstände aller Spiele dieses Emulators enthält. Nach dem Spielen eines davon wird dieser Eintrag gesichert. Leer lassen, um jedes Spiel unter seinem eigenen Namen zu sichern."
 }

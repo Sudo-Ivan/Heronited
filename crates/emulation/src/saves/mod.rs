@@ -35,10 +35,11 @@ pub use restore::{Listing, Source, LOCAL_PREFIX};
 pub use state::{last_backup, note_of, GameNote, LastBackup};
 pub use target::{steam_game_running, wine_user};
 
-/// The catalog id (`retroarch`, `pcsx2`) of the user's emulator `emulator_id`;
-/// a custom emulator is recognised by its name or program.
-pub(crate) fn emulator_engine(paths: &DataPaths, emulator_id: Option<&str>) -> Option<String> {
+/// The user's emulator `emulator_id` (`emulators.json`); `None` when the id
+/// is empty or unknown. Its catalog engine (`retroarch`, `pcsx2`) comes from
+/// [`crate::save_states::engine_id_for`].
+pub(crate) fn user_emulator(paths: &DataPaths, emulator_id: Option<&str>) -> Option<heronite_launch::emulators::UserEmulator> {
     let id = emulator_id.filter(|id| !id.is_empty())?;
     let emulators: EmulatorsFile = json_store::read(&paths.emulators()).ok()?;
-    emulators.get(id).map(crate::save_states::engine_id_for)
+    emulators.get(id).cloned()
 }

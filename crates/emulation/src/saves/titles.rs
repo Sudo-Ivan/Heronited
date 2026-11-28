@@ -50,7 +50,7 @@ fn rom_title(rom_path: &str) -> Option<String> {
 }
 
 /// The names Ludusavi may know an emulated game by, from the catalog id of its
-/// emulator ([`super::backup::emulator_engine`]). The manifests suffix the
+/// emulator ([`crate::save_states::engine_id_for`]). The manifests suffix the
 /// platform, because one title can exist on several systems
 /// ("Turbo Goose Racer (RetroArch)", "… (PS2)"), while the Collection keeps
 /// the bare title. The bases are the title as it is, the title with the
