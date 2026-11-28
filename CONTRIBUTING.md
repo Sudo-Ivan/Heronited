@@ -23,6 +23,8 @@ cargo test --workspace
 - **Linux:** a stable Rust toolchain, `clang` and `lld` (the linker set in `.cargo/config.toml`), and the development packages for xkbcommon, xcb, Wayland, udev, fontconfig, freetype, GTK 3, and WebKitGTK 4.1. On Ubuntu, [`scripts/ci-deps.sh`](scripts/ci-deps.sh) installs everything CI uses.
 - **Windows:** a stable Rust toolchain for `x86_64-pc-windows-msvc` and the Visual Studio Build Tools with "Desktop development with C++" (MSVC and a Windows SDK), and [CMake](https://cmake.org) on the `PATH` (`heronite-platform` builds SDL from source for console mode's controllers; GitHub's Windows runners have it). Run the tests from PowerShell or `cmd`, as CI does: Git Bash puts Unix tools (`sh`, `cp`, `sleep`) on the `PATH` that Windows itself does not have, and sets `HOME`.
 
+Dev builds keep only line tables and dependencies no debuginfo, yet target/ can still grow large. Run [`scripts/trim-target.sh`](scripts/trim-target.sh) after big builds: past 15 GB it drops target/debug and the incremental caches.
+
 A change to code both systems build is checked by both CI jobs; [WINDOWS-MIGRATION.md](docs/WINDOWS-MIGRATION.md) has the rules that keep the code building on both.
 
 Point `HERONITE_DATA_DIR` at a copy of a data folder to try changes without touching your real library. To see what a new user sees, run [`scripts/fresh-start.sh`](scripts/fresh-start.sh): it starts the app with an empty home in `/tmp` (add `--steam` to let it find your Steam games, or pass an AppImage to test a release). `HERONITE_DEBUG_*` variables open a page, dialog, or menu at startup, which helps with screenshots.
