@@ -124,6 +124,7 @@ The attestation proves the file came from this repository's release workflow, no
 - **GOG achievements without GOG Galaxy:** [Comet](https://github.com/imLinguin/comet) runs beside GOG games on Windows and Linux, so what they unlock counts on your GOG account and shows over the game as it happens.
 - **In-game overlay:** volume, screenshots and notes over the game; Linux also has live FPS limits and can show or hide MangoHud. Windows supports windowed/borderless games, with Ctrl+Shift+G or an XInput controller's Back+Start ([limits](docs/WINDOWS-MIGRATION.md#-in-game-overlay)).
 - **Replay (Linux):** save the last seconds of play with Guide + X, recorded by [gpu-screen-recorder](https://git.dec05eba.com/gpu-screen-recorder/about/).
+- **Sharing:** send a screenshot or clip to your own server (S3, SFTP, WebDAV or Nextcloud, FTP, a ShareX-style endpoint) from the overlay, the capture list or a bound key, and get the link on the clipboard ([docs/SHARING.md](docs/SHARING.md)).
 
 <table>
   <tr>

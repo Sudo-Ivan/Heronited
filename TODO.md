@@ -31,8 +31,8 @@ Mods already work per game with a fuse-overlayfs layer stack and Nexus Mods link
 
 ## Sharing
 
-- [ ] Clip and screenshot sharing service: upload from the overlay or the capture list, get a link back, choose the server in Settings
-- [ ] Optional self-hosted target so nothing has to go through a third party
+- [x] Clip and screenshot sharing service: upload from the overlay or the capture list, get a link back, choose the server in Settings ([docs/SHARING.md](docs/SHARING.md))
+- [x] Optional self-hosted target so nothing has to go through a third party
 
 ## Fork maintenance
 

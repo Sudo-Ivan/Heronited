@@ -79,6 +79,11 @@ app (bin heronite-rs) ── GPUI UI, desktop integration
  │                      media controls on Windows), controller
  │                      battery / Bluetooth, replay buffer
  │                      (gpu-screen-recorder)                        → data, platform
+ ├─ heronite-share      captures uploaded to the user's own server:
+ │                      S3 (SigV4, multipart, presigned links), SFTP
+ │                      (russh, host-key pinning), WebDAV / Nextcloud,
+ │                      FTP/FTPS, a custom HTTP endpoint; targets in
+ │                      share.json, secrets sealed, the link history   → data, platform
  ├─ heronite-wine       Wine/Proton manager                          → data
  ├─ heronite-storage    disk space of games, prefixes, Proton builds,
  │                      Steam leftovers, caches; cleaning them up    → data, launch, wine
@@ -562,6 +567,36 @@ text size) and applies it.
   `Feature::Overlay` supports Linux and Windows; `Feature::Replay` is Linux-only.
   The replay service and every replay control use the latter independently,
   including when preferences were copied from Linux.
+- **heronite-share:** Settings → Sharing; docs/SHARING.md. `config` is `share.json` in the data
+  folder: the targets (id, name, kind with its fields, folder prefix, public link base template,
+  TLS options, enabled), the default target and the naming. Secrets never sit in it in
+  the clear: the `sealed_*` fields hold base64 of what `heronite-platform::secret` protects
+  (AES-256-GCM with a key in the user's keyring on Linux, DPAPI on Windows; a machine without
+  a keyring cannot save a secret), behind a `seal` seam tests replace. `share` streams
+  the file (never in memory) through `progress::CountingReader`, which reports bytes and stops the
+  upload on cancel; a transient failure is retried with backoff, a cancel or a config error is not.
+  On success `history` (`share_history.json`, pruned to 200) gains the record: the link, the remote
+  name and what the backend needs to delete it. On failure or cancel the partial upload is removed
+  best-effort. `check` is the test connection (write a probe, read it back, delete it). `naming`
+  makes the remote name: random (12 lowercase base32 characters), the file's own, or a template
+  with `{game} {date} {time} {name} {stem} {ext} {rand}`. `s3` signs SigV4 with rusty-s3 and sends with ureq (a single PUT,
+  multipart with abort past the part size, presigned GET links or the public link base, path and
+  virtual-host styles). `sftp` is russh with the ring backend: password, key file or agent auth,
+  host keys pinned in `share.json` after the user trusts one (`fetch_host_key` reads it for the
+  settings page), `.part` then rename, folders made recursively. `webdav` creates collections with
+  MKCOL and PUTs with `If-None-Match: *`, so an upload never clobbers a file already shared (a
+  same-name second upload in keep-name mode fails instead), and asks Nextcloud/ownCloud's OCS API
+  for a public share link when the target says so. `ftp` is suppaftp with rustls: explicit (AUTH TLS) and
+  implicit TLS, anonymous login, RNFR/RNTO with a direct STOR fallback. `http` is the ShareX-style
+  endpoint: POST or PUT, multipart or raw body, plain and sealed headers, the link pulled from the
+  body, a JSON pointer or a regex, or built from the target's template; a delete URL template makes
+  history deletion possible. `tls` builds the rustls config: the CA file of the target's own
+  certificate, verification off only when the target says so (the settings page flags it). `form`
+  is the pure conversion between a target and the settings form's plain state, so the page's logic
+  is tested without the app binary. The app's `services::share` queues one upload at a time,
+  copies the link to the clipboard (through wl-copy/xclip/xsel too, since an override-redirect
+  overlay window may not own the clipboard) and notifies; `--share` / `--share-last` reach it
+  through the single instance, or upload standalone when nothing runs.
 - **heronite-storage:** Settings → Storage. `inventory` lists the installed games (store size, Steam's
   `SizeOnDisk`, ROM files, else a walk), the Wine prefixes (in use while an installed game or the defaults
   use them; one inside a game's folder goes with the game), the Wine Manager builds (in use when the default,
