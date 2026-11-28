@@ -39,6 +39,13 @@ pub struct Message {
     pub stop: Option<LaunchRequest>,
     /// Capture the running game (`heronite://screenshot`).
     pub screenshot: bool,
+    /// Files to upload to a sharing target (`--share`): absolute or relative
+    /// paths as given, JSON-escaped in the line.
+    pub share_files: Vec<String>,
+    /// `--share-to`: the target id or name.
+    pub share_to: Option<String>,
+    /// Share the running game's newest capture (`heronite://share-last`).
+    pub share_last: bool,
     /// Open or close the quick launcher (`heronite://quick-launch`).
     pub quick_launch: bool,
     /// Open or close the in-game overlay (`heronite://overlay`).
@@ -86,6 +93,15 @@ impl Message {
         if self.screenshot {
             line["screenshot"] = true.into();
         }
+        if !self.share_files.is_empty() {
+            line["shareFiles"] = self.share_files.clone().into();
+        }
+        if let Some(target) = &self.share_to {
+            line["shareTo"] = target.as_str().into();
+        }
+        if self.share_last {
+            line["shareLast"] = true.into();
+        }
         if self.quick_launch {
             line["quickLaunch"] = true.into();
         }
@@ -126,6 +142,13 @@ impl Message {
             mod_link,
             stop: request("stop"),
             screenshot: flag("screenshot"),
+            share_files: v
+                .get("shareFiles")
+                .and_then(Value::as_array)
+                .map(|a| a.iter().filter_map(|x| x.as_str().map(str::to_string)).collect())
+                .unwrap_or_default(),
+            share_to: v.get("shareTo").and_then(Value::as_str).filter(|s| !s.is_empty()).map(str::to_string),
+            share_last: flag("shareLast"),
             quick_launch: flag("quickLaunch"),
             overlay: flag("overlay"),
             replay: flag("replay"),
@@ -341,6 +364,9 @@ mod tests {
 
     fn msg() -> Message {
         Message {
+            share_files: vec!["/tmp/odd path\"q\"/\u{1f600}.png".into()],
+            share_to: Some("my nas".into()),
+            share_last: true,
             launch: Some(LaunchRequest {
                 runner: Some("legendary".into()),
                 app_name: "Quail".into(),

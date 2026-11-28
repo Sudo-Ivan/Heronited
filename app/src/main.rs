@@ -1,6 +1,8 @@
 // A windowed app on Windows: no console window opens with it. Debug builds
 // keep theirs for the log; release builds log to the file only.
 #![cfg_attr(all(windows, not(debug_assertions)), windows_subsystem = "windows")]
+// the tr! macro nests deep when a module holds many strings
+#![recursion_limit = "1024"]
 
 mod assets;
 mod collection;
@@ -82,6 +84,13 @@ fn main() {
         std::process::exit(2);
     }
 
+    // `--share` without other actions: hand it to the running instance when
+    // there is one, upload inline when there is none (no socket, no window,
+    // no display needed) and print the links on stdout.
+    if !cli.share_files.is_empty() && cli.launch.is_none() && cli.open_client.is_none() && cli.mod_link.is_none() {
+        std::process::exit(share_cli(&cli));
+    }
+
     // One instance per data folder: a second start hands its request to the
     // first and exits (Heroic's `requestSingleInstanceLock`).
     let (server, messages) = match single_instance(&cli) {
@@ -102,6 +111,12 @@ fn main() {
         // `heronite://screenshot` with no instance running: no game to capture.
         SingleInstance::Primary { .. } if cli.screenshot && cli.launch.is_none() => {
             log::info!("screenshot request: Heronited is not running, nothing to capture");
+            return;
+        }
+        // `--share-last` with no instance running: no game to read captures of.
+        SingleInstance::Primary { .. } if cli.share_last && cli.launch.is_none() => {
+            log::info!("share-last request: Heronited is not running, nothing to share");
+            system::notify::send("Heronited", heronite_i18n::tr!("There is nothing to share"));
             return;
         }
         // `heronite://overlay` with no instance running: no game to open it over.
@@ -205,6 +220,80 @@ fn hand_off() -> ! {
     }
 }
 
+/// `--share` with no other request: the running instance takes it, or the
+/// files go up right here. Never opens the single-instance socket, a window
+/// or a display connection. The exit code is the process's.
+fn share_cli(cli: &system::cli::Cli) -> i32 {
+    use system::single_instance::{forward, socket_path, Forward, Message};
+    if !env::flag("HERONITE_NO_SINGLE_INSTANCE") {
+        let socket = socket_path(&heronite_data::DataPaths::detect().root);
+        let msg = Message { share_files: cli.share_files.clone(), share_to: cli.share_to.clone(), ..Default::default() };
+        match forward(&socket, &msg) {
+            Ok(Forward::Delivered) => return 0,
+            Ok(Forward::Unresponsive(reason)) => {
+                eprintln!("heronite-rs: {}", heronite_i18n::tr!("Heronited is already running but is not responding ({reason})", reason));
+                return 1;
+            }
+            Ok(Forward::NoInstance) => {}
+            Err(err) => {
+                log::warn!("could not reach the running instance: {err}");
+            }
+        }
+    }
+    // Inline: blocking uploads, progress on stderr, links on stdout.
+    let paths = heronite_data::DataPaths::detect();
+    let targets = heronite_share::Targets::load(&paths);
+    let target = match services::share::resolve_target(&targets, cli.share_to.as_deref()) {
+        services::share::Resolve::Target(id) => id,
+        services::share::Resolve::NoTargets => {
+            eprintln!("heronite-rs: {}", heronite_i18n::tr!("Set up a sharing target in Settings > Sharing"));
+            return 1;
+        }
+        services::share::Resolve::Unknown(given) => {
+            eprintln!("heronite-rs: {}: {given}", heronite_i18n::tr!("Sharing target not found"));
+            return 1;
+        }
+    };
+    let mut failed = false;
+    let mut urls = Vec::new();
+    for file in &cli.share_files {
+        let file = std::path::PathBuf::from(file);
+        let name = file.file_name().and_then(|n| n.to_str()).unwrap_or("file").to_string();
+        let mut last_len = 0;
+        let outcome = heronite_share::share(
+            &paths,
+            &target,
+            &file,
+            &heronite_share::ShareContext::default(),
+            &mut |progress: heronite_share::Progress| {
+                let line = format!("\r{name}: {}/{} bytes", progress.sent, progress.total);
+                eprint!("{line:>width$}", width = last_len.max(line.len()));
+                last_len = line.len();
+                heronite_share::Continue::Go
+            },
+        );
+        eprintln!();
+        match outcome {
+            Ok(record) => {
+                println!("{}", record.url);
+                urls.push(record.url);
+            }
+            Err(e) => {
+                eprintln!("heronite-rs: {name}: {e}");
+                failed = true;
+            }
+        }
+    }
+    if !urls.is_empty() {
+        services::share::pipe_system_clipboard(&services::share::links_text(&urls));
+    }
+    if failed {
+        1
+    } else {
+        0
+    }
+}
+
 /// `HERONITE_NO_SINGLE_INSTANCE=1` skips all of this (screenshot runs and
 /// tests never talk to the user's running instance).
 fn single_instance(cli: &system::cli::Cli) -> SingleInstance {
@@ -220,6 +309,9 @@ fn single_instance(cli: &system::cli::Cli) -> SingleInstance {
         open_client: cli.open_client,
         stop: cli.stop.clone(),
         screenshot: cli.screenshot,
+        share_files: cli.share_files.clone(),
+        share_to: cli.share_to.clone(),
+        share_last: cli.share_last,
         quick_launch: cli.quick_launch,
         overlay: cli.overlay,
         replay: cli.replay,

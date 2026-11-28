@@ -17,6 +17,7 @@ pub mod proton_setup;
 pub mod replay;
 pub mod script_install;
 pub mod session;
+pub mod share;
 pub mod steam_library;
 pub mod sunshine;
 pub mod sync;
@@ -160,5 +161,18 @@ pub fn clients(cx: &mut App) -> Entity<clients::Clients> {
     }
     let entity = cx.new(|cx| clients::Clients::new(DataPaths::detect(), cx));
     cx.set_global(ClientsGlobal(entity.clone()));
+    entity
+}
+
+struct ShareGlobal(Entity<share::ShareService>);
+impl Global for ShareGlobal {}
+
+/// The sharing service: upload jobs, targets and history (see [`share::ShareService`]).
+pub fn share(cx: &mut App) -> Entity<share::ShareService> {
+    if let Some(g) = cx.try_global::<ShareGlobal>() {
+        return g.0.clone();
+    }
+    let entity = cx.new(|_| share::ShareService::new(DataPaths::detect()));
+    cx.set_global(ShareGlobal(entity.clone()));
     entity
 }

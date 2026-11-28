@@ -17,6 +17,14 @@
 //!   it in the desktop's settings stands in for that shortcut where Heronited
 //!   cannot register one (a desktop without a global shortcuts portal).
 //!
+//! * `--share <path>` uploads a capture to a sharing target (Settings →
+//!   Sharing), `--share-to <id-or-name>` picks the target. With the app
+//!   running the upload happens there; without it the file goes up inline and
+//!   the link prints on stdout. `--share-last` (or `heronite://share-last`)
+//!   shares the newest capture of the game the running instance has open.
+//!   There is no URL form of `--share` on purpose: a web page must not be
+//!   able to make the app upload a local file.
+//!
 //! * `heronite://quick-launch` (or `--quick-launch`) opens the quick launcher,
 //!   or closes it when it is open: a key bound to it in the desktop's
 //!   settings stands in for its shortcut. With no instance running, one
@@ -69,6 +77,7 @@ pub enum UrlAction {
     Stop(LaunchRequest),
     /// Capture the running game.
     Screenshot,
+    ShareLast,
     /// Open (or close) the quick launcher.
     QuickLaunch,
     /// Open (or close) the in-game overlay.
@@ -91,6 +100,15 @@ pub struct Cli {
     /// `--screenshot` or `heronite://screenshot`: capture the game the
     /// running instance has open.
     pub screenshot: bool,
+    /// `--share <path>` (several may be given): upload the file to a sharing
+    /// target. No URL form on purpose: a web page must not make the app
+    /// upload a local file.
+    pub share_files: Vec<String>,
+    /// `--share-to <target-id-or-name>`.
+    pub share_to: Option<String>,
+    /// `--share-last` or `heronite://share-last`: share the newest capture of
+    /// the game the running instance has open (needs the instance).
+    pub share_last: bool,
     /// `--quick-launch` or `heronite://quick-launch`: open (or close) the
     /// quick launcher.
     pub quick_launch: bool,
@@ -129,6 +147,9 @@ Usage:
   heronite-rs <nxm://..|ror2mm://..>  install a mod from Nexus Mods or Thunderstore
   heronite-rs --open-client <client>  open battlenet, ea, ubisoft or rockstar (no window)
   heronite-rs --screenshot            capture the running game (for a key bound in the desktop's settings)
+  heronite-rs --share <file>          upload a capture to the default sharing target (several allowed)
+  heronite-rs --share-to <target>     pick the target by id or name (with --share)
+  heronite-rs --share-last            share the running game's newest capture (needs the app running)
   heronite-rs --quick-launch          open or close the quick launcher (for a key bound in the desktop's settings)
   heronite-rs --overlay               open or close the in-game overlay (for a key bound in the desktop's settings)
   heronite-rs --replay                save the replay of the running game (for a key bound in the desktop's settings)
@@ -216,6 +237,7 @@ pub fn parse_url(url: &str) -> Option<UrlAction> {
     match host.to_ascii_lowercase().as_str() {
         "ping" => Some(UrlAction::Ping),
         "screenshot" => Some(UrlAction::Screenshot),
+        "share-last" => Some(UrlAction::ShareLast),
         "quick-launch" => Some(UrlAction::QuickLaunch),
         "overlay" => Some(UrlAction::Overlay),
         "replay" => Some(UrlAction::Replay),
@@ -260,6 +282,31 @@ pub fn parse<I: IntoIterator<Item = String>>(args: I) -> Cli {
             HANDOFF => cli.handoff = true,
             "--autostart" => cli.autostart = true,
             "--screenshot" => cli.screenshot = true,
+            "--share-last" => cli.share_last = true,
+            "--share" => {
+                let path = args.get(i + 1).filter(|s| !s.starts_with("--"));
+                match path {
+                    None => cli.errors.push("--share needs a file: --share <path>".into()),
+                    Some(path) => {
+                        if let Err(e) = check_share_path(path) {
+                            cli.errors.push(e);
+                        } else {
+                            cli.share_files.push(path.clone());
+                        }
+                        i += 1;
+                    }
+                }
+            }
+            "--share-to" => {
+                let target = args.get(i + 1).filter(|s| !s.starts_with("--"));
+                match target {
+                    None => cli.errors.push("--share-to needs a target: --share-to <id-or-name>".into()),
+                    Some(target) => {
+                        cli.share_to = Some(target.clone());
+                        i += 1;
+                    }
+                }
+            }
             "--quick-launch" => cli.quick_launch = true,
             "--overlay" => cli.overlay = true,
             "--replay" => cli.replay = true,
@@ -314,6 +361,7 @@ pub fn parse<I: IntoIterator<Item = String>>(args: I) -> Cli {
                     Some(UrlAction::Launch(req)) if cli.launch.is_none() => cli.launch = Some(req),
                     Some(UrlAction::Stop(req)) => cli.stop = Some(req),
                     Some(UrlAction::Screenshot) => cli.screenshot = true,
+                    Some(UrlAction::ShareLast) => cli.share_last = true,
                     Some(UrlAction::QuickLaunch) => cli.quick_launch = true,
                     Some(UrlAction::Overlay) => cli.overlay = true,
                     Some(UrlAction::Replay) => cli.replay = true,
@@ -324,6 +372,25 @@ pub fn parse<I: IntoIterator<Item = String>>(args: I) -> Cli {
         i += 1;
     }
     cli
+}
+
+/// Extensions `--share` accepts: the captures the app makes.
+pub const SHARE_EXTENSIONS: [&str; 10] = ["png", "jpg", "jpeg", "webp", "gif", "mp4", "webm", "mkv", "mov", "avi"];
+
+/// The path must exist, be a regular file and look like a capture.
+pub fn check_share_path(path: &str) -> Result<(), String> {
+    let p = std::path::Path::new(path);
+    if !p.exists() {
+        return Err(format!("--share: {path} does not exist"));
+    }
+    if !p.is_file() {
+        return Err(format!("--share: {path} is not a file"));
+    }
+    let ext = p.extension().and_then(|e| e.to_str()).unwrap_or("").to_lowercase();
+    if !SHARE_EXTENSIONS.contains(&ext.as_str()) {
+        return Err(format!("--share: {path} is not a capture (png, jpg, webp, gif, mp4, webm, mkv, mov, avi)"));
+    }
+    Ok(())
 }
 
 impl Cli {

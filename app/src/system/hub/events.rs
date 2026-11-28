@@ -297,6 +297,117 @@ fn save_replay(cx: &mut App) {
     overlay.update(cx, |o, cx| o.save_replay_requested(cx));
 }
 
+/// `--share` forwarded by a second invocation: the service uploads and
+/// reports through the clipboard and a notification.
+fn share_files_request(cx: &mut App, files: Vec<String>, target: Option<String>) {
+    let files: Vec<std::path::PathBuf> = files.iter().map(std::path::PathBuf::from).collect();
+    log::info!("share request: {} file(s)", files.len());
+    crate::services::share::ShareService::share_files(cx, files, None, target, crate::services::share::ShareUi::default());
+}
+
+/// `--share-last` / `heronite://share-last`: the newest capture (screenshot
+/// or replay) of the game running, else the newest capture anywhere. Says
+/// when there is nothing.
+fn share_last_request(cx: &mut App, target: Option<String>) {
+    let game_folders: Vec<String> = {
+        let hub = hub(cx);
+        let s = hub.0.borrow();
+        // The running games' folder names: titles and the matcher's aliases.
+        let mut names: Vec<String> = Vec::new();
+        for app_name in s.running.keys() {
+            if let Some(info) = s.runtime.session_info(app_name) {
+                names.push(info.title.clone());
+                names.extend(info.aliases.clone());
+            }
+        }
+        names
+    };
+    cx.spawn(async move |cx| {
+        let found = cx
+            .background_executor()
+            .spawn(async move {
+                let paths = heronite_data::DataPaths::detect();
+                let root =
+                    heronite_data::Library::load(&paths).ok().and_then(|lib| lib.settings.screenshots_folder().map(|p| p.to_path_buf()));
+                newest_capture(root.as_deref(), &game_folders)
+            })
+            .await;
+        cx.update(|cx| match found {
+            Some((path, game_name)) => {
+                log::info!("share-last request: {}", path.display());
+                crate::services::share::ShareService::share_files(
+                    cx,
+                    vec![path],
+                    game_name,
+                    target,
+                    crate::services::share::ShareUi::default(),
+                );
+            }
+            None => {
+                log::info!("share-last request: nothing to share");
+                crate::system::notify::send("Heronited", tr!("There is nothing to share"));
+            }
+        });
+    })
+    .detach();
+}
+
+/// Every capture file under `dir`, depth-limited.
+fn capture_files(dir: &std::path::Path, depth: usize, out: &mut Vec<std::path::PathBuf>) {
+    if depth == 0 {
+        return;
+    }
+    let Ok(entries) = std::fs::read_dir(dir) else { return };
+    for entry in entries.flatten() {
+        let path = entry.path();
+        if path.is_dir() {
+            capture_files(&path, depth - 1, out);
+        } else {
+            let ext = path.extension().and_then(|e| e.to_str()).unwrap_or("").to_lowercase();
+            if crate::system::cli::SHARE_EXTENSIONS.contains(&ext.as_str()) {
+                out.push(path);
+            }
+        }
+    }
+}
+
+/// The newest capture file under `root`: inside the running game's own
+/// folders first when any are given, then anywhere. The game's folder name is
+/// the capture's game for the history. Off the UI thread.
+fn newest_capture(root: Option<&std::path::Path>, game_folders: &[String]) -> Option<(std::path::PathBuf, Option<String>)> {
+    let root = root?;
+    let mut candidates = Vec::new();
+    for game in game_folders {
+        let folder = root.join(game);
+        if folder.is_dir() {
+            capture_files(&folder, 4, &mut candidates);
+        }
+        if !candidates.is_empty() {
+            break;
+        }
+    }
+    if candidates.is_empty() {
+        capture_files(root, 4, &mut candidates);
+    }
+    let mut best: Option<(std::time::SystemTime, std::path::PathBuf)> = None;
+    for path in candidates {
+        if let Ok(modified) = std::fs::metadata(&path).and_then(|m| m.modified()) {
+            if best.as_ref().is_none_or(|(t, _)| modified > *t) {
+                best = Some((modified, path));
+            }
+        }
+    }
+    best.map(|(_, p)| {
+        // The folder right under the root names the game, when there is one.
+        let game_name = p
+            .strip_prefix(root)
+            .ok()
+            .filter(|rel| rel.components().count() > 1)
+            .and_then(|rel| rel.components().next().map(|c| c.as_os_str().to_string_lossy().to_string()));
+        (p, game_name)
+    })
+}
+
 /// A second invocation reached this instance.
 pub(super) fn on_message(cx: &mut App, msg: Message) {
     if hub(cx).0.borrow().quitting {
@@ -321,6 +432,18 @@ pub(super) fn on_message(cx: &mut App, msg: Message) {
     }
     if msg.screenshot {
         take_screenshot(cx);
+        if msg.launch.is_none() && msg.open_client.is_none() {
+            return;
+        }
+    }
+    if !msg.share_files.is_empty() {
+        share_files_request(cx, msg.share_files.clone(), msg.share_to.clone());
+        if msg.launch.is_none() && msg.open_client.is_none() {
+            return;
+        }
+    }
+    if msg.share_last {
+        share_last_request(cx, msg.share_to.clone());
         if msg.launch.is_none() && msg.open_client.is_none() {
             return;
         }

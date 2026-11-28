@@ -69,5 +69,13 @@
   "the server wants more than this login method": "der Server verlangt mehr als diese Login-Methode",
   "the share answer has no link": "die Share-Antwort enthält keinen Link",
   "the share answer is not JSON": "die Share-Antwort ist kein JSON",
-  "{file} is not a file": "{file} ist keine Datei"
+  "{file} is not a file": "{file} ist keine Datei",
+  "Nothing to share with": "Nichts zum Teilen vorhanden",
+  "Set up a sharing target in Settings > Sharing": "Richte ein Freigabeziel in Einstellungen > Freigaben ein",
+  "Sharing target not found": "Freigabeziel nicht gefunden",
+  "The share could not be deleted": "Die Freigabe konnte nicht gelöscht werden",
+  "Open Settings > Sharing and trust the server's key": "Öffne Einstellungen > Freigaben und vertraue dem Schlüssel des Servers",
+  "The upload failed": "Das Hochladen ist fehlgeschlagen",
+  "Link copied": "Link kopiert",
+  "There is nothing to share": "Es gibt nichts zu teilen"
 }

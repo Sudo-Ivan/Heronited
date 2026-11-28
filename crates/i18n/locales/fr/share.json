@@ -69,5 +69,13 @@
   "the server wants more than this login method": "le serveur demande plus que cette méthode d'authentification",
   "the share answer has no link": "la réponse de partage n'a pas de lien",
   "the share answer is not JSON": "la réponse de partage n'est pas du JSON",
-  "{file} is not a file": "{file} n'est pas un fichier"
+  "{file} is not a file": "{file} n'est pas un fichier",
+  "Nothing to share with": "Rien avec quoi partager",
+  "Set up a sharing target in Settings > Sharing": "Configurez une cible de partage dans Paramètres > Partage",
+  "Sharing target not found": "Cible de partage introuvable",
+  "The share could not be deleted": "Le partage n'a pas pu être supprimé",
+  "Open Settings > Sharing and trust the server's key": "Ouvrez Paramètres > Partage et faites confiance à la clé du serveur",
+  "The upload failed": "L'envoi a échoué",
+  "Link copied": "Lien copié",
+  "There is nothing to share": "Il n'y a rien à partager"
 }
