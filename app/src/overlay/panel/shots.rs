@@ -132,6 +132,25 @@ impl OverlayPanel {
         }
     }
 
+    /// X on a capture (or its click in the viewer): the link lands in the
+    /// clipboard and a desktop notification; the panel stays open. A job
+    /// already moving the file makes it a no-op.
+    pub(super) fn share_shot(&mut self, i: usize, cx: &mut Context<Self>) {
+        let Some(shot) = self.data.shots.get(i) else { return };
+        if crate::services::share_busy(cx, &shot.name, &self.share_pending) {
+            return;
+        }
+        let path = shot.path.clone();
+        let game = self.game.as_ref().map(|g| g.title());
+        let svc = crate::services::share(cx);
+        if self.share_sub.is_none() {
+            self.share_sub = Some(cx.observe(&svc, |_, _, cx| cx.notify()));
+        }
+        self.share_pending.insert(shot.name.clone());
+        crate::services::share::ShareService::share_files(cx, vec![path], game, None, crate::services::share::ShareUi::default());
+        cx.notify();
+    }
+
     pub(super) fn viewer_pad(&mut self, pad: Pad) {
         let Some(i) = self.viewer else { return };
         let n = self.data.shots.len();
@@ -146,12 +165,30 @@ impl OverlayPanel {
         }
     }
 
-    pub(super) fn render_viewer(&self) -> Option<AnyElement> {
+    pub(super) fn render_viewer(&self, cx: &mut Context<Self>) -> Option<AnyElement> {
         let i = self.viewer?;
         let shot = self.data.shots.get(i)?;
         let count = tr!("{n} of {total}", n = i + 1, total = self.data.shots.len());
         let when = shot.taken_at.and_then(taken_label).unwrap_or_default();
         let note = self.shot_note(&shot.path).map(|e| e.text.clone()).filter(|t| !t.is_empty());
+        let share = {
+            let busy = crate::services::share_busy(cx, &shot.name, &self.share_pending);
+            let mut b = div().flex_none().size(u(26.)).rounded_full().flex().items_center().justify_center().bg(theme::white_a(0.1));
+            if busy {
+                b = b.opacity(0.55).child(icon(Icon::FaSpinner, u(13.), theme::text_primary()).with_animation(
+                    "overlay-share-spin",
+                    Animation::new(std::time::Duration::from_secs(1)).repeat().with_max_fps(30.),
+                    |s, t| s.with_transformation(Transformation::rotate(percentage(t))),
+                ));
+            } else {
+                b = b.on_mouse_down(MouseButton::Left, self.click(move |p, _, cx| p.share_shot(i, cx))).child(icon(
+                    Icon::Share,
+                    u(14.),
+                    theme::text_primary(),
+                ));
+            }
+            b
+        };
         Some(
             div()
                 .absolute()
@@ -182,7 +219,7 @@ impl OverlayPanel {
                         .text_size(u(13.))
                         .text_color(theme::text_muted())
                         .child(count)
-                        .child(when),
+                        .child(div().flex().items_center().gap(u(10.)).child(share).child(when)),
                 )
                 .child(self.render_hints())
                 .into_any_element(),

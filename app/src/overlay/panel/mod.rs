@@ -19,7 +19,7 @@ use std::time::Duration;
 use gpui_kit::prelude::*;
 use gpui_kit::*;
 use heronite_data::DataPaths;
-use heronite_i18n::tr;
+use heronite_i18n::{tr, trc};
 use heronite_overlay::audio::AudioState;
 use heronite_overlay::input::{Button, Controller};
 
@@ -108,6 +108,10 @@ pub struct OverlayPanel {
     rows_scroll: ScrollHandle,
     /// Capture shown full size.
     viewer: Option<usize>,
+    /// Redraws while the sharing service's jobs move (started on the first share).
+    share_sub: Option<Subscription>,
+    /// Files shared here, before their job shows in the service's snapshot.
+    share_pending: std::collections::HashSet<String>,
     /// Shown under the rows after a failed action.
     error: Option<SharedString>,
     /// Opened from the keyboard: it has the keyboard and shows keys.
@@ -196,6 +200,8 @@ impl OverlayPanel {
             capture: 0,
             rows_scroll: ScrollHandle::new(),
             viewer: None,
+            share_sub: None,
+            share_pending: Default::default(),
             error: None,
             keyboard,
             focus,
@@ -301,6 +307,8 @@ impl OverlayPanel {
         if let Some(i) = self.viewer {
             if pad == Pad::Y {
                 self.capture_note(i, cx);
+            } else if pad == Pad::X {
+                self.share_shot(i, cx);
             } else {
                 self.viewer_pad(pad);
             }
@@ -329,6 +337,8 @@ impl OverlayPanel {
         if let Some(i) = self.grid {
             if pad == Pad::Y {
                 self.capture_note(i, cx);
+            } else if pad == Pad::X {
+                self.share_shot(i, cx);
             } else {
                 self.grid_pad(pad);
             }
@@ -394,6 +404,7 @@ impl OverlayPanel {
             if notes {
                 h.push(hint(Btn::Y, tr!("Note")));
             }
+            h.push(hint(Btn::X, trc!("verb", "Share")));
             h.push(hint(Btn::B, tr!("Back")));
             return h;
         }
@@ -422,8 +433,15 @@ impl OverlayPanel {
         if self.grid.is_none() && self.nav.focused(&rows).is_some_and(|r| r.id.as_ref() == MEDIA) {
             return self.media_hints();
         }
-        if self.grid.is_some() && notes {
-            return vec![hint(Btn::A, tr!("View")), hint(Btn::Y, tr!("Note")), hint(Btn::B, tr!("Close")), hint(Btn::Bumpers, tr!("Tabs"))];
+        if self.grid.is_some() {
+            let mut h = vec![hint(Btn::A, tr!("View"))];
+            if notes {
+                h.push(hint(Btn::Y, tr!("Note")));
+            }
+            h.push(hint(Btn::X, trc!("verb", "Share")));
+            h.push(hint(Btn::B, tr!("Close")));
+            h.push(hint(Btn::Bumpers, tr!("Tabs")));
+            return h;
         }
         if self.tab() == Tab::Notes && notes {
             return vec![
@@ -774,7 +792,7 @@ impl Render for OverlayPanel {
             let rows = confirm_rows(confirm);
             panel = panel.child(list::simple_dialog(&mut self.confirm_nav, "overlay-confirm", title, message, None, &rows));
         }
-        if let Some(viewer) = self.render_viewer() {
+        if let Some(viewer) = self.render_viewer(cx) {
             // A click on the capture closes it (A); nothing under it takes clicks.
             panel = panel.child(div().absolute().inset_0().occlude().on_pads([Pad::A]).child(viewer));
         }
