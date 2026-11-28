@@ -38,8 +38,10 @@ Heronited tracks [Heronite](https://github.com/RafaelGoulartB/Heronite) and pick
 - **Secrets are sealed with the OS keyring** before they are stored.
 - **Packaging is ours:** AppImage, Flatpak, and the system packages under the app id `io.github.sudoivan.Heronited`. Upstream's COPR, Scoop, and Winget channels are not carried.
 - **CI and releases are hardened for this repository:** pinned actions, zizmor audits, minisign-signed updates.
+- **More built-in appearance profiles:** Void, OLED, Nord, Dracula, Catppuccin Mocha, Gruvbox Dark, and Catppuccin Latte join upstream's four.
+- **Idles at zero on X11:** the window's refresh timer parks while nothing changes, so an idle window costs no wakeups (upstream redraws at the display's refresh rate).
 
-Upstream's larger feature work, like the console-mode redesign, is not pulled in yet. Bug fixes and small self-contained changes are cherry-picked as they land.
+Upstream main is merged in full with `git merge upstream/main`, so syncing is a plain merge. The points above are where Heronited still differs.
 
 ## Download
 
